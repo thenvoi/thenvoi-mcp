@@ -110,7 +110,7 @@ The Thenvoi tools will appear automatically in the chat interface.
 <summary><strong>Claude Desktop Setup</strong></summary>
 
 1. Locate your Claude Desktop configuration file:
-   - **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Mac:** `~/Library/Application\ Support/Claude/claude_desktop_config.json`
    - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
    - **Linux:** `~/.config/Claude/claude_desktop_config.json`
 
