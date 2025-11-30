@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 """
-LangGraph agent that uses Thenvoi MCP tools with langchain-mcp-adapters.
+LangChain agent that uses Thenvoi MCP tools with langchain-mcp-adapters.
 
-This example shows how to use the Thenvoi MCP server with LangGraph
-using the MultiServerMCPClient from langchain-mcp-adapters.
+This example shows how to use the Thenvoi MCP server with a LangChain
+agent using the newer create_agent pattern (built on LangGraph).
 
 Usage:
     export OPENAI_API_KEY="sk-..."
     export THENVOI_API_KEY="thnv_..."
-    uv run examples/langgraph_agent.py
+    uv run examples/langchain_agent.py
 """
 
 import asyncio
 import logging
 import os
-from typing import Annotated
 
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
-from langgraph.graph import MessagesState, StateGraph, START
-from langgraph.prebuilt import ToolNode, tools_condition
 
 load_dotenv()
 
@@ -30,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
-    """Run LangGraph agent with Thenvoi MCP tools."""
+    """Run LangChain agent with Thenvoi MCP tools."""
     if not os.getenv("OPENAI_API_KEY") or not os.getenv("THENVOI_API_KEY"):
         logger.error("Error: Set OPENAI_API_KEY and THENVOI_API_KEY")
         return
@@ -58,31 +55,19 @@ async def main() -> None:
     tools = await client.get_tools()
     logger.info(f"Loaded {len(tools)} tools!")
 
-    # Create LLM and bind tools
-    model = ChatOpenAI(model="gpt-4o", temperature=0)
+    # Create LLM
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-    # Define the agent node
-    def call_model(state: MessagesState):
-        """Agent node that calls the LLM with available tools."""
-        response = model.bind_tools(tools).invoke(state["messages"])
-        return {"messages": [response]}
-
-    # Build the graph
-    builder = StateGraph(MessagesState)
-    builder.add_node("agent", call_model)
-    builder.add_node("tools", ToolNode(tools))
-    builder.add_edge(START, "agent")
-    builder.add_conditional_edges("agent", tools_condition)
-    builder.add_edge("tools", "agent")
-    graph = builder.compile()
+    # Create the agent using LangChain's create_agent
+    # (This is the modern approach that uses LangGraph under the hood)
+    agent_executor = create_agent(llm, tools)
 
     logger.info("\n" + "=" * 50)
-    logger.info("LangGraph Agent Ready!")
+    logger.info("LangChain Agent Ready!")
     logger.info("=" * 50)
     logger.info("Type 'exit' to quit\n")
 
     # Interactive loop
-    messages: list[BaseMessage] = []
     while True:
         user_input = input("You: ").strip()
         if not user_input:
@@ -90,11 +75,15 @@ async def main() -> None:
         if user_input.lower() in ["exit", "quit", "q"]:
             break
 
-        messages.append(HumanMessage(content=user_input))
-        result = await graph.ainvoke({"messages": messages})
-        messages = result["messages"]
-        logger.info("\nAgent: %s\n", messages[-1].content)
+        try:
+            result = await agent_executor.ainvoke({"messages": [("user", user_input)]})
+            # Get the last message from the agent
+            last_message = result["messages"][-1]
+            logger.info(f"\nAgent: {last_message.content}\n")
+        except Exception as e:
+            logger.error(f"\nError: {str(e)}\n")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
