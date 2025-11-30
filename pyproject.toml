@@ -1,0 +1,65 @@
+[project]
+name = "thenvoi-mcp"
+version = "1.0.0"
+description = "Model Context Protocol (MCP) server for Thenvoi integration"
+readme = "README.md"
+authors = [{ name = "thenvoi" }]
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "thenvoi @ git+ssh://git@github.com/thenvoi/fern-python-sdk.git",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "respx>=0.20.0",
+]
+
+[project.scripts]
+thenvoi-mcp = "thenvoi_mcp.server:run"
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--cov=src/thenvoi_mcp",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-fail-under=20",
+]
+
+[tool.coverage.run]
+source = ["src/thenvoi_mcp"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.4.0",
+    "ruff>=0.8.0",
+    "pyrefly>=0.2.0",
+]
