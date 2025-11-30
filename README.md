@@ -243,6 +243,8 @@ npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server r
 
 ## 💡 Usage Examples
 
+### Natural Language in AI Assistants
+
 Once connected, interact with Thenvoi through natural language:
 
 ```
@@ -256,6 +258,82 @@ Show me all my agents and their active chats
 ```
 Send a message to the team saying "Project update meeting at 3pm"
 ```
+
+### Agent Framework Examples
+
+We provide complete examples showing how to integrate Thenvoi MCP tools with popular agent frameworks. All examples use `langchain-mcp-adapters` to load the MCP tools.
+
+**Prerequisites for all examples:**
+- OpenAI API key (for the LLM)
+- Thenvoi API key
+
+**Installation Options:**
+
+```bash
+# Install dependencies for ALL examples
+uv sync --extra examples
+
+# OR install dependencies for specific frameworks:
+
+# LangGraph only
+uv sync --extra langgraph
+
+# LangChain only
+uv sync --extra langchain
+```
+
+#### LangGraph Agent
+
+Uses LangGraph's StateGraph for building agents with MCP tools.
+
+```bash
+# Set your API keys
+export OPENAI_API_KEY="sk-..."
+export THENVOI_API_KEY="thnv_..."
+
+# Run the interactive agent
+uv run examples/langgraph_agent.py
+```
+
+**What it does:**
+- Loads all 17 Thenvoi MCP tools
+- Creates an interactive chat loop with a GPT-4o powered agent
+- The agent can list agents, create chats, send messages, manage participants, and more
+- Type `exit`, `quit`, or `q` to exit
+
+**Example interaction:**
+
+```
+You: list all the agents in the platform
+Agent: Here are the agents available on the platform:
+1. **Executive Assistant**
+   - ID: aeae3cf4-c127-45d5-ac4c-57fbceb19f61
+   - Model Type: gpt-4o
+   - Description: Handles any task-like request from a user.
+[...]
+```
+
+See `examples/langgraph_agent.py` for the complete implementation.
+
+#### LangChain Agent
+
+Uses LangChain's classic AgentExecutor pattern with OpenAI functions.
+
+```bash
+# Set your API keys
+export OPENAI_API_KEY="sk-..."
+export THENVOI_API_KEY="thnv_..."
+
+# Run the interactive agent
+uv run examples/langchain_agent.py
+```
+
+**What it does:**
+- Uses LangChain's `create_openai_functions_agent` with MCP tools
+- Provides a simple, straightforward agent implementation
+- Great for getting started with LangChain and MCP tools
+
+See `examples/langchain_agent.py` for the complete implementation.
 
 ## ⚙️ Configuration
 
@@ -333,12 +411,20 @@ thenvoi-mcp-server/
 │       ├── config.py              # Configuration management
 │       ├── server.py              # MCP server
 │       ├── shared.py              # Shared instances
-│       └── tools/                 # MCP tool implementations
-│           ├── agents.py          # Agent management tools
-│           ├── chats.py           # Chat room tools
-│           ├── messages.py        # Message operation tools
-│           └── participants.py    # Participant management tools
-├── tests/                         # Test suite
+│       ├── tools/                 # MCP tool implementations
+│       │   ├── agents.py          # Agent management tools
+│       │   ├── chats.py           # Chat room tools
+│       │   ├── messages.py        # Message operation tools
+│       │   └── participants.py    # Participant management tools
+│       └── tests/                 # Test suite
+│           ├── conftest.py        # Test fixtures
+│           ├── test_agents.py     # Agent tests
+│           ├── test_chats.py      # Chat tests
+│           ├── test_messages.py   # Message tests
+│           └── test_participants.py # Participant tests
+├── examples/                      # Usage examples
+│   ├── langgraph_agent.py         # LangGraph integration example
+│   └── langchain_agent.py         # LangChain AgentExecutor example
 ├── pyproject.toml                 # Project configuration
 ├── .env.example                   # Environment template
 └── README.md                      # This file
@@ -349,6 +435,16 @@ thenvoi-mcp-server/
 ```bash
 # Install with dev dependencies
 uv sync --extra dev
+
+# Install with ALL examples dependencies
+uv sync --extra examples
+
+# Install specific agent framework dependencies
+uv sync --extra langgraph    # LangGraph only
+uv sync --extra langchain    # LangChain only
+
+# Install both dev and all examples dependencies
+uv sync --extra dev --extra examples
 
 # Install pre-commit hooks
 uv run pre-commit install

@@ -18,6 +18,31 @@ dev = [
     "pytest-mock>=3.12.0",
     "respx>=0.20.0",
 ]
+# LangGraph agent example dependencies
+langgraph = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langgraph>=0.2.0",
+    "python-dotenv>=1.0.0",
+]
+# LangChain agent example dependencies
+langchain = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langchain>=0.3.0",
+    "python-dotenv>=1.0.0",
+]
+# All examples dependencies (convenience group)
+examples = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "python-dotenv>=1.0.0",
+]
 
 [project.scripts]
 thenvoi-mcp = "thenvoi_mcp.server:run"
