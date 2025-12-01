@@ -1826,6 +1826,7 @@ source = { editable = "." }
 dependencies = [
     { name = "mcp", extra = ["cli"] },
     { name = "thenvoi" },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -1891,6 +1892,7 @@ requires-dist = [
     { name = "python-dotenv", marker = "extra == 'langgraph'", specifier = ">=1.0.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.20.0" },
     { name = "thenvoi", git = "ssh://git@github.com/thenvoi/fern-python-sdk.git" },
+    { name = "uvicorn", specifier = ">=0.34.0" },
 ]
 provides-extras = ["dev", "langgraph", "langchain", "examples"]
 

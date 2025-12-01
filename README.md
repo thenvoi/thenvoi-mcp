@@ -13,6 +13,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that pr
 - 📨 **Message Handling** - Send and manage messages with support for multiple message types
 - 👥 **Participant Management** - Control chat room participants and roles
 - 🔌 **MCP Protocol** - Full compliance with the Model Context Protocol specification
+- 🌐 **Dual Transport** - STDIO for IDE integration, SSE for remote/persistent deployments
 - 🔒 **Secure Configuration** - Environment-based configuration with validation
 - ✅ **Comprehensive Testing** - Integration tests for end-to-end workflows
 
@@ -59,11 +60,20 @@ uv run pre-commit install
 
 The hooks will automatically check and format your code before each commit.
 
-## 📦 Install in Your IDE
+## 📦 Transport Options
+
+The Thenvoi MCP Server supports two transport modes:
+
+| Transport | Use Case | API Key Location |
+|-----------|----------|------------------|
+| **STDIO** | IDE integration (Cursor, Claude Desktop, VS Code) | Passed in client config |
+| **SSE** | Remote servers, Docker, cloud deployments | Server's `.env` file |
+
+## 📦 STDIO Transport (IDE Integration)
 
 The STDIO transport is perfect for local development and IDE integration. The server starts automatically when your AI assistant needs it.
 
-### IDE Integration
+### IDE Configuration
 
 Configure your AI assistant to use the Thenvoi MCP Server with the following JSON structure:
 
@@ -200,13 +210,12 @@ uv run thenvoi-mcp
 npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server run thenvoi-mcp
 ```
 
-## 🔨 Available Tools
+## 🔨 Available Tools (17 total)
 
 ### Agent Management
 
 - `list_agents` - List all accessible agents
 - `get_agent` - Get detailed agent information
-- `create_agent` - Create a new AI agent
 - `update_agent` - Update agent properties
 - `list_agent_chats` - List chats for a specific agent
 
@@ -346,11 +355,131 @@ Configure the server using `.env` file:
 THENVOI_API_KEY=your-api-key-here
 THENVOI_BASE_URL=https://app.thenvoi.com
 
+# Transport (optional, defaults to stdio)
+MCP_TRANSPORT=stdio      # Options: stdio, sse
+MCP_HOST=127.0.0.1       # SSE server host (only used when MCP_TRANSPORT=sse)
+MCP_PORT=8000            # SSE server port (only used when MCP_TRANSPORT=sse)
+
 # Optional
 THENVOI_LOG_LEVEL=info  # Options: debug, info, warning, error
 ```
 
 > **Important:** Never commit your `.env` file to version control. It's already in `.gitignore`.
+
+## 🌐 SSE Transport (Remote Deployment)
+
+For deployments where you need a long-running HTTP server (e.g., Docker, cloud services), use SSE transport.
+
+> **Important:** When using SSE transport, the API key is configured on the server (in `.env`), not passed by the client. The MCP client must use an agent ID that corresponds to the API key configured on the server.
+
+### Server Setup
+
+**1. Configure `.env` file:**
+
+```bash
+# Required
+THENVOI_API_KEY=your-api-key-here
+THENVOI_BASE_URL=https://app.thenvoi.com
+
+# SSE Transport
+MCP_TRANSPORT=sse
+MCP_HOST=0.0.0.0
+MCP_PORT=8000
+```
+
+**2. Start the server:**
+
+```bash
+uv run thenvoi-mcp
+```
+
+**Expected output:**
+
+```
+2025-11-30 10:00:00,000 - thenvoi-mcp - INFO - Starting thenvoi-mcp-server v1.0.0
+2025-11-30 10:00:00,000 - thenvoi-mcp - INFO - Base URL: https://app.thenvoi.com
+2025-11-30 10:00:00,000 - thenvoi-mcp - INFO - Transport: sse
+2025-11-30 10:00:00,000 - thenvoi-mcp - INFO - SSE server listening on 0.0.0.0:8000
+```
+
+### Client Connection (SSE)
+
+Connect to the SSE server using this configuration:
+
+```json
+{
+  "mcpServers": {
+    "thenvoi": {
+      "url": "http://127.0.0.1:8000/sse"
+    }
+  }
+}
+```
+
+For remote servers, replace `127.0.0.1` with the server's address.
+
+### Docker Deployment
+
+A `Dockerfile` is included in the repository for easy deployment.
+
+```bash
+# Build the image
+docker build -t thenvoi-mcp .
+
+# Run the container
+docker run -p 8000:8000 \
+  -e THENVOI_API_KEY=your-api-key \
+  -e THENVOI_BASE_URL=https://app.thenvoi.com \
+  thenvoi-mcp
+```
+
+For local development (connecting to localhost services), use `host.docker.internal`:
+
+```bash
+docker run -p 8000:8000 \
+  -e THENVOI_API_KEY=your-api-key \
+  -e THENVOI_BASE_URL=http://host.docker.internal:4000 \
+  thenvoi-mcp
+```
+
+The server will be available at `http://localhost:8000/sse`.
+
+### Running Multiple Agents
+
+Each SSE server instance is tied to a single agent via its API key. To support multiple agents, run separate containers on different ports:
+
+```bash
+# Agent A on port 8001
+docker run -d --name mcp-agent-a \
+  -p 8001:8000 \
+  -e THENVOI_API_KEY=api-key-for-agent-a \
+  -e THENVOI_BASE_URL=https://app.thenvoi.com \
+  --restart unless-stopped \
+  thenvoi-mcp
+
+# Agent B on port 8002
+docker run -d --name mcp-agent-b \
+  -p 8002:8000 \
+  -e THENVOI_API_KEY=api-key-for-agent-b \
+  -e THENVOI_BASE_URL=https://app.thenvoi.com \
+  --restart unless-stopped \
+  thenvoi-mcp
+```
+
+Connect to multiple agents:
+
+```json
+{
+  "mcpServers": {
+    "agent-a": {
+      "url": "http://localhost:8001/sse"
+    },
+    "agent-b": {
+      "url": "http://localhost:8002/sse"
+    }
+  }
+}
+```
 
 ## 🚨 Troubleshooting
 

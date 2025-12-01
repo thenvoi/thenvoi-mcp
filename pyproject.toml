@@ -8,6 +8,7 @@ requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.2.0",
     "thenvoi @ git+ssh://git@github.com/thenvoi/fern-python-sdk.git",
+    "uvicorn>=0.34.0",
 ]
 
 [project.optional-dependencies]
@@ -88,3 +89,7 @@ dev = [
     "ruff>=0.8.0",
     "pyrefly>=0.2.0",
 ]
+
+[tool.pyrefly]
+project-includes = ["src/thenvoi_mcp"]
+project-excludes = ["**/.[!/.]*", "**/*venv/**", "**/examples/**", "**/tests/**"]

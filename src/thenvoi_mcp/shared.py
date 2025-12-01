@@ -24,4 +24,8 @@ client = ThenvoiClient(
 )
 
 # Global MCP server instance
-mcp = FastMCP(name="thenvoi-mcp-server")
+mcp = FastMCP(
+    name="thenvoi-mcp-server",
+    host=settings.mcp_host,
+    port=settings.mcp_port,
+)

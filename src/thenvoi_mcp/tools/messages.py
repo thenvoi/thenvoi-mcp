@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from thenvoi_api.core.api_error import ApiError
 
@@ -121,71 +121,19 @@ async def create_chat_message(
     content: str,
     recipient_ids: Optional[str] = None,
     message_type: Optional[str] = None,
+    participants: Optional[List[dict]] = None,
 ) -> str:
-    """Send a message in a chat room FROM the authenticated user.
-
-    CRITICAL: This tool ALWAYS sends FROM the authenticated user. You CANNOT send
-    FROM agents or other users. There is NO sender_id or sender_type parameter.
-
-    HOW TO INTERPRET USER REQUESTS:
-
-    When user says: "send message TO [person]"
-    - Use recipient_ids parameter with that person's ID
-    - Message is sent FROM authenticated user TO that person (with @mention)
-    - DO NOT try to send FROM that person!
-
-    When user says: "send message saying [text]"
-    - Just use content parameter
-    - Message broadcasts to everyone FROM authenticated user
-
-    WRONG INTERPRETATION:
-    User: "Send message to dan_agent"
-    Wrong: Try to send FROM dan_agent
-    Correct: Send FROM authenticated user TO dan_agent using recipient_ids
-
-    EXAMPLES:
-
-    User Request: "Send message TO dan_agent saying hello"
-    Correct Usage:
-        create_chat_message(
-            chat_id="123",
-            content="hello",
-            recipient_ids="dan-agent-id"
-        )
-        Result: "@dan_agent hello" sent FROM authenticated user
-
-    User Request: "Send message TO sarah and mike"
-    Correct Usage:
-        create_chat_message(
-            chat_id="123",
-            content="Can you help?",
-            recipient_ids="sarah-id,mike-id"
-        )
-        Result: "@sarah @mike Can you help?" sent FROM authenticated user
-
-    User Request: "Broadcast 'meeting in 5 minutes'"
-    Correct Usage:
-        create_chat_message(
-            chat_id="123",
-            content="meeting in 5 minutes"
-            # No recipient_ids = broadcast to everyone
-        )
-        Result: "meeting in 5 minutes" sent FROM authenticated user
+    """Send a message to a chat room.
 
     Args:
-        chat_id: The unique identifier of the chat room (required).
-        content: The message content/text (required).
-        recipient_ids: Comma-separated participant IDs to send TO (optional).
-                      These people will be @mentioned in the message.
-                      Example: "user-123,agent-456,user-789"
-                      Must be verified chat participants.
-        message_type: Optional message type (defaults to 'text').
+        chat_id: Chat room UUID.
+        content: Message text. Use @name for mentions (e.g. "@John Hello"), never UUIDs.
+        recipient_ids: Comma-separated UUIDs for mention tracking.
+        message_type: Message type (default: 'text').
+        participants: Array of {id, name} dicts. Skips API call if provided.
 
     Returns:
-        Success message with the created message's ID.
-
-    REMINDER: Sender is ALWAYS authenticated user. Use list_chat_participants
-    to get IDs of people you want to send TO.
+        Success message with created message ID.
     """
     logger.debug(f"Creating message in chat: {chat_id}")
 
@@ -194,74 +142,75 @@ async def create_chat_message(
     sender_id = profile.data.id if hasattr(profile, "data") else profile.id
     logger.debug(f"Authenticated user ID: {sender_id}")
 
-    # Process recipients if provided
-    mentions_list = None
-    formatted_content = content
+    # Build participant maps (by ID and by name)
+    participant_by_id = {}
+    participant_by_name = {}
 
+    if participants:
+        # Use provided participants (from caller's cache)
+        for p in participants:
+            p_id = p["id"]
+            display_name = p["name"]
+            participant_by_id[p_id] = display_name
+            participant_by_name[display_name.lower()] = {
+                "id": p_id,
+                "name": display_name,
+            }
+        logger.debug(f"Using {len(participants)} cached participants")
+    else:
+        # Fallback: fetch from API
+        participants_result = client.chat_participants.list_chat_participants(
+            chat_id=chat_id
+        )
+        participants_data = (
+            participants_result.data if hasattr(participants_result, "data") else []
+        )
+        participants_data = participants_data or []
+
+        for p in participants_data:
+            p_id = (
+                p.participant_id
+                if hasattr(p, "participant_id")
+                else (p.id if hasattr(p, "id") else None)
+            )
+            if p_id:
+                display_name = None
+                if hasattr(p, "agent_name") and p.agent_name:
+                    display_name = p.agent_name
+                elif hasattr(p, "name") and p.name:
+                    display_name = p.name
+                elif hasattr(p, "first_name") and p.first_name:
+                    display_name = p.first_name
+                    if hasattr(p, "last_name") and p.last_name:
+                        display_name = f"{p.first_name} {p.last_name}"
+                display_name = display_name or p_id
+                participant_by_id[p_id] = display_name
+                participant_by_name[display_name.lower()] = {
+                    "id": p_id,
+                    "name": display_name,
+                }
+        logger.debug(f"Fetched {len(participants_data)} participants from API")
+
+    # Build mentions list by checking if any participant name appears after @ in content
+    mentions_list = []
+    content_lower = content.lower()
+    for name_lower, p in participant_by_name.items():
+        if f"@{name_lower}" in content_lower:
+            mentions_list.append({"id": p["id"], "username": p["name"]})
+
+    # Also process recipient_ids if provided (add to mentions if not already present)
     if recipient_ids:
-        # Parse recipient IDs
         recipient_list = [
             rid.strip() for rid in recipient_ids.split(",") if rid.strip()
         ]
-
-        if recipient_list:
-            # Get chat participants to verify recipients are in the chat
-            participants_result = client.chat_participants.list_chat_participants(
-                chat_id=chat_id
-            )
-            participants_data = (
-                participants_result.data if hasattr(participants_result, "data") else []
-            )
-            participants_data = participants_data or []
-
-            # Extract participant IDs and their details
-            participant_map = {}
-            for p in participants_data:
-                p_id = (
-                    p.participant_id
-                    if hasattr(p, "participant_id")
-                    else (p.id if hasattr(p, "id") else None)
-                )
-                if p_id:
-                    # For agents, use agent_name; for users, use name
-                    display_name = None
-                    if hasattr(p, "agent_name") and p.agent_name:
-                        display_name = p.agent_name
-                    elif hasattr(p, "name") and p.name:
-                        display_name = p.name
-
-                    participant_map[p_id] = {
-                        "display_name": display_name or p_id,
-                        "type": p.participant_type
-                        if hasattr(p, "participant_type")
-                        else (p.type if hasattr(p, "type") else None),
-                    }
-
-            # Verify all recipients are in the chat
-            invalid_recipients = [
-                rid for rid in recipient_list if rid not in participant_map
-            ]
-            if invalid_recipients:
-                error_msg = f"The following recipients are not participants in the chat room: {', '.join(invalid_recipients)}"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-
-            # Build mentions list
-            mentions_list = []
-            mention_tags: list[str] = []
-            for rid in recipient_list:
-                participant = participant_map[rid]
-                display_name = participant["display_name"]
-                # Ensure types for mentions
-                mentions_list.append({"id": str(rid), "username": str(display_name)})
-                mention_tags.append(str(f"@{display_name}"))
-
-            # Format message with @ mentions: @user1 @user2 @user3 message content
-            formatted_content = f"{' '.join(mention_tags)} {content}"
+        existing_ids = {m["id"] for m in mentions_list}
+        for rid in recipient_list:
+            if rid in participant_by_id and rid not in existing_ids:
+                mentions_list.append({"id": rid, "username": participant_by_id[rid]})
 
     # Build request
     request_data = {
-        "content": formatted_content,
+        "content": content,
         "sender_id": sender_id,
         "sender_type": "User",  # Always User since we're sending from authenticated user
     }
@@ -270,7 +219,7 @@ async def create_chat_message(
     else:
         request_data["message_type"] = "text"  # Default to text
 
-    if mentions_list is not None:
+    if mentions_list:
         request_data["mentions"] = mentions_list
 
     # Send the message

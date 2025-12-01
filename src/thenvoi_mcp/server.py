@@ -21,11 +21,17 @@ async def health_check() -> str:
 
 
 def run() -> None:
-    """Run the MCP server with STDIO transport."""
+    """Run the MCP server with configured transport."""
     logger.info("Starting thenvoi-mcp-server v1.0.0")
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
-    logger.info("Server ready - listening for MCP protocol messages on STDIO")
-    mcp.run(transport="stdio")
+    logger.info(f"Transport: {settings.mcp_transport}")
+
+    if settings.mcp_transport == "sse":
+        logger.info(f"SSE server listening on {settings.mcp_host}:{settings.mcp_port}")
+        mcp.run(transport="sse")
+    else:
+        logger.info("Server ready - listening for MCP protocol messages on STDIO")
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":

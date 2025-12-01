@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +12,11 @@ class Settings(BaseSettings):
         ""  # Comma-separated list of enabled tools (empty = all enabled)
     )
     read_only_mode: bool = False  # If True, only allow read operations
+
+    # Transport settings
+    mcp_transport: Literal["stdio", "sse"] = "stdio"
+    mcp_host: str = "127.0.0.1"  # SSE server host
+    mcp_port: int = 8000  # SSE server port
 
     # Logging and Debug
     mcp_very_verbose: bool = False  # Detailed logging
