@@ -14,14 +14,15 @@ class TestMessageIntegration:
             list_chat_messages,
             delete_chat_message,
         )
-        from thenvoi_mcp import shared
         from thenvoi_api.types import AgentRequest
+
+        client, ctx = setup_test_client
 
         # Use timestamp with milliseconds for unique names
         timestamp = int(time.time() * 1000)
 
         # Setup: Create agent using direct API call
-        response = shared.client.agents.create_agent(
+        response = client.agents.create_agent(
             agent=AgentRequest(
                 name=f"Message Test Agent {timestamp}",
                 model_type="gpt-4o-mini",
@@ -34,6 +35,7 @@ class TestMessageIntegration:
 
         try:
             create_chat_result = await create_chat(
+                ctx,
                 title=f"Test Chat for Messages {timestamp}",
                 chat_type="direct",
                 owner_id=agent_id,
@@ -44,34 +46,33 @@ class TestMessageIntegration:
             chat_id = create_chat_result.split(": ")[1].strip()
 
             try:
-                # 1. Create message
+                # 1. Create message (note: create_chat_message now gets sender from auth)
                 create_msg_result = await create_chat_message(
+                    ctx,
                     chat_id=chat_id,
                     content="Test message from integration test",
-                    sender_id=agent_id,
-                    sender_type="Agent",
                 )
 
-                assert "Message created successfully" in create_msg_result
+                assert "Message sent successfully" in create_msg_result
                 message_id = create_msg_result.split(": ")[1].strip()
 
                 # 2. List messages (should include our test message)
-                list_result = await list_chat_messages(chat_id=chat_id)
+                list_result = await list_chat_messages(ctx, chat_id=chat_id)
                 assert message_id in list_result
                 assert "Test message from integration test" in list_result
 
                 # 3. Delete message
                 delete_msg_result = await delete_chat_message(
-                    chat_id=chat_id, message_id=message_id
+                    ctx, chat_id=chat_id, message_id=message_id
                 )
                 assert "Message deleted successfully" in delete_msg_result
 
             finally:
                 # Cleanup: Delete chat
-                await delete_chat(chat_id=chat_id)
+                await delete_chat(ctx, chat_id=chat_id)
         finally:
             # Cleanup: Delete agent
             try:
-                shared.client.agents.delete_agent(id=agent_id)
+                client.agents.delete_agent(id=agent_id)
             except Exception as e:
                 print(f"Warning: Failed to cleanup agent {agent_id}: {e}")
