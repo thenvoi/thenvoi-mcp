@@ -68,7 +68,7 @@ async def main() -> None:
 
     # Build the graph
     builder = StateGraph(MessagesState)
-    builder.add_node("agent", call_model)
+    builder.add_node("agent", call_model)  # pyrefly: ignore[no-matching-overload]
     builder.add_node("tools", ToolNode(tools))
     builder.add_edge(START, "agent")
     builder.add_conditional_edges("agent", tools_condition)
