@@ -14,7 +14,6 @@ Usage:
 import asyncio
 import logging
 import os
-from typing import Annotated
 
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
