@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from thenvoi_api import ThenvoiClient
+from thenvoi._vendor.thenvoi_client_rest import RestClient as ThenvoiClient
 
 from thenvoi_mcp.shared import AppContext
 

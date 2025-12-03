@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_agents(ctx: Context) -> str:
+def list_agents(ctx: Context) -> str:
     """List all accessible agents.
 
     Returns a list of agents that the authenticated user has access to.
@@ -46,7 +46,7 @@ async def list_agents(ctx: Context) -> str:
 
 
 @mcp.tool()
-async def get_agent(ctx: Context, agent_id: str) -> str:
+def get_agent(ctx: Context, agent_id: str) -> str:
     """Get a specific agent by ID.
 
     Retrieves detailed information about a single agent.
@@ -81,7 +81,7 @@ async def get_agent(ctx: Context, agent_id: str) -> str:
     
 
 @mcp.tool()
-async def update_agent(
+def update_agent(
     ctx: Context,
     agent_id: str,
     name: Optional[str] = None,
@@ -153,7 +153,7 @@ async def update_agent(
 
 
 @mcp.tool()
-async def list_agent_chats(
+def list_agent_chats(
     ctx: Context,
     agent_id: str,
     page: Optional[int] = None,
