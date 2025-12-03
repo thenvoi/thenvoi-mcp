@@ -22,9 +22,7 @@ async def list_agents(ctx: Context) -> str:
     logger.debug("Fetching list of agents")
     client = get_app_context(ctx).client
     result = client.agents.list_agents()
-    agents_list = result.data if hasattr(result, "data") else []
-
-    agents_list = agents_list or []  # Handle None case simply
+    agents_list = result.data or []
 
     agents_data = {
         "agents": [
@@ -60,21 +58,21 @@ async def get_agent(ctx: Context, agent_id: str) -> str:
     logger.debug(f"Fetching agent with ID: {agent_id}")
     client = get_app_context(ctx).client
     result = client.agents.get_agent(id=agent_id)
-    agent = result.data if hasattr(result, "data") else result  # type: ignore
+    agent = result.data
 
     if agent is None:
         logger.warning(f"Agent not found: {agent_id}")
         raise ValueError(f"Agent with ID {agent_id} not found")
 
     agent_data = {
-        "id": getattr(agent, "id", None),
-        "name": getattr(agent, "name", None),
-        "model_type": getattr(agent, "model_type", None),
-        "description": getattr(agent, "description", None),
-        "is_external": getattr(agent, "is_external", None),
-        "is_global": getattr(agent, "is_global", None),
-        "organization_id": getattr(agent, "organization_id", None),
-        "system_prompt_id": getattr(agent, "system_prompt_id", None),
+        "id": agent.id,
+        "name": agent.name,
+        "model_type": agent.model_type,
+        "description": agent.description,
+        "is_external": agent.is_external,
+        "is_global": agent.is_global,
+        "organization_id": agent.organization_id,
+        "system_prompt_id": agent.system_prompt_id,
     }
     logger.info(f"Retrieved agent: {agent_id}")
     return json.dumps(agent_data, indent=2)
@@ -141,15 +139,14 @@ async def update_agent(
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
     result = client.agents.update_agent(id=agent_id, agent=update_data)  # type: ignore
-    agent = result.data if hasattr(result, "data") else result  # type: ignore
+    agent = result.data
 
     if agent is None:
         logger.error(f"Agent {agent_id} updated but response data is None")
         raise RuntimeError("Agent updated but ID not available in response")
 
-    updated_agent_id = getattr(agent, "id", "unknown")
-    logger.info(f"Agent updated successfully: {updated_agent_id}")
-    return f"Agent updated successfully: {updated_agent_id}"
+    logger.info(f"Agent updated successfully: {agent.id}")
+    return f"Agent updated successfully: {agent.id}"
 
 
 @mcp.tool()
@@ -185,26 +182,24 @@ async def list_agent_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data if hasattr(result, "data") else []
-    chats_list = chats_list or []  # Handle None case
+    chats_list = result.data or []
 
-    chats_data = {
+    chats_data: Dict[str, Any] = {
         "chats": [
             {
-                "id": getattr(chat, "id", None),
-                "name": getattr(chat, "name", None) or getattr(chat, "title", None),
-                "status": getattr(chat, "status", None),
-                "type": getattr(chat, "type", None),
+                "id": chat.id,
+                "name": chat.title,  # ChatRoom uses 'title' not 'name'
+                "status": chat.status,
+                "type": chat.type,
             }
             for chat in chats_list
         ]
     }
-    if hasattr(result, "page"):
-        chats_data["page"] = result.page
-    if hasattr(result, "page_size"):
-        chats_data["page_size"] = result.page_size
-    if hasattr(result, "total"):
-        chats_data["total"] = result.total
+    # Pagination metadata is in result.metadata
+    if result.metadata:
+        chats_data["page"] = result.metadata.page
+        chats_data["page_size"] = result.metadata.page_size
+        chats_data["total"] = result.metadata.total_count
 
     logger.info(f"Retrieved {len(chats_list)} chats for agent: {agent_id}")
     return json.dumps(chats_data, indent=2)
