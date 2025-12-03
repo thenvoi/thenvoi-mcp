@@ -2,13 +2,15 @@ import json
 import logging
 from typing import Optional, Any, Dict
 
-from thenvoi_mcp.shared import mcp, client
+from mcp.server.fastmcp import Context
+
+from thenvoi_mcp.shared import mcp, get_app_context
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_agents() -> str:
+async def list_agents(ctx: Context) -> str:
     """List all accessible agents.
 
     Returns a list of agents that the authenticated user has access to.
@@ -18,6 +20,7 @@ async def list_agents() -> str:
         JSON string containing the list of agents.
     """
     logger.debug("Fetching list of agents")
+    client = get_app_context(ctx).client
     result = client.agents.list_agents()
     agents_list = result.data if hasattr(result, "data") else []
 
@@ -43,7 +46,7 @@ async def list_agents() -> str:
 
 
 @mcp.tool()
-async def get_agent(agent_id: str) -> str:
+async def get_agent(ctx: Context, agent_id: str) -> str:
     """Get a specific agent by ID.
 
     Retrieves detailed information about a single agent.
@@ -55,6 +58,7 @@ async def get_agent(agent_id: str) -> str:
         JSON string containing the agent details.
     """
     logger.debug(f"Fetching agent with ID: {agent_id}")
+    client = get_app_context(ctx).client
     result = client.agents.get_agent(id=agent_id)
     agent = result.data if hasattr(result, "data") else result  # type: ignore
 
@@ -78,6 +82,7 @@ async def get_agent(agent_id: str) -> str:
 
 @mcp.tool()
 async def update_agent(
+    ctx: Context,
     agent_id: str,
     name: Optional[str] = None,
     model_type: Optional[str] = None,
@@ -108,6 +113,7 @@ async def update_agent(
         Success message with the updated agent's ID.
     """
     logger.debug(f"Updating agent: {agent_id}")
+    client = get_app_context(ctx).client
 
     # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
@@ -148,6 +154,7 @@ async def update_agent(
 
 @mcp.tool()
 async def list_agent_chats(
+    ctx: Context,
     agent_id: str,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
@@ -170,6 +177,7 @@ async def list_agent_chats(
         JSON string containing the list of chats.
     """
     logger.debug(f"Fetching chats for agent: {agent_id}")
+    client = get_app_context(ctx).client
     result = client.agents.list_agent_chats(
         agents_id=agent_id,
         page=page,

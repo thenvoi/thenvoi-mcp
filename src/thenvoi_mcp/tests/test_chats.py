@@ -15,19 +15,19 @@ class TestChatIntegration:
             delete_chat,
             list_chats,
         )
-        from thenvoi_mcp import shared
-        from thenvoi._vendor.thenvoi_client_rest import AgentRequest
+
+        client, ctx = setup_test_client
 
         # Use timestamp with milliseconds for unique names
         timestamp = int(time.time() * 1000)
 
         # Setup: Create an agent to be the chat owner using direct API call
-        response = shared.client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Chat Owner Agent {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Agent for chat ownership",
-            )
+        response = client.agents.create_agent(
+            agent={
+                "name": f"Chat Owner Agent {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Agent for chat ownership",
+            }  # type: ignore[arg-type]
         )
         assert response.data is not None
         agent_id = response.data.id
@@ -36,6 +36,7 @@ class TestChatIntegration:
         try:
             # 1. Create chat
             create_result = await create_chat(
+                ctx,
                 title=f"Test Chat Integration {timestamp}",
                 chat_type="direct",
                 owner_id=agent_id,
@@ -47,26 +48,26 @@ class TestChatIntegration:
 
             try:
                 # 2. Get chat
-                get_result = await get_chat(chat_id=chat_id)
+                get_result = await get_chat(ctx, chat_id=chat_id)
                 assert f"Test Chat Integration {timestamp}" in get_result
                 assert chat_id in get_result
 
                 # 3. Update chat
                 update_result = await update_chat(
-                    chat_id=chat_id, title=f"Updated Test Chat {timestamp}"
+                    ctx, chat_id=chat_id, title=f"Updated Test Chat {timestamp}"
                 )
                 assert "Chat room updated successfully" in update_result
 
                 # 4. List chats (should include our test chat)
-                list_result = await list_chats()
+                list_result = await list_chats(ctx)
                 assert chat_id in list_result
 
             finally:
                 # Cleanup: Delete chat
-                await delete_chat(chat_id=chat_id)
+                await delete_chat(ctx, chat_id=chat_id)
         finally:
             # Cleanup: Delete agent
             try:
-                shared.client.agents.delete_agent(id=agent_id)
+                client.agents.delete_agent(id=agent_id)
             except Exception as e:
                 print(f"Warning: Failed to cleanup agent {agent_id}: {e}")

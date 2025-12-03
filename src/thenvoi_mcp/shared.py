@@ -64,40 +64,12 @@ def get_app_context(ctx: Context) -> AppContext:
     Usage in tools:
         app_ctx = get_app_context(ctx)
         client = app_ctx.client
-
-    Raises:
-        RuntimeError: If the AppContext is not available or improperly configured.
     """
     lifespan_ctx = ctx.request_context.lifespan_context
-
     if isinstance(lifespan_ctx, dict):
-        app_context = lifespan_ctx.get("app_context")
-        if app_context is None:
-            raise RuntimeError(
-                "AppContext not found in lifespan context. "
-                "Ensure the server lifespan is properly configured."
-            )
-        if not isinstance(app_context, AppContext):
-            raise RuntimeError(
-                f"Expected AppContext, got {type(app_context).__name__}. "
-                "Lifespan context is misconfigured."
-            )
-        return app_context
-
-    if isinstance(lifespan_ctx, AppContext):
-        return lifespan_ctx
-
-    raise RuntimeError(
-        f"Invalid lifespan context type: {type(lifespan_ctx).__name__}. "
-        "Expected dict or AppContext."
-    )
+        return lifespan_ctx.get("app_context")  # pyrefly: ignore[bad-return]
+    return lifespan_ctx  # Fallback for direct AppContext
 
 
 # MCP server instance with lifespan for proper dependency injection
 mcp = FastMCP(name="thenvoi-mcp-server", lifespan=app_lifespan)
-
-# Module-level client for tools that import it directly
-client = RestClient(
-    api_key=settings.thenvoi_api_key,
-    base_url=settings.thenvoi_base_url,
-)

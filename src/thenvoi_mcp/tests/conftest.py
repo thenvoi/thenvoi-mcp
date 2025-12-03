@@ -1,12 +1,11 @@
-"""Shared fixtures for integration tests.
-
-These tests run against a real Thenvoi API (defaults to localhost:4000).
-Run with: THENVOI_API_KEY=your_key pytest tests/
-Or override base URL: THENVOI_API_KEY=your_key THENVOI_BASE_URL=your_url pytest tests/
-"""
-
 import os
+from dataclasses import dataclass
+
 import pytest
+
+from thenvoi.client.rest import RestClient
+
+from thenvoi_mcp.shared import AppContext
 
 
 # Skip all tests if no API credentials
@@ -16,28 +15,39 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+@dataclass
+class MockRequestContext:
+    """Mock request context for testing."""
+
+    lifespan_context: dict
+
+
+class MockContext:
+    """Mock MCP Context for testing with real API client."""
+
+    def __init__(self, client: RestClient):
+        self.request_context = MockRequestContext(
+            lifespan_context={"app_context": AppContext(client=client)}
+        )
+
+
 @pytest.fixture(scope="function")
-def setup_test_client():
-    """Setup client with test API credentials.
-
-    This fixture is used by integration tests (not autouse to allow unit tests).
-    Integration tests should explicitly request this fixture.
-    """
+def test_client() -> RestClient:
+    """Create a test client with API credentials."""
     api_key = os.getenv("THENVOI_API_KEY")
-    base_url = os.getenv("THENVOI_BASE_URL", "http://localhost:4000")
+    base_url = os.getenv("THENVOI_BASE_URL")
 
-    # Reinitialize client with test credentials
-    from thenvoi.client.rest import RestClient
-    from thenvoi_mcp import shared
-
-    # Store original client
-    original_client = shared.client
-
-    # Replace with test client - api_key is guaranteed non-None by pytestmark skip
     assert api_key is not None, "API key should not be None in tests"
-    shared.client = RestClient(api_key=api_key, base_url=base_url)
+    return RestClient(api_key=api_key, base_url=base_url)
 
-    yield
 
-    # Restore original client
-    shared.client = original_client
+@pytest.fixture(scope="function")
+def mock_ctx(test_client: RestClient) -> MockContext:
+    """Create a mock Context with a real API client for integration tests."""
+    return MockContext(client=test_client)
+
+
+# Legacy fixture for backwards compatibility during migration
+@pytest.fixture(scope="function")
+def setup_test_client(test_client: RestClient, mock_ctx: MockContext):
+    yield test_client, mock_ctx

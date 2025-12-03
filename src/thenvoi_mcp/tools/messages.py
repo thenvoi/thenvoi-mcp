@@ -2,15 +2,16 @@ import json
 import logging
 from typing import Optional
 
-from thenvoi._vendor.thenvoi_client_rest.core.api_error import ApiError
+from mcp.server.fastmcp import Context
 
-from thenvoi_mcp.shared import mcp, client
+from thenvoi_mcp.shared import mcp, get_app_context
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chat_messages(
+    ctx: Context,
     chat_id: str,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
@@ -36,6 +37,7 @@ async def list_chat_messages(
         Example: "sender_name": "john" means you can reply with "@john" to tag them.
     """
     logger.debug(f"Fetching messages for chat: {chat_id}")
+    client = get_app_context(ctx).client
 
     # Parse since timestamp if provided
     since_dt = None
@@ -117,6 +119,7 @@ async def list_chat_messages(
 
 @mcp.tool()
 async def create_chat_message(
+    ctx: Context,
     chat_id: str,
     content: str,
     recipient_ids: Optional[str] = None,
@@ -188,6 +191,7 @@ async def create_chat_message(
     to get IDs of people you want to send TO.
     """
     logger.debug(f"Creating message in chat: {chat_id}")
+    client = get_app_context(ctx).client
 
     # Get the authenticated user's ID from the API key
     profile = client.my_profile.get_my_profile()
@@ -291,7 +295,7 @@ async def create_chat_message(
 
 # TODO: check if neeeded
 @mcp.tool()
-async def delete_chat_message(chat_id: str, message_id: str) -> str:
+async def delete_chat_message(ctx: Context, chat_id: str, message_id: str) -> str:
     """Delete a message from a chat room.
 
     Permanently deletes a message from the specified chat room.
@@ -305,15 +309,16 @@ async def delete_chat_message(chat_id: str, message_id: str) -> str:
         Success message confirming deletion.
     """
     logger.debug(f"Deleting message {message_id} from chat {chat_id}")
+    client = get_app_context(ctx).client
     try:
         client.chat_messages.delete_chat_message(chat_id=chat_id, id=message_id)
         logger.info(f"Message deleted successfully: {message_id}")
         return f"Message deleted successfully: {message_id}"
-    except ApiError as e:
-        # HTTP 204 (No Content) is a successful delete response that some APIs treat as error
-        error_str = str(e)
-        if "status_code: 204" in error_str or "204" in error_str:
-            logger.info(f"Message deleted successfully (204 response): {message_id}")
+    except Exception as e:
+        # BUG WORKAROUND: SDK raises error for HTTP 204 No Content responses
+        # HTTP 204 is a standard successful delete response with no body
+        if hasattr(e, "status_code") and e.status_code == 204:
+            logger.info(f"Message deleted successfully (204 No Content): {message_id}")
             return f"Message deleted successfully: {message_id}"
         # Re-raise the actual API error
         logger.error(f"Failed to delete message {message_id}: {e}")
