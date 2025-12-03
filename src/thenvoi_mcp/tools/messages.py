@@ -292,35 +292,3 @@ async def create_chat_message(
     message_id = getattr(message, "id", "unknown")
     logger.info(f"Message sent successfully: {message_id}")
     return f"Message sent successfully: {message_id}"
-
-
-# TODO: check if neeeded
-@mcp.tool()
-async def delete_chat_message(ctx: Context, chat_id: str, message_id: str) -> str:
-    """Delete a message from a chat room.
-
-    Permanently deletes a message from the specified chat room.
-    This action cannot be undone.
-
-    Args:
-        chat_id: The unique identifier of the chat room (required).
-        message_id: The unique identifier of the message to delete (required).
-
-    Returns:
-        Success message confirming deletion.
-    """
-    logger.debug(f"Deleting message {message_id} from chat {chat_id}")
-    client = get_app_context(ctx).client
-    try:
-        client.chat_messages.delete_chat_message(chat_id=chat_id, id=message_id)
-        logger.info(f"Message deleted successfully: {message_id}")
-        return f"Message deleted successfully: {message_id}"
-    except ApiError as e:
-        # BUG WORKAROUND: SDK raises ApiError for HTTP 204 No Content responses
-        # HTTP 204 is a standard successful delete response with no body
-        if hasattr(e, "status_code") and e.status_code == 204:
-            logger.info(f"Message deleted successfully (204 No Content): {message_id}")
-            return f"Message deleted successfully: {message_id}"
-        # Re-raise the actual API error
-        logger.error(f"Failed to delete message {message_id}: {e}")
-        raise
