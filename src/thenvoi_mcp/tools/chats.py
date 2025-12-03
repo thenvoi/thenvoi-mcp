@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chats(
+def list_chats(
     ctx: Context,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
@@ -68,7 +68,7 @@ async def list_chats(
 
 
 @mcp.tool()
-async def get_chat(ctx: Context, chat_id: str) -> str:
+def get_chat(ctx: Context, chat_id: str) -> str:
     """Get a specific chat room by ID.
 
     Retrieves detailed information about a single chat room.
@@ -99,7 +99,7 @@ async def get_chat(ctx: Context, chat_id: str) -> str:
 
 
 @mcp.tool()
-async def create_chat(
+def create_chat(
     ctx: Context,
     title: str,
     chat_type: str,
@@ -164,7 +164,7 @@ async def create_chat(
 
 
 @mcp.tool()
-async def update_chat(
+def update_chat(
     ctx: Context,
     chat_id: str,
     title: Optional[str] = None,
@@ -214,7 +214,7 @@ async def update_chat(
 
 
 @mcp.tool()
-async def delete_chat(ctx: Context, chat_id: str) -> str:
+def delete_chat(ctx: Context, chat_id: str) -> str:
     """Delete a chat room.
 
     Permanently deletes a chat room. This action cannot be undone.

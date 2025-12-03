@@ -5,8 +5,7 @@ import pytest
 class TestMessageIntegration:
     """Test message management tools against real API."""
 
-    @pytest.mark.asyncio
-    async def test_message_lifecycle(self, setup_test_client):
+    def test_message_lifecycle(self, setup_test_client):
         """Test creating, listing, and deleting messages."""
         from thenvoi_mcp.tools.chats import create_chat, delete_chat
         from thenvoi_mcp.tools.messages import (
@@ -14,7 +13,7 @@ class TestMessageIntegration:
             list_chat_messages,
             delete_chat_message,
         )
-        from thenvoi_api.types import AgentRequest
+        from thenvoi._vendor.thenvoi_client_rest import AgentRequest
 
         client, ctx = setup_test_client
 
@@ -34,7 +33,7 @@ class TestMessageIntegration:
         assert agent_id is not None
 
         try:
-            create_chat_result = await create_chat(
+            create_chat_result = create_chat(
                 ctx,
                 title=f"Test Chat for Messages {timestamp}",
                 chat_type="direct",
@@ -47,7 +46,7 @@ class TestMessageIntegration:
 
             try:
                 # 1. Create message (note: create_chat_message now gets sender from auth)
-                create_msg_result = await create_chat_message(
+                create_msg_result = create_chat_message(
                     ctx,
                     chat_id=chat_id,
                     content="Test message from integration test",
@@ -57,19 +56,19 @@ class TestMessageIntegration:
                 message_id = create_msg_result.split(": ")[1].strip()
 
                 # 2. List messages (should include our test message)
-                list_result = await list_chat_messages(ctx, chat_id=chat_id)
+                list_result = list_chat_messages(ctx, chat_id=chat_id)
                 assert message_id in list_result
                 assert "Test message from integration test" in list_result
 
                 # 3. Delete message
-                delete_msg_result = await delete_chat_message(
+                delete_msg_result = delete_chat_message(
                     ctx, chat_id=chat_id, message_id=message_id
                 )
                 assert "Message deleted successfully" in delete_msg_result
 
             finally:
                 # Cleanup: Delete chat
-                await delete_chat(ctx, chat_id=chat_id)
+                delete_chat(ctx, chat_id=chat_id)
         finally:
             # Cleanup: Delete agent
             try:

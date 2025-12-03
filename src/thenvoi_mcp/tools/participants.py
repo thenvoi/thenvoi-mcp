@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 from mcp.server.fastmcp import Context
-from thenvoi_api.chat_participants.types import AddChatParticipantRequestParticipant
+from thenvoi._vendor.thenvoi_client_rest import AddChatParticipantRequestParticipant
 
 from thenvoi_mcp.shared import mcp, get_app_context
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chat_participants(
+def list_chat_participants(
     ctx: Context,
     chat_id: str,
     participant_type: Optional[str] = None,
@@ -62,7 +62,7 @@ async def list_chat_participants(
 
 
 @mcp.tool()
-async def add_chat_participant(
+def add_chat_participant(
     ctx: Context,
     chat_id: str,
     participant_id: str,
@@ -97,7 +97,7 @@ async def add_chat_participant(
 
 
 @mcp.tool()
-async def remove_chat_participant(ctx: Context, chat_id: str, participant_id: str) -> str:
+def remove_chat_participant(ctx: Context, chat_id: str, participant_id: str) -> str:
     """Remove a participant from a chat room.
 
     Removes a participant (user or agent) from the specified chat room.
@@ -117,7 +117,7 @@ async def remove_chat_participant(ctx: Context, chat_id: str, participant_id: st
 
 
 @mcp.tool()
-async def list_available_participants(
+def list_available_participants(
     ctx: Context,
     chat_id: str,
     participant_type: str,

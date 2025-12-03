@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from mcp.server.fastmcp import Context, FastMCP
-from thenvoi_api import ThenvoiClient
+from thenvoi._vendor.thenvoi_client_rest import RestClient as ThenvoiClient
 
 from thenvoi_mcp.config import settings
 

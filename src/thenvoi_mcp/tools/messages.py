@@ -3,7 +3,6 @@ import logging
 from typing import Optional
 
 from mcp.server.fastmcp import Context
-from thenvoi_api.core.api_error import ApiError
 
 from thenvoi_mcp.shared import mcp, get_app_context
 
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chat_messages(
+def list_chat_messages(
     ctx: Context,
     chat_id: str,
     page: Optional[int] = None,
@@ -119,7 +118,7 @@ async def list_chat_messages(
 
 
 @mcp.tool()
-async def create_chat_message(
+def create_chat_message(
     ctx: Context,
     chat_id: str,
     content: str,
