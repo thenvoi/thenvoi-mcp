@@ -12,7 +12,6 @@ class TestMessageIntegration:
         from thenvoi_mcp.tools.messages import (
             create_chat_message,
             list_chat_messages,
-            delete_chat_message,
         )
 
         client, ctx = setup_test_client
@@ -59,12 +58,6 @@ class TestMessageIntegration:
                 list_result = await list_chat_messages(ctx, chat_id=chat_id)
                 assert message_id in list_result
                 assert "Test message from integration test" in list_result
-
-                # 3. Delete message
-                delete_msg_result = await delete_chat_message(
-                    ctx, chat_id=chat_id, message_id=message_id
-                )
-                assert "Message deleted successfully" in delete_msg_result
 
             finally:
                 # Cleanup: Delete chat

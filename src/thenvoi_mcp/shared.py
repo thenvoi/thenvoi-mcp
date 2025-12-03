@@ -29,7 +29,7 @@ class AppContext:
 
 
 @asynccontextmanager
-async def app_lifespan(server: FastMCP) -> AsyncIterator[dict]:
+async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     logger.info("Initializing Thenvoi API client")
     client = RestClient(
         api_key=settings.thenvoi_api_key,
@@ -40,20 +40,8 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[dict]:
     logger.info("Thenvoi MCP server lifespan started successfully")
 
     try:
-        yield {"app_context": app_context}
-    except Exception as e:
-        logger.error(f"Error during lifespan: {e}", exc_info=True)
-        raise
+        yield app_context
     finally:
-        logger.info("Thenvoi MCP server lifespan shutting down...")
-        # Perform any necessary cleanup here
-        try:
-            # Close any open connections if the client supports it
-            if hasattr(client, "close"):
-                client.close()
-                logger.debug("Closed Thenvoi API client connection")
-        except Exception as e:
-            logger.error(f"Error during cleanup: {e}", exc_info=True)
         logger.info("Thenvoi MCP server lifespan shutdown complete")
 
 
@@ -66,9 +54,9 @@ def get_app_context(ctx: Context) -> AppContext:
         client = app_ctx.client
     """
     lifespan_ctx = ctx.request_context.lifespan_context
-    if isinstance(lifespan_ctx, dict):
-        return lifespan_ctx.get("app_context")  # pyrefly: ignore[bad-return]
-    return lifespan_ctx  # Fallback for direct AppContext
+    if isinstance(lifespan_ctx, AppContext):
+        return lifespan_ctx
+    raise RuntimeError("AppContext not available. Is the server lifespan configured?")
 
 
 # MCP server instance with lifespan for proper dependency injection

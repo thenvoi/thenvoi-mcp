@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
 class MockRequestContext:
     """Mock request context for testing."""
 
-    lifespan_context: dict
+    lifespan_context: AppContext
 
 
 class MockContext:
@@ -27,7 +27,7 @@ class MockContext:
 
     def __init__(self, client: RestClient):
         self.request_context = MockRequestContext(
-            lifespan_context={"app_context": AppContext(client=client)}
+            lifespan_context=AppContext(client=client)
         )
 
 
