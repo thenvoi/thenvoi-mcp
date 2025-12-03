@@ -4,7 +4,7 @@ from typing import Optional, Any, Dict
 
 from mcp.server.fastmcp import Context
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -22,25 +22,8 @@ def list_agents(ctx: Context) -> str:
     logger.debug("Fetching list of agents")
     client = get_app_context(ctx).client
     result = client.agents.list_agents()
-    agents_list = result.data or []
-
-    agents_data = {
-        "agents": [
-            {
-                "id": agent.id,
-                "name": agent.name,
-                "model_type": agent.model_type,
-                "description": agent.description,
-                "is_external": agent.is_external,
-                "is_global": agent.is_global,
-                "organization_id": agent.organization_id,
-                "system_prompt_id": agent.system_prompt_id,
-            }
-            for agent in agents_list
-        ]
-    }
-    logger.info(f"Retrieved {len(agents_list)} agents")
-    return json.dumps(agents_data, indent=2)
+    logger.info(f"Retrieved {len(result.data)} agents")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -58,24 +41,8 @@ def get_agent(ctx: Context, agent_id: str) -> str:
     logger.debug(f"Fetching agent with ID: {agent_id}")
     client = get_app_context(ctx).client
     result = client.agents.get_agent(id=agent_id)
-    agent = result.data
-
-    if agent is None:
-        logger.warning(f"Agent not found: {agent_id}")
-        raise ValueError(f"Agent with ID {agent_id} not found")
-
-    agent_data = {
-        "id": agent.id,
-        "name": agent.name,
-        "model_type": agent.model_type,
-        "description": agent.description,
-        "is_external": agent.is_external,
-        "is_global": agent.is_global,
-        "organization_id": agent.organization_id,
-        "system_prompt_id": agent.system_prompt_id,
-    }
     logger.info(f"Retrieved agent: {agent_id}")
-    return json.dumps(agent_data, indent=2)
+    return serialize_response(result)
     
 
 @mcp.tool()
@@ -182,24 +149,5 @@ def list_agent_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data or []
-
-    chats_data: Dict[str, Any] = {
-        "chats": [
-            {
-                "id": chat.id,
-                "name": chat.title,  # ChatRoom uses 'title' not 'name'
-                "status": chat.status,
-                "type": chat.type,
-            }
-            for chat in chats_list
-        ]
-    }
-    # Pagination metadata is in result.metadata
-    if result.metadata:
-        chats_data["page"] = result.metadata.page
-        chats_data["page_size"] = result.metadata.page_size
-        chats_data["total"] = result.metadata.total_count
-
-    logger.info(f"Retrieved {len(chats_list)} chats for agent: {agent_id}")
-    return json.dumps(chats_data, indent=2)
+    logger.info(f"Retrieved {len(result.data)} chats for agent: {agent_id}")
+    return serialize_response(result)

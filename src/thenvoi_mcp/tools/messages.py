@@ -1,10 +1,9 @@
-import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from mcp.server.fastmcp import Context
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -57,51 +56,8 @@ def list_chat_messages(
         since=since_dt,
         message_type=message_type,
     )
-
-    messages_list = result.data or []
-
-    # Fetch participants to get sender names
-    participants_result = client.chat_participants.list_chat_participants(
-        chat_id=chat_id
-    )
-    participants_data = participants_result.data or []
-
-    # Build participant map with names
-    # ChatParticipantDetails has: id, agent_name, email, first_name, last_name, role, status, type
-    participant_map: Dict[str, str] = {}
-    for p in participants_data:
-        # Use agent_name for agents, otherwise construct name from first/last name or use id
-        display_name: Optional[str] = None
-        if p.agent_name:
-            display_name = p.agent_name
-        elif p.first_name or p.last_name:
-            display_name = " ".join(filter(None, [p.first_name, p.last_name]))
-
-        participant_map[p.id] = display_name or p.id
-
-    messages_data: Dict[str, Any] = {
-        "messages": [
-            {
-                "id": msg.id,
-                "content": msg.content,
-                "sender_id": msg.sender_id,
-                "sender_name": participant_map.get(msg.sender_id, msg.sender_name or "Unknown"),
-                "sender_type": msg.sender_type,
-                "message_type": msg.message_type,
-                "created_at": str(msg.inserted_at) if msg.inserted_at else "",
-                "metadata": msg.metadata,
-            }
-            for msg in messages_list
-        ]
-    }
-    # Pagination metadata is in result.metadata
-    if result.metadata:
-        messages_data["page"] = result.metadata.page
-        messages_data["per_page"] = result.metadata.per_page
-        messages_data["total"] = result.metadata.total_count
-
-    logger.info(f"Retrieved {len(messages_list)} messages for chat: {chat_id}")
-    return json.dumps(messages_data, indent=2)
+    logger.info(f"Retrieved {len(result.data)} messages for chat: {chat_id}")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -168,7 +124,7 @@ def create_chat_message(
         recipient_ids: Comma-separated participant IDs to send TO (optional).
                       These people will be @mentioned in the message.
                       Example: "user-123,agent-456,user-789"
-                      Must be verified chat participants.
+                      Server validates recipients are chat participants.
         message_type: Optional message type (defaults to 'text').
 
     Returns:
@@ -186,64 +142,20 @@ def create_chat_message(
     sender_id = profile.id
     logger.debug(f"Authenticated user ID: {sender_id}")
 
-    # Process recipients if provided
+    # Process recipients if provided - server validates they are chat participants
     mentions_list: Optional[list[Dict[str, str]]] = None
-    formatted_content = content
 
     if recipient_ids:
-        # Parse recipient IDs
         recipient_list = [
             rid.strip() for rid in recipient_ids.split(",") if rid.strip()
         ]
-
         if recipient_list:
-            # Get chat participants to verify recipients are in the chat
-            participants_result = client.chat_participants.list_chat_participants(
-                chat_id=chat_id
-            )
-            participants_data = participants_result.data or []
-
-            # Extract participant IDs and their details
-            # ChatParticipantDetails has: id, agent_name, first_name, last_name, type
-            participant_map: Dict[str, Dict[str, Any]] = {}
-            for p in participants_data:
-                # Use agent_name for agents, otherwise construct from first/last name
-                display_name: Optional[str] = None
-                if p.agent_name:
-                    display_name = p.agent_name
-                elif p.first_name or p.last_name:
-                    display_name = " ".join(filter(None, [p.first_name, p.last_name]))
-
-                participant_map[p.id] = {
-                    "display_name": display_name or p.id,
-                    "type": p.type,
-                }
-
-            # Verify all recipients are in the chat
-            invalid_recipients = [
-                rid for rid in recipient_list if rid not in participant_map
-            ]
-            if invalid_recipients:
-                error_msg = f"The following recipients are not participants in the chat room: {', '.join(invalid_recipients)}"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-
-            # Build mentions list
-            mentions_list = []
-            mention_tags: list[str] = []
-            for rid in recipient_list:
-                participant = participant_map[rid]
-                display_name = participant["display_name"]
-                # Ensure types for mentions
-                mentions_list.append({"id": str(rid), "username": str(display_name)})
-                mention_tags.append(str(f"@{display_name}"))
-
-            # Format message with @ mentions: @user1 @user2 @user3 message content
-            formatted_content = f"{' '.join(mention_tags)} {content}"
+            # Build mentions list with IDs - server handles validation and name resolution
+            mentions_list = [{"id": str(rid)} for rid in recipient_list]
 
     # Build request
     request_data: Dict[str, Any] = {
-        "content": formatted_content,
+        "content": content,
         "sender_id": sender_id,
         "sender_type": "User",  # Always User since we're sending from authenticated user
     }

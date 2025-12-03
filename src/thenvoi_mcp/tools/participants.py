@@ -1,11 +1,10 @@
-import json
 import logging
 from typing import Optional
 
 from mcp.server.fastmcp import Context
 from thenvoi._vendor.thenvoi_client_rest import AddChatParticipantRequestParticipant
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -34,28 +33,8 @@ def list_chat_participants(
         chat_id=chat_id,
         participant_type=participant_type,
     )
-
-    participants_list = result.data or []
-
-    # ChatParticipantDetails has: id, agent_name, email, first_name, last_name, role, status, type
-    participants_data = {
-        "participants": [
-            {
-                "id": p.id,
-                "type": p.type,
-                "agent_name": p.agent_name,
-                "email": p.email,
-                "first_name": p.first_name,
-                "last_name": p.last_name,
-                "role": p.role,
-                "status": p.status,
-            }
-            for p in participants_list
-        ]
-    }
-
-    logger.info(f"Retrieved {len(participants_list)} participants for chat: {chat_id}")
-    return json.dumps(participants_data, indent=2)
+    logger.info(f"Retrieved {len(result.data)} participants for chat: {chat_id}")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -139,27 +118,7 @@ def list_available_participants(
         chat_id=chat_id,
         participant_type=participant_type,
     )
-
-    participants_list = result.data or []
-
-    # AvailableParticipant has: id, name, type, agent_name, avatar_url, email, first_name, last_name
-    participants_data = {
-        "available_participants": [
-            {
-                "id": p.id,
-                "name": p.name,
-                "type": p.type,
-                "agent_name": p.agent_name,
-                "avatar_url": p.avatar_url,
-                "email": p.email,
-                "first_name": p.first_name,
-                "last_name": p.last_name,
-            }
-            for p in participants_list
-        ]
-    }
-
     logger.info(
-        f"Retrieved {len(participants_list)} available participants for chat: {chat_id}"
+        f"Retrieved {len(result.data)} available participants for chat: {chat_id}"
     )
-    return json.dumps(participants_data, indent=2)
+    return serialize_response(result)

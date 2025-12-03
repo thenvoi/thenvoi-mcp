@@ -1,10 +1,10 @@
 import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from mcp.server.fastmcp import Context
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -38,29 +38,8 @@ def list_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data or []
-
-    chats_data: Dict[str, Any] = {
-        "chats": [
-            {
-                "id": chat.id,
-                "title": chat.title,
-                "type": chat.type,
-                "status": chat.status,
-                "task_id": chat.task_id,
-                "metadata": chat.metadata,
-            }
-            for chat in chats_list
-        ]
-    }
-    # Pagination metadata is in result.metadata
-    if result.metadata:
-        chats_data["page"] = result.metadata.page
-        chats_data["per_page"] = result.metadata.per_page
-        chats_data["total"] = result.metadata.total_count
-
-    logger.info(f"Retrieved {len(chats_list)} chats")
-    return json.dumps(chats_data, indent=2)
+    logger.info(f"Retrieved {len(result.data)} chats")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -78,22 +57,8 @@ def get_chat(ctx: Context, chat_id: str) -> str:
     logger.debug(f"Fetching chat with ID: {chat_id}")
     client = get_app_context(ctx).client
     result = client.chat_rooms.get_chat(id=chat_id)
-    chat = result.data
-
-    if chat is None:
-        logger.warning(f"Chat not found: {chat_id}")
-        raise ValueError(f"Chat with ID {chat_id} not found")
-
-    chat_data = {
-        "id": chat.id,
-        "title": chat.title,
-        "type": chat.type,
-        "status": chat.status,
-        "task_id": chat.task_id,
-        "metadata": chat.metadata,
-    }
     logger.info(f"Retrieved chat: {chat_id}")
-    return json.dumps(chat_data, indent=2)
+    return serialize_response(result)
 
 
 @mcp.tool()
