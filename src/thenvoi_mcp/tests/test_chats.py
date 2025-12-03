@@ -16,7 +16,7 @@ class TestChatIntegration:
             list_chats,
         )
         from thenvoi_mcp import shared
-        from thenvoi_api.types import AgentRequest
+        from thenvoi._vendor.thenvoi_client_rest import AgentRequest
 
         # Use timestamp with milliseconds for unique names
         timestamp = int(time.time() * 1000)

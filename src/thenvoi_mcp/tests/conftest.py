@@ -27,7 +27,7 @@ def setup_test_client():
     base_url = os.getenv("THENVOI_BASE_URL", "http://localhost:4000")
 
     # Reinitialize client with test credentials
-    from thenvoi_api import ThenvoiClient
+    from thenvoi.client.rest import RestClient
     from thenvoi_mcp import shared
 
     # Store original client
@@ -35,7 +35,7 @@ def setup_test_client():
 
     # Replace with test client - api_key is guaranteed non-None by pytestmark skip
     assert api_key is not None, "API key should not be None in tests"
-    shared.client = ThenvoiClient(api_key=api_key, base_url=base_url)
+    shared.client = RestClient(api_key=api_key, base_url=base_url)
 
     yield
 

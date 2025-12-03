@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Optional
 
-from thenvoi_api.core.api_error import ApiError
+from thenvoi._vendor.thenvoi_client_rest.core.api_error import ApiError
 
 from thenvoi_mcp.shared import mcp, client
 

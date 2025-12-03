@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Optional
 
-from thenvoi_api.chat_participants.types import AddChatParticipantRequestParticipant
+from thenvoi._vendor.thenvoi_client_rest import AddChatParticipantRequestParticipant
 
 from thenvoi_mcp.shared import mcp, client
 

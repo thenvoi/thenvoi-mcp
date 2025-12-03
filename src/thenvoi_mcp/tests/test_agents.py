@@ -14,7 +14,7 @@ class TestAgentIntegration:
             list_agents,
         )
         from thenvoi_mcp import shared
-        from thenvoi_api.types import AgentRequest
+        from thenvoi._vendor.thenvoi_client_rest import AgentRequest
 
         # Use timestamp with milliseconds to ensure unique names
         timestamp = int(time.time() * 1000)
@@ -63,7 +63,7 @@ class TestAgentIntegration:
         """Test creating agent with structured output schema."""
         from thenvoi_mcp.tools.agents import get_agent
         from thenvoi_mcp import shared
-        from thenvoi_api.types import AgentRequest
+        from thenvoi._vendor.thenvoi_client_rest import AgentRequest
 
         # Use timestamp with milliseconds for unique name
         timestamp = int(time.time() * 1000)
