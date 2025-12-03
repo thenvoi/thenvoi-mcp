@@ -38,30 +38,26 @@ def list_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data if hasattr(result, "data") else []
-    chats_list = chats_list or []
+    chats_list = result.data or []
 
-    chats_data = {
+    chats_data: Dict[str, Any] = {
         "chats": [
             {
-                "id": getattr(chat, "id", None),
-                "title": getattr(chat, "title", None),
-                "type": getattr(chat, "type", None),
-                "status": getattr(chat, "status", None),
-                "owner_id": getattr(chat, "owner_id", None),
-                "owner_type": getattr(chat, "owner_type", None),
-                "task_id": getattr(chat, "task_id", None),
-                "metadata": getattr(chat, "metadata", None),
+                "id": chat.id,
+                "title": chat.title,
+                "type": chat.type,
+                "status": chat.status,
+                "task_id": chat.task_id,
+                "metadata": chat.metadata,
             }
             for chat in chats_list
         ]
     }
-    if hasattr(result, "page"):
-        chats_data["page"] = result.page
-    if hasattr(result, "per_page"):
-        chats_data["per_page"] = result.per_page
-    if hasattr(result, "total"):
-        chats_data["total"] = result.total
+    # Pagination metadata is in result.metadata
+    if result.metadata:
+        chats_data["page"] = result.metadata.page
+        chats_data["per_page"] = result.metadata.per_page
+        chats_data["total"] = result.metadata.total_count
 
     logger.info(f"Retrieved {len(chats_list)} chats")
     return json.dumps(chats_data, indent=2)
@@ -82,17 +78,19 @@ def get_chat(ctx: Context, chat_id: str) -> str:
     logger.debug(f"Fetching chat with ID: {chat_id}")
     client = get_app_context(ctx).client
     result = client.chat_rooms.get_chat(id=chat_id)
-    chat = result.data if hasattr(result, "data") else result
+    chat = result.data
+
+    if chat is None:
+        logger.warning(f"Chat not found: {chat_id}")
+        raise ValueError(f"Chat with ID {chat_id} not found")
 
     chat_data = {
-        "id": getattr(chat, "id", None),
-        "title": getattr(chat, "title", None),
-        "type": getattr(chat, "type", None),
-        "status": getattr(chat, "status", None),
-        "owner_id": getattr(chat, "owner_id", None),
-        "owner_type": getattr(chat, "owner_type", None),
-        "task_id": getattr(chat, "task_id", None),
-        "metadata": getattr(chat, "metadata", None),
+        "id": chat.id,
+        "title": chat.title,
+        "type": chat.type,
+        "status": chat.status,
+        "task_id": chat.task_id,
+        "metadata": chat.metadata,
     }
     logger.info(f"Retrieved chat: {chat_id}")
     return json.dumps(chat_data, indent=2)
@@ -152,15 +150,14 @@ def create_chat(
         request_data["metadata"] = metadata_dict
 
     result = client.chat_rooms.create_chat(chat=request_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    chat = result.data
 
     if chat is None:
         logger.error("Chat room created but response data is None")
         raise RuntimeError("Chat room created but ID not available in response")
 
-    chat_id = getattr(chat, "id", "unknown")
-    logger.info(f"Chat room created successfully: {chat_id}")
-    return f"Chat room created successfully: {chat_id}"
+    logger.info(f"Chat room created successfully: {chat.id}")
+    return f"Chat room created successfully: {chat.id}"
 
 
 @mcp.tool()
@@ -202,15 +199,14 @@ def update_chat(
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
     result = client.chat_rooms.update_chat(id=chat_id, chat=update_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    chat = result.data
 
     if chat is None:
         logger.error(f"Chat {chat_id} updated but response data is None")
         raise RuntimeError("Chat room updated but ID not available in response")
 
-    updated_chat_id = getattr(chat, "id", "unknown")
-    logger.info(f"Chat room updated successfully: {updated_chat_id}")
-    return f"Chat room updated successfully: {updated_chat_id}"
+    logger.info(f"Chat room updated successfully: {chat.id}")
+    return f"Chat room updated successfully: {chat.id}"
 
 
 @mcp.tool()

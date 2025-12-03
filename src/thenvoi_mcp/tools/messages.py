@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mcp.server.fastmcp import Context
 
@@ -58,60 +58,47 @@ def list_chat_messages(
         message_type=message_type,
     )
 
-    messages_list = result.data if hasattr(result, "data") else []
-    messages_list = messages_list or []
+    messages_list = result.data or []
 
     # Fetch participants to get sender names
     participants_result = client.chat_participants.list_chat_participants(
         chat_id=chat_id
     )
-    participants_data = (
-        participants_result.data if hasattr(participants_result, "data") else []
-    )
-    participants_data = participants_data or []
+    participants_data = participants_result.data or []
 
     # Build participant map with names
-    participant_map = {}
+    # ChatParticipantDetails has: id, agent_name, email, first_name, last_name, role, status, type
+    participant_map: Dict[str, str] = {}
     for p in participants_data:
-        p_id = (
-            p.participant_id
-            if hasattr(p, "participant_id")
-            else (p.id if hasattr(p, "id") else None)
-        )
-        if p_id:
-            # For agents, use agent_name; for users, use name
-            display_name = None
-            if hasattr(p, "agent_name") and p.agent_name:
-                display_name = p.agent_name
-            elif hasattr(p, "name") and p.name:
-                display_name = p.name
+        # Use agent_name for agents, otherwise construct name from first/last name or use id
+        display_name: Optional[str] = None
+        if p.agent_name:
+            display_name = p.agent_name
+        elif p.first_name or p.last_name:
+            display_name = " ".join(filter(None, [p.first_name, p.last_name]))
 
-            participant_map[p_id] = display_name or p_id
+        participant_map[p.id] = display_name or p.id
 
-    messages_data = {
+    messages_data: Dict[str, Any] = {
         "messages": [
             {
-                "id": getattr(msg, "id", None),
-                "content": getattr(msg, "content", None),
-                "sender_id": getattr(msg, "sender_id", None),
-                "sender_name": participant_map.get(
-                    getattr(msg, "sender_id", None), "Unknown"
-                ),
-                "sender_type": getattr(msg, "sender_type", None),
-                "message_type": getattr(msg, "message_type", None),
-                "created_at": str(getattr(msg, "created_at", "")),
-                "delivery_status": getattr(msg, "delivery_status", None),
-                "mentions": getattr(msg, "mentions", None),
+                "id": msg.id,
+                "content": msg.content,
+                "sender_id": msg.sender_id,
+                "sender_name": participant_map.get(msg.sender_id, msg.sender_name or "Unknown"),
+                "sender_type": msg.sender_type,
+                "message_type": msg.message_type,
+                "created_at": str(msg.inserted_at) if msg.inserted_at else "",
+                "metadata": msg.metadata,
             }
             for msg in messages_list
         ]
     }
-    if hasattr(result, "page"):
-        messages_data["page"] = result.page
-    if hasattr(result, "per_page"):
-        messages_data["per_page"] = result.per_page
-    if hasattr(result, "total"):
-        messages_data["total"] = result.total
+    # Pagination metadata is in result.metadata
+    if result.metadata:
+        messages_data["page"] = result.metadata.page
+        messages_data["per_page"] = result.metadata.per_page
+        messages_data["total"] = result.metadata.total_count
 
     logger.info(f"Retrieved {len(messages_list)} messages for chat: {chat_id}")
     return json.dumps(messages_data, indent=2)
@@ -194,12 +181,13 @@ def create_chat_message(
     client = get_app_context(ctx).client
 
     # Get the authenticated user's ID from the API key
+    # my_profile.get_my_profile() returns UserDetails directly (not wrapped in .data)
     profile = client.my_profile.get_my_profile()
-    sender_id = profile.data.id if hasattr(profile, "data") else profile.id
+    sender_id = profile.id
     logger.debug(f"Authenticated user ID: {sender_id}")
 
     # Process recipients if provided
-    mentions_list = None
+    mentions_list: Optional[list[Dict[str, str]]] = None
     formatted_content = content
 
     if recipient_ids:
@@ -213,33 +201,23 @@ def create_chat_message(
             participants_result = client.chat_participants.list_chat_participants(
                 chat_id=chat_id
             )
-            participants_data = (
-                participants_result.data if hasattr(participants_result, "data") else []
-            )
-            participants_data = participants_data or []
+            participants_data = participants_result.data or []
 
             # Extract participant IDs and their details
-            participant_map = {}
+            # ChatParticipantDetails has: id, agent_name, first_name, last_name, type
+            participant_map: Dict[str, Dict[str, Any]] = {}
             for p in participants_data:
-                p_id = (
-                    p.participant_id
-                    if hasattr(p, "participant_id")
-                    else (p.id if hasattr(p, "id") else None)
-                )
-                if p_id:
-                    # For agents, use agent_name; for users, use name
-                    display_name = None
-                    if hasattr(p, "agent_name") and p.agent_name:
-                        display_name = p.agent_name
-                    elif hasattr(p, "name") and p.name:
-                        display_name = p.name
+                # Use agent_name for agents, otherwise construct from first/last name
+                display_name: Optional[str] = None
+                if p.agent_name:
+                    display_name = p.agent_name
+                elif p.first_name or p.last_name:
+                    display_name = " ".join(filter(None, [p.first_name, p.last_name]))
 
-                    participant_map[p_id] = {
-                        "display_name": display_name or p_id,
-                        "type": p.participant_type
-                        if hasattr(p, "participant_type")
-                        else (p.type if hasattr(p, "type") else None),
-                    }
+                participant_map[p.id] = {
+                    "display_name": display_name or p.id,
+                    "type": p.type,
+                }
 
             # Verify all recipients are in the chat
             invalid_recipients = [
@@ -264,7 +242,7 @@ def create_chat_message(
             formatted_content = f"{' '.join(mention_tags)} {content}"
 
     # Build request
-    request_data = {
+    request_data: Dict[str, Any] = {
         "content": formatted_content,
         "sender_id": sender_id,
         "sender_type": "User",  # Always User since we're sending from authenticated user
@@ -282,12 +260,11 @@ def create_chat_message(
         chat_id=chat_id,
         message=request_data,  # type: ignore
     )
-    message = result.data if hasattr(result, "data") else result  # type: ignore
+    message = result.data
 
     if message is None:
         logger.error("Message sent but response data is None")
         raise RuntimeError("Message sent but ID not available in response")
 
-    message_id = getattr(message, "id", "unknown")
-    logger.info(f"Message sent successfully: {message_id}")
-    return f"Message sent successfully: {message_id}"
+    logger.info(f"Message sent successfully: {message.id}")
+    return f"Message sent successfully: {message.id}"

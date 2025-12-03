@@ -35,23 +35,20 @@ def list_chat_participants(
         participant_type=participant_type,
     )
 
-    participants_list = result.data if hasattr(result, "data") else []
-    participants_list = participants_list or []
+    participants_list = result.data or []
 
+    # ChatParticipantDetails has: id, agent_name, email, first_name, last_name, role, status, type
     participants_data = {
         "participants": [
             {
-                "id": getattr(p, "id", None),
-                "name": getattr(p, "name", None),
-                "type": getattr(p, "type", None),
-                "agent_name": getattr(p, "agent_name", None),
-                "avatar_url": getattr(p, "avatar_url", None),
-                "email": getattr(p, "email", None),
-                "first_name": getattr(p, "first_name", None),
-                "last_name": getattr(p, "last_name", None),
-                "role": getattr(p, "role", None),
-                "participant_id": getattr(p, "participant_id", None),
-                "participant_type": getattr(p, "participant_type", None),
+                "id": p.id,
+                "type": p.type,
+                "agent_name": p.agent_name,
+                "email": p.email,
+                "first_name": p.first_name,
+                "last_name": p.last_name,
+                "role": p.role,
+                "status": p.status,
             }
             for p in participants_list
         ]
@@ -143,20 +140,20 @@ def list_available_participants(
         participant_type=participant_type,
     )
 
-    participants_list = result.data if hasattr(result, "data") else []
-    participants_list = participants_list or []
+    participants_list = result.data or []
 
+    # AvailableParticipant has: id, name, type, agent_name, avatar_url, email, first_name, last_name
     participants_data = {
         "available_participants": [
             {
-                "id": getattr(p, "id", None),
-                "name": getattr(p, "name", None),
-                "type": getattr(p, "type", None),
-                "agent_name": getattr(p, "agent_name", None),
-                "avatar_url": getattr(p, "avatar_url", None),
-                "email": getattr(p, "email", None),
-                "first_name": getattr(p, "first_name", None),
-                "last_name": getattr(p, "last_name", None),
+                "id": p.id,
+                "name": p.name,
+                "type": p.type,
+                "agent_name": p.agent_name,
+                "avatar_url": p.avatar_url,
+                "email": p.email,
+                "first_name": p.first_name,
+                "last_name": p.last_name,
             }
             for p in participants_list
         ]
