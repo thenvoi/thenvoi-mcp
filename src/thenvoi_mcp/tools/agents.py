@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, cast
 
 from mcp.server.fastmcp import Context
 
@@ -60,7 +60,7 @@ async def get_agent(ctx: Context, agent_id: str) -> str:
     logger.debug(f"Fetching agent with ID: {agent_id}")
     client = get_app_context(ctx).client
     result = client.agents.get_agent(id=agent_id)
-    agent = result.data if hasattr(result, "data") else result  # type: ignore
+    agent = result.data if hasattr(result, "data") else result
 
     if agent is None:
         logger.warning(f"Agent not found: {agent_id}")
@@ -140,8 +140,8 @@ async def update_agent(
             logger.error(f"Invalid JSON for structured_output_schema: {e}")
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
-    result = client.agents.update_agent(id=agent_id, agent=update_data)  # type: ignore
-    agent = result.data if hasattr(result, "data") else result  # type: ignore
+    result = client.agents.update_agent(id=agent_id, agent=cast(Any, update_data))
+    agent = result.data if hasattr(result, "data") else result
 
     if agent is None:
         logger.error(f"Agent {agent_id} updated but response data is None")

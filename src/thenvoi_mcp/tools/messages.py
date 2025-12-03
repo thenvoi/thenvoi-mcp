@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 from mcp.server.fastmcp import Context
+from thenvoi.client.rest import ChatMessageRequest
 
 from thenvoi_mcp.shared import mcp, get_app_context
 
@@ -264,25 +265,20 @@ async def create_chat_message(
             formatted_content = f"{' '.join(mention_tags)} {content}"
 
     # Build request
-    request_data = {
-        "content": formatted_content,
-        "sender_id": sender_id,
-        "sender_type": "User",  # Always User since we're sending from authenticated user
-    }
-    if message_type is not None:
-        request_data["message_type"] = message_type
-    else:
-        request_data["message_type"] = "text"  # Default to text
-
-    if mentions_list is not None:
-        request_data["mentions"] = mentions_list
+    request = ChatMessageRequest(
+        content=formatted_content,
+        sender_id=sender_id,
+        sender_type="User",  # Always User since we're sending from authenticated user
+        message_type=message_type or "text",
+        mentions=mentions_list,
+    )
 
     # Send the message
     result = client.chat_messages.create_chat_message(
         chat_id=chat_id,
-        message=request_data,  # type: ignore
+        message=request,
     )
-    message = result.data if hasattr(result, "data") else result  # type: ignore
+    message = result.data if hasattr(result, "data") else result
 
     if message is None:
         logger.error("Message sent but response data is None")

@@ -25,7 +25,7 @@ class TestAgentIntegration:
                 "name": f"Test Agent Integration {timestamp}",
                 "model_type": "gpt-4o-mini",
                 "description": "Integration test agent",
-            }  # type: ignore[arg-type]
+            }
         )
         assert response.data is not None
         agent_id = response.data.id
@@ -83,7 +83,7 @@ class TestAgentIntegration:
                 "model_type": "gpt-4o-mini",
                 "description": "Test agent with structured output",
                 "structured_output_schema": schema,
-            }  # type: ignore[arg-type]
+            }
         )
         assert response.data is not None
         agent_id = response.data.id

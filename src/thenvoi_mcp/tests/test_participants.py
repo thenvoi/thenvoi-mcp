@@ -27,7 +27,7 @@ class TestParticipantIntegration:
                 "name": f"Chat Owner Agent {timestamp}",
                 "model_type": "gpt-4o-mini",
                 "description": "Agent for chat ownership",
-            }  # type: ignore[arg-type]
+            }
         )
         assert owner_response.data is not None
         owner_agent_id = owner_response.data.id
@@ -50,7 +50,7 @@ class TestParticipantIntegration:
                     "name": f"Test Participant Agent {timestamp}",
                     "model_type": "gpt-4o-mini",
                     "description": "Test agent for participant tests",
-                }  # type: ignore[arg-type]
+                }
             )
             assert participant_response.data is not None
             agent_id = participant_response.data.id

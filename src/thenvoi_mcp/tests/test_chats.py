@@ -27,7 +27,7 @@ class TestChatIntegration:
                 "name": f"Chat Owner Agent {timestamp}",
                 "model_type": "gpt-4o-mini",
                 "description": "Agent for chat ownership",
-            }  # type: ignore[arg-type]
+            }
         )
         assert response.data is not None
         agent_id = response.data.id

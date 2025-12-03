@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, cast
 
 from mcp.server.fastmcp import Context
 
@@ -151,8 +151,8 @@ async def create_chat(
     if metadata_dict is not None:
         request_data["metadata"] = metadata_dict
 
-    result = client.chat_rooms.create_chat(chat=request_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
+    chat = result.data if hasattr(result, "data") else result
 
     if chat is None:
         logger.error("Chat room created but response data is None")
@@ -201,8 +201,8 @@ async def update_chat(
             logger.error(f"Invalid JSON for metadata: {e}")
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
-    result = client.chat_rooms.update_chat(id=chat_id, chat=update_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
+    chat = result.data if hasattr(result, "data") else result
 
     if chat is None:
         logger.error(f"Chat {chat_id} updated but response data is None")

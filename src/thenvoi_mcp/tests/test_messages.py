@@ -25,7 +25,7 @@ class TestMessageIntegration:
                 "name": f"Message Test Agent {timestamp}",
                 "model_type": "gpt-4o-mini",
                 "description": "Agent for message tests",
-            }  # type: ignore[arg-type]
+            }
         )
         assert response.data is not None
         agent_id = response.data.id
