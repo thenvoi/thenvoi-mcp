@@ -35,7 +35,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[dict]:
         api_key=settings.thenvoi_api_key,
         base_url=settings.thenvoi_base_url,
     )
-    
+
     app_context = AppContext(client=client)
     logger.info("Thenvoi MCP server lifespan started successfully")
 
@@ -60,16 +60,16 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[dict]:
 def get_app_context(ctx: Context) -> AppContext:
     """
     Helper to extract AppContext from the lifespan context.
-    
+
     Usage in tools:
         app_ctx = get_app_context(ctx)
         client = app_ctx.client
-    
+
     Raises:
         RuntimeError: If the AppContext is not available or improperly configured.
     """
     lifespan_ctx = ctx.request_context.lifespan_context
-    
+
     if isinstance(lifespan_ctx, dict):
         app_context = lifespan_ctx.get("app_context")
         if app_context is None:
@@ -83,10 +83,10 @@ def get_app_context(ctx: Context) -> AppContext:
                 "Lifespan context is misconfigured."
             )
         return app_context
-    
+
     if isinstance(lifespan_ctx, AppContext):
         return lifespan_ctx
-    
+
     raise RuntimeError(
         f"Invalid lifespan context type: {type(lifespan_ctx).__name__}. "
         "Expected dict or AppContext."
