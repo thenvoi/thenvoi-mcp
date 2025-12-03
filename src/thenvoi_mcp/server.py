@@ -15,13 +15,20 @@ async def health_check(ctx: Context) -> str:
     """Test MCP server and API connectivity."""
     try:
         app_ctx = get_app_context(ctx)
-        # Verify Thenvoi API connection
-        if app_ctx and app_ctx.client and settings.thenvoi_api_key and settings.thenvoi_base_url:
-            return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}"
-        return "MCP server operational (API not configured)"
+
+        # Verify configuration exists
+        if not app_ctx or not app_ctx.client:
+            return "Health check failed: API client not initialized"
+
+        if not settings.thenvoi_api_key or not settings.thenvoi_base_url:
+            return "Health check failed: API key or base URL not configured"
+
+        client = app_ctx.client
+        client.agents.list_agents()
+
+        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}"
     except Exception as e:
         return f"Health check failed: {str(e)}"
-
 
 def run() -> None:
     """Run the MCP server with STDIO transport."""
