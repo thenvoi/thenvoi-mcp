@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chat_messages(
+def list_chat_messages(
     ctx: AppContextType,
     chat_id: str,
     page: Optional[int] = None,
@@ -118,7 +118,7 @@ async def list_chat_messages(
 
 
 @mcp.tool()
-async def create_chat_message(
+def create_chat_message(
     ctx: AppContextType,
     chat_id: str,
     content: str,
