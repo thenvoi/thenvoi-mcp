@@ -12,9 +12,7 @@ class TestMessageIntegration:
         from thenvoi_mcp.tools.messages import (
             create_chat_message,
             list_chat_messages,
-            delete_chat_message,
         )
-        from thenvoi_api.types import AgentRequest
 
         client, ctx = setup_test_client
 
@@ -23,11 +21,11 @@ class TestMessageIntegration:
 
         # Setup: Create agent using direct API call
         response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Message Test Agent {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Agent for message tests",
-            )
+            agent={
+                "name": f"Message Test Agent {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Agent for message tests",
+            }
         )
         assert response.data is not None
         agent_id = response.data.id
@@ -60,12 +58,6 @@ class TestMessageIntegration:
                 list_result = await list_chat_messages(ctx, chat_id=chat_id)
                 assert message_id in list_result
                 assert "Test message from integration test" in list_result
-
-                # 3. Delete message
-                delete_msg_result = await delete_chat_message(
-                    ctx, chat_id=chat_id, message_id=message_id
-                )
-                assert "Message deleted successfully" in delete_msg_result
 
             finally:
                 # Cleanup: Delete chat

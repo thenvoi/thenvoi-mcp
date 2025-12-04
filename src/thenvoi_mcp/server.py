@@ -30,6 +30,7 @@ async def health_check(ctx: Context) -> str:
     except Exception as e:
         return f"Health check failed: {str(e)}"
 
+
 def run() -> None:
     """Run the MCP server with STDIO transport."""
     logger.info("Starting thenvoi-mcp-server v1.0.0")

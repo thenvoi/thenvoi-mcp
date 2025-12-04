@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 from mcp.server.fastmcp import Context
-from thenvoi_api.core.api_error import ApiError
+from thenvoi.client.rest import ChatMessageRequest
 
 from thenvoi_mcp.shared import mcp, get_app_context
 
@@ -265,25 +265,20 @@ async def create_chat_message(
             formatted_content = f"{' '.join(mention_tags)} {content}"
 
     # Build request
-    request_data = {
-        "content": formatted_content,
-        "sender_id": sender_id,
-        "sender_type": "User",  # Always User since we're sending from authenticated user
-    }
-    if message_type is not None:
-        request_data["message_type"] = message_type
-    else:
-        request_data["message_type"] = "text"  # Default to text
-
-    if mentions_list is not None:
-        request_data["mentions"] = mentions_list
+    request = ChatMessageRequest(
+        content=formatted_content,
+        sender_id=sender_id,
+        sender_type="User",  # Always User since we're sending from authenticated user
+        message_type=message_type or "text",
+        mentions=mentions_list,
+    )
 
     # Send the message
     result = client.chat_messages.create_chat_message(
         chat_id=chat_id,
-        message=request_data,  # type: ignore
+        message=request,
     )
-    message = result.data if hasattr(result, "data") else result  # type: ignore
+    message = result.data if hasattr(result, "data") else result
 
     if message is None:
         logger.error("Message sent but response data is None")
@@ -292,35 +287,3 @@ async def create_chat_message(
     message_id = getattr(message, "id", "unknown")
     logger.info(f"Message sent successfully: {message_id}")
     return f"Message sent successfully: {message_id}"
-
-
-# TODO: check if neeeded
-@mcp.tool()
-async def delete_chat_message(ctx: Context, chat_id: str, message_id: str) -> str:
-    """Delete a message from a chat room.
-
-    Permanently deletes a message from the specified chat room.
-    This action cannot be undone.
-
-    Args:
-        chat_id: The unique identifier of the chat room (required).
-        message_id: The unique identifier of the message to delete (required).
-
-    Returns:
-        Success message confirming deletion.
-    """
-    logger.debug(f"Deleting message {message_id} from chat {chat_id}")
-    client = get_app_context(ctx).client
-    try:
-        client.chat_messages.delete_chat_message(chat_id=chat_id, id=message_id)
-        logger.info(f"Message deleted successfully: {message_id}")
-        return f"Message deleted successfully: {message_id}"
-    except ApiError as e:
-        # BUG WORKAROUND: SDK raises ApiError for HTTP 204 No Content responses
-        # HTTP 204 is a standard successful delete response with no body
-        if hasattr(e, "status_code") and e.status_code == 204:
-            logger.info(f"Message deleted successfully (204 No Content): {message_id}")
-            return f"Message deleted successfully: {message_id}"
-        # Re-raise the actual API error
-        logger.error(f"Failed to delete message {message_id}: {e}")
-        raise

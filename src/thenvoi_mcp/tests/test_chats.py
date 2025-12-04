@@ -15,7 +15,6 @@ class TestChatIntegration:
             delete_chat,
             list_chats,
         )
-        from thenvoi_api.types import AgentRequest
 
         client, ctx = setup_test_client
 
@@ -24,11 +23,11 @@ class TestChatIntegration:
 
         # Setup: Create an agent to be the chat owner using direct API call
         response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Chat Owner Agent {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Agent for chat ownership",
-            )
+            agent={
+                "name": f"Chat Owner Agent {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Agent for chat ownership",
+            }
         )
         assert response.data is not None
         agent_id = response.data.id

@@ -13,20 +13,19 @@ class TestAgentIntegration:
             update_agent,
             list_agents,
         )
-        from thenvoi_api.types import AgentRequest
 
         client, ctx = setup_test_client
 
         # Use timestamp with milliseconds to ensure unique names
         timestamp = int(time.time() * 1000)
 
-        # 1. Create agent using direct API call
+        # 1. Create agent using direct API call with dict
         response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Test Agent Integration {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Integration test agent",
-            )
+            agent={
+                "name": f"Test Agent Integration {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Integration test agent",
+            }
         )
         assert response.data is not None
         agent_id = response.data.id
@@ -63,7 +62,6 @@ class TestAgentIntegration:
     async def test_agent_with_structured_output(self, setup_test_client):
         """Test creating agent with structured output schema."""
         from thenvoi_mcp.tools.agents import get_agent
-        from thenvoi_api.types import AgentRequest
 
         client, ctx = setup_test_client
 
@@ -80,12 +78,12 @@ class TestAgentIntegration:
         }
 
         response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Test Agent with Schema {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Test agent with structured output",
-                structured_output_schema=schema,
-            )
+            agent={
+                "name": f"Test Agent with Schema {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Test agent with structured output",
+                "structured_output_schema": schema,
+            }
         )
         assert response.data is not None
         agent_id = response.data.id

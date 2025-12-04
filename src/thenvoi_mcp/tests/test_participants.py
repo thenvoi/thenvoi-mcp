@@ -15,7 +15,6 @@ class TestParticipantIntegration:
             remove_chat_participant,
             list_available_participants,
         )
-        from thenvoi_api.types import AgentRequest
 
         client, ctx = setup_test_client
 
@@ -24,11 +23,11 @@ class TestParticipantIntegration:
 
         # Setup: Create agents using direct API call (one for owner, one for participant)
         owner_response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Chat Owner Agent {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Agent for chat ownership",
-            )
+            agent={
+                "name": f"Chat Owner Agent {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Agent for chat ownership",
+            }
         )
         assert owner_response.data is not None
         owner_agent_id = owner_response.data.id
@@ -47,11 +46,11 @@ class TestParticipantIntegration:
             chat_id = create_chat_result.split(": ")[1].strip()
 
             participant_response = client.agents.create_agent(
-                agent=AgentRequest(
-                    name=f"Test Participant Agent {timestamp}",
-                    model_type="gpt-4o-mini",
-                    description="Test agent for participant tests",
-                )
+                agent={
+                    "name": f"Test Participant Agent {timestamp}",
+                    "model_type": "gpt-4o-mini",
+                    "description": "Test agent for participant tests",
+                }
             )
             assert participant_response.data is not None
             agent_id = participant_response.data.id

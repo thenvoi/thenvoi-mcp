@@ -14,7 +14,6 @@ Usage:
 import asyncio
 import logging
 import os
-from typing import Annotated
 
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
@@ -69,7 +68,7 @@ async def main() -> None:
 
     # Build the graph
     builder = StateGraph(MessagesState)
-    builder.add_node("agent", call_model)
+    builder.add_node("agent", call_model)  # pyrefly: ignore[no-matching-overload]
     builder.add_node("tools", ToolNode(tools))
     builder.add_edge(START, "agent")
     builder.add_conditional_edges("agent", tools_condition)
