@@ -2,17 +2,16 @@ import json
 import logging
 from typing import Optional
 
-from mcp.server.fastmcp import Context
 from thenvoi.client.rest import ChatMessageRequest
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chat_messages(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
@@ -120,7 +119,7 @@ async def list_chat_messages(
 
 @mcp.tool()
 async def create_chat_message(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     content: str,
     recipient_ids: Optional[str] = None,

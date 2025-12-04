@@ -2,16 +2,14 @@ import json
 import logging
 from typing import Optional, Any, Dict, cast
 
-from mcp.server.fastmcp import Context
-
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chats(
-    ctx: Context,
+    ctx: AppContextType,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
     status: Optional[str] = None,
@@ -68,7 +66,7 @@ async def list_chats(
 
 
 @mcp.tool()
-async def get_chat(ctx: Context, chat_id: str) -> str:
+async def get_chat(ctx: AppContextType, chat_id: str) -> str:
     """Get a specific chat room by ID.
 
     Retrieves detailed information about a single chat room.
@@ -100,7 +98,7 @@ async def get_chat(ctx: Context, chat_id: str) -> str:
 
 @mcp.tool()
 async def create_chat(
-    ctx: Context,
+    ctx: AppContextType,
     title: str,
     chat_type: str,
     owner_id: str,
@@ -165,7 +163,7 @@ async def create_chat(
 
 @mcp.tool()
 async def update_chat(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     title: Optional[str] = None,
     status: Optional[str] = None,
@@ -214,7 +212,7 @@ async def update_chat(
 
 
 @mcp.tool()
-async def delete_chat(ctx: Context, chat_id: str) -> str:
+async def delete_chat(ctx: AppContextType, chat_id: str) -> str:
     """Delete a chat room.
 
     Permanently deletes a chat room. This action cannot be undone.

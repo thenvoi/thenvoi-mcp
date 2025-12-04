@@ -2,15 +2,13 @@ import json
 import logging
 from typing import Optional, Any, Dict, cast
 
-from mcp.server.fastmcp import Context
-
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_agents(ctx: Context) -> str:
+async def list_agents(ctx: AppContextType) -> str:
     """List all accessible agents.
 
     Returns a list of agents that the authenticated user has access to.
@@ -46,7 +44,7 @@ async def list_agents(ctx: Context) -> str:
 
 
 @mcp.tool()
-async def get_agent(ctx: Context, agent_id: str) -> str:
+async def get_agent(ctx: AppContextType, agent_id: str) -> str:
     """Get a specific agent by ID.
 
     Retrieves detailed information about a single agent.
@@ -82,7 +80,7 @@ async def get_agent(ctx: Context, agent_id: str) -> str:
 
 @mcp.tool()
 async def update_agent(
-    ctx: Context,
+    ctx: AppContextType,
     agent_id: str,
     name: Optional[str] = None,
     model_type: Optional[str] = None,
@@ -154,7 +152,7 @@ async def update_agent(
 
 @mcp.tool()
 async def list_agent_chats(
-    ctx: Context,
+    ctx: AppContextType,
     agent_id: str,
     page: Optional[int] = None,
     page_size: Optional[int] = None,

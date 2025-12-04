@@ -2,17 +2,16 @@ import json
 import logging
 from typing import Optional
 
-from mcp.server.fastmcp import Context
 from thenvoi.client.rest import AddChatParticipantRequestParticipant
 
-from thenvoi_mcp.shared import mcp, get_app_context
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chat_participants(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     participant_type: Optional[str] = None,
 ) -> str:
@@ -63,7 +62,7 @@ async def list_chat_participants(
 
 @mcp.tool()
 async def add_chat_participant(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     participant_id: str,
     role: str = "member",
@@ -98,7 +97,7 @@ async def add_chat_participant(
 
 @mcp.tool()
 async def remove_chat_participant(
-    ctx: Context, chat_id: str, participant_id: str
+    ctx: AppContextType, chat_id: str, participant_id: str
 ) -> str:
     """Remove a participant from a chat room.
 
@@ -120,7 +119,7 @@ async def remove_chat_participant(
 
 @mcp.tool()
 async def list_available_participants(
-    ctx: Context,
+    ctx: AppContextType,
     chat_id: str,
     participant_type: str,
 ) -> str:

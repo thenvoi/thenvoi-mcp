@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.session import ServerSession
 from thenvoi.client.rest import RestClient
 
 from thenvoi_mcp.config import settings
@@ -27,6 +28,7 @@ class AppContext:
 
     client: RestClient
 
+AppContextType = Context[ServerSession, AppContext, None]
 
 @asynccontextmanager
 async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
@@ -45,7 +47,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
         logger.info("Thenvoi MCP server lifespan shutdown complete")
 
 
-def get_app_context(ctx: Context) -> AppContext:
+def get_app_context(ctx: AppContextType) -> AppContext:
     """
     Helper to extract AppContext from the lifespan context.
 
@@ -53,10 +55,7 @@ def get_app_context(ctx: Context) -> AppContext:
         app_ctx = get_app_context(ctx)
         client = app_ctx.client
     """
-    lifespan_ctx = ctx.request_context.lifespan_context
-    if isinstance(lifespan_ctx, AppContext):
-        return lifespan_ctx
-    raise RuntimeError("AppContext not available. Is the server lifespan configured?")
+    return ctx.request_context.lifespan_context
 
 
 # MCP server instance with lifespan for proper dependency injection
