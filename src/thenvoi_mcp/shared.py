@@ -28,7 +28,9 @@ class AppContext:
 
     client: RestClient
 
+
 AppContextType = Context[ServerSession, AppContext, None]
+
 
 @asynccontextmanager
 async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
