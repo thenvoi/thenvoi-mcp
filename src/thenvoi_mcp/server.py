@@ -11,7 +11,7 @@ from thenvoi_mcp.tools import participants  # noqa: F401
 
 
 @mcp.tool()
-async def health_check(ctx: Context) -> str:
+def health_check(ctx: Context) -> str:
     """Test MCP server and API connectivity."""
     try:
         app_ctx = get_app_context(ctx)

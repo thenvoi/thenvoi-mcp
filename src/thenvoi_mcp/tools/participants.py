@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chat_participants(
+def list_chat_participants(
     ctx: AppContextType,
     chat_id: str,
     participant_type: Optional[str] = None,
@@ -61,7 +61,7 @@ async def list_chat_participants(
 
 
 @mcp.tool()
-async def add_chat_participant(
+def add_chat_participant(
     ctx: AppContextType,
     chat_id: str,
     participant_id: str,
@@ -96,7 +96,7 @@ async def add_chat_participant(
 
 
 @mcp.tool()
-async def remove_chat_participant(
+def remove_chat_participant(
     ctx: AppContextType, chat_id: str, participant_id: str
 ) -> str:
     """Remove a participant from a chat room.
@@ -118,7 +118,7 @@ async def remove_chat_participant(
 
 
 @mcp.tool()
-async def list_available_participants(
+def list_available_participants(
     ctx: AppContextType,
     chat_id: str,
     participant_type: str,
