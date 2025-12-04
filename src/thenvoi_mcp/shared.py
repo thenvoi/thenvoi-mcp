@@ -13,12 +13,10 @@ from thenvoi.client.rest import RestClient
 
 from thenvoi_mcp.config import settings
 
-# Configure logging to stderr only
-# CRITICAL: NEVER log to stdout - it's used for STDIO transport communication
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stderr,  # NEVER stdout for STDIO transport
+    stream=sys.stderr,
 )
 logger = logging.getLogger("thenvoi-mcp")
 
@@ -67,9 +65,6 @@ def serialize_response(result: Any, **kwargs) -> str:
     """
     Serialize a Pydantic model response to JSON.
 
-    Uses model_dump() for Pydantic models, enabling clean serialization
-    without manual field extraction.
-
     Args:
         result: A Pydantic model or any object with model_dump() method.
         **kwargs: Additional arguments passed to model_dump() (e.g., exclude, include).
@@ -79,9 +74,8 @@ def serialize_response(result: Any, **kwargs) -> str:
     """
     if isinstance(result, BaseModel):
         return json.dumps(result.model_dump(**kwargs), indent=2, default=str)
-    # Fallback for non-Pydantic objects
+
     return json.dumps(result, indent=2, default=str)
 
 
-# MCP server instance with lifespan for proper dependency injection
 mcp = FastMCP(name="thenvoi-mcp-server", lifespan=app_lifespan)

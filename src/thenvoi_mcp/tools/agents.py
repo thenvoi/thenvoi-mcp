@@ -78,7 +78,6 @@ def update_agent(
     logger.debug(f"Updating agent: {agent_id}")
     client = get_app_context(ctx).client
 
-    # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
     if name is not None:
         update_data["name"] = name

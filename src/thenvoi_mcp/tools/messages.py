@@ -38,7 +38,6 @@ def list_chat_messages(
     logger.debug(f"Fetching messages for chat: {chat_id}")
     client = get_app_context(ctx).client
 
-    # Parse since timestamp if provided
     since_dt = None
     if since is not None:
         from datetime import datetime
@@ -135,39 +134,32 @@ def create_chat_message(
     logger.debug(f"Creating message in chat: {chat_id}")
     client = get_app_context(ctx).client
 
-    # Get the authenticated user's ID from the API key
-    # my_profile.get_my_profile() returns UserDetails directly (no .data wrapper)
     profile = client.my_profile.get_my_profile()
     sender_id = profile.id
     logger.debug(f"Authenticated user ID: {sender_id}")
 
-    # Process recipients if provided - server will validate that they are chat participants
     mentions_list: Optional[List[Dict[str, str]]] = None
     if recipient_ids:
         recipient_list = [
             rid.strip() for rid in recipient_ids.split(",") if rid.strip()
         ]
         if recipient_list:
-            # Build mentions list with IDs - server will resolve display names
             mentions_list = [{"id": rid, "username": rid} for rid in recipient_list]
 
-    # Build request
     request = ChatMessageRequest(
         content=content,
         sender_id=sender_id,
-        sender_type="User",  # Always User since we're sending from authenticated user
+        sender_type="User",
         message_type=message_type or "text",
         mentions=mentions_list,
     )
 
-    # Send the message - let server validate recipients and handle errors
     try:
         result = client.chat_messages.create_chat_message(
             chat_id=chat_id,
             message=request,
         )
     except Exception as e:
-        # Surface API errors cleanly
         error_str = str(e)
         logger.error(f"Failed to send message: {error_str}")
         raise RuntimeError(f"Failed to send message: {error_str}") from e

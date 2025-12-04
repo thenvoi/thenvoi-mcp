@@ -90,7 +90,6 @@ def create_chat(
     logger.debug(f"Creating chat: {title}")
     client = get_app_context(ctx).client
 
-    # Parse metadata if provided
     metadata_dict = None
     if metadata is not None:
         try:
@@ -99,7 +98,6 @@ def create_chat(
             logger.error(f"Invalid JSON for metadata: {e}")
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
-    # Build request with only non-None values
     request_data = {
         "title": title,
         "type": chat_type,
@@ -148,7 +146,6 @@ def update_chat(
     logger.debug(f"Updating chat: {chat_id}")
     client = get_app_context(ctx).client
 
-    # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
     if title is not None:
         update_data["title"] = title
