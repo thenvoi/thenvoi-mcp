@@ -1,8 +1,8 @@
 import json
 import logging
-from typing import Optional, Any, Dict, cast
+from typing import Any, Dict, Optional, cast
 
-from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
+from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -20,27 +20,8 @@ def list_agents(ctx: AppContextType) -> str:
     logger.debug("Fetching list of agents")
     client = get_app_context(ctx).client
     result = client.agents.list_agents()
-    agents_list = result.data if hasattr(result, "data") else []
-
-    agents_list = agents_list or []  # Handle None case simply
-
-    agents_data = {
-        "agents": [
-            {
-                "id": agent.id,
-                "name": agent.name,
-                "model_type": agent.model_type,
-                "description": agent.description,
-                "is_external": agent.is_external,
-                "is_global": agent.is_global,
-                "organization_id": agent.organization_id,
-                "system_prompt_id": agent.system_prompt_id,
-            }
-            for agent in agents_list
-        ]
-    }
-    logger.info(f"Retrieved {len(agents_list)} agents")
-    return json.dumps(agents_data, indent=2)
+    logger.info(f"Retrieved {len(result.data or [])} agents")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -58,24 +39,8 @@ def get_agent(ctx: AppContextType, agent_id: str) -> str:
     logger.debug(f"Fetching agent with ID: {agent_id}")
     client = get_app_context(ctx).client
     result = client.agents.get_agent(id=agent_id)
-    agent = result.data if hasattr(result, "data") else result
-
-    if agent is None:
-        logger.warning(f"Agent not found: {agent_id}")
-        raise ValueError(f"Agent with ID {agent_id} not found")
-
-    agent_data = {
-        "id": getattr(agent, "id", None),
-        "name": getattr(agent, "name", None),
-        "model_type": getattr(agent, "model_type", None),
-        "description": getattr(agent, "description", None),
-        "is_external": getattr(agent, "is_external", None),
-        "is_global": getattr(agent, "is_global", None),
-        "organization_id": getattr(agent, "organization_id", None),
-        "system_prompt_id": getattr(agent, "system_prompt_id", None),
-    }
     logger.info(f"Retrieved agent: {agent_id}")
-    return json.dumps(agent_data, indent=2)
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -139,15 +104,14 @@ def update_agent(
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
     result = client.agents.update_agent(id=agent_id, agent=cast(Any, update_data))
-    agent = result.data if hasattr(result, "data") else result
+    agent = result.data
 
     if agent is None:
         logger.error(f"Agent {agent_id} updated but response data is None")
         raise RuntimeError("Agent updated but ID not available in response")
 
-    updated_agent_id = getattr(agent, "id", "unknown")
-    logger.info(f"Agent updated successfully: {updated_agent_id}")
-    return f"Agent updated successfully: {updated_agent_id}"
+    logger.info(f"Agent updated successfully: {agent.id}")
+    return f"Agent updated successfully: {agent.id}"
 
 
 @mcp.tool()
@@ -183,26 +147,5 @@ def list_agent_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data if hasattr(result, "data") else []
-    chats_list = chats_list or []  # Handle None case
-
-    chats_data = {
-        "chats": [
-            {
-                "id": getattr(chat, "id", None),
-                "name": getattr(chat, "name", None) or getattr(chat, "title", None),
-                "status": getattr(chat, "status", None),
-                "type": getattr(chat, "type", None),
-            }
-            for chat in chats_list
-        ]
-    }
-    if hasattr(result, "page"):
-        chats_data["page"] = result.page
-    if hasattr(result, "page_size"):
-        chats_data["page_size"] = result.page_size
-    if hasattr(result, "total"):
-        chats_data["total"] = result.total
-
-    logger.info(f"Retrieved {len(chats_list)} chats for agent: {agent_id}")
-    return json.dumps(chats_data, indent=2)
+    logger.info(f"Retrieved {len(result.data or [])} chats for agent: {agent_id}")
+    return serialize_response(result)

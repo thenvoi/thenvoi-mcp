@@ -1,8 +1,8 @@
 import json
 import logging
-from typing import Optional, Any, Dict, cast
+from typing import Any, Dict, Optional, cast
 
-from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
+from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -36,33 +36,8 @@ def list_chats(
         status=status,
         type=chat_type,
     )
-    chats_list = result.data if hasattr(result, "data") else []
-    chats_list = chats_list or []
-
-    chats_data = {
-        "chats": [
-            {
-                "id": getattr(chat, "id", None),
-                "title": getattr(chat, "title", None),
-                "type": getattr(chat, "type", None),
-                "status": getattr(chat, "status", None),
-                "owner_id": getattr(chat, "owner_id", None),
-                "owner_type": getattr(chat, "owner_type", None),
-                "task_id": getattr(chat, "task_id", None),
-                "metadata": getattr(chat, "metadata", None),
-            }
-            for chat in chats_list
-        ]
-    }
-    if hasattr(result, "page"):
-        chats_data["page"] = result.page
-    if hasattr(result, "per_page"):
-        chats_data["per_page"] = result.per_page
-    if hasattr(result, "total"):
-        chats_data["total"] = result.total
-
-    logger.info(f"Retrieved {len(chats_list)} chats")
-    return json.dumps(chats_data, indent=2)
+    logger.info(f"Retrieved {len(result.data or [])} chats")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -80,20 +55,8 @@ def get_chat(ctx: AppContextType, chat_id: str) -> str:
     logger.debug(f"Fetching chat with ID: {chat_id}")
     client = get_app_context(ctx).client
     result = client.chat_rooms.get_chat(id=chat_id)
-    chat = result.data if hasattr(result, "data") else result
-
-    chat_data = {
-        "id": getattr(chat, "id", None),
-        "title": getattr(chat, "title", None),
-        "type": getattr(chat, "type", None),
-        "status": getattr(chat, "status", None),
-        "owner_id": getattr(chat, "owner_id", None),
-        "owner_type": getattr(chat, "owner_type", None),
-        "task_id": getattr(chat, "task_id", None),
-        "metadata": getattr(chat, "metadata", None),
-    }
     logger.info(f"Retrieved chat: {chat_id}")
-    return json.dumps(chat_data, indent=2)
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -150,15 +113,14 @@ def create_chat(
         request_data["metadata"] = metadata_dict
 
     result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
-    chat = result.data if hasattr(result, "data") else result
+    chat = result.data
 
     if chat is None:
         logger.error("Chat room created but response data is None")
         raise RuntimeError("Chat room created but ID not available in response")
 
-    chat_id = getattr(chat, "id", "unknown")
-    logger.info(f"Chat room created successfully: {chat_id}")
-    return f"Chat room created successfully: {chat_id}"
+    logger.info(f"Chat room created successfully: {chat.id}")
+    return f"Chat room created successfully: {chat.id}"
 
 
 @mcp.tool()
@@ -200,15 +162,14 @@ def update_chat(
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
     result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
-    chat = result.data if hasattr(result, "data") else result
+    chat = result.data
 
     if chat is None:
         logger.error(f"Chat {chat_id} updated but response data is None")
         raise RuntimeError("Chat room updated but ID not available in response")
 
-    updated_chat_id = getattr(chat, "id", "unknown")
-    logger.info(f"Chat room updated successfully: {updated_chat_id}")
-    return f"Chat room updated successfully: {updated_chat_id}"
+    logger.info(f"Chat room updated successfully: {chat.id}")
+    return f"Chat room updated successfully: {chat.id}"
 
 
 @mcp.tool()

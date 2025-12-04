@@ -1,10 +1,9 @@
-import json
 import logging
-from typing import Optional
+from typing import Dict, List, Optional
 
 from thenvoi.client.rest import ChatMessageRequest
 
-from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
+from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
@@ -57,64 +56,8 @@ def list_chat_messages(
         since=since_dt,
         message_type=message_type,
     )
-
-    messages_list = result.data if hasattr(result, "data") else []
-    messages_list = messages_list or []
-
-    # Fetch participants to get sender names
-    participants_result = client.chat_participants.list_chat_participants(
-        chat_id=chat_id
-    )
-    participants_data = (
-        participants_result.data if hasattr(participants_result, "data") else []
-    )
-    participants_data = participants_data or []
-
-    # Build participant map with names
-    participant_map = {}
-    for p in participants_data:
-        p_id = (
-            p.participant_id
-            if hasattr(p, "participant_id")
-            else (p.id if hasattr(p, "id") else None)
-        )
-        if p_id:
-            # For agents, use agent_name; for users, use name
-            display_name = None
-            if hasattr(p, "agent_name") and p.agent_name:
-                display_name = p.agent_name
-            elif hasattr(p, "name") and p.name:
-                display_name = p.name
-
-            participant_map[p_id] = display_name or p_id
-
-    messages_data = {
-        "messages": [
-            {
-                "id": getattr(msg, "id", None),
-                "content": getattr(msg, "content", None),
-                "sender_id": getattr(msg, "sender_id", None),
-                "sender_name": participant_map.get(
-                    getattr(msg, "sender_id", None), "Unknown"
-                ),
-                "sender_type": getattr(msg, "sender_type", None),
-                "message_type": getattr(msg, "message_type", None),
-                "created_at": str(getattr(msg, "created_at", "")),
-                "delivery_status": getattr(msg, "delivery_status", None),
-                "mentions": getattr(msg, "mentions", None),
-            }
-            for msg in messages_list
-        ]
-    }
-    if hasattr(result, "page"):
-        messages_data["page"] = result.page
-    if hasattr(result, "per_page"):
-        messages_data["per_page"] = result.per_page
-    if hasattr(result, "total"):
-        messages_data["total"] = result.total
-
-    logger.info(f"Retrieved {len(messages_list)} messages for chat: {chat_id}")
-    return json.dumps(messages_data, indent=2)
+    logger.info(f"Retrieved {len(result.data or [])} messages for chat: {chat_id}")
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -181,7 +124,6 @@ def create_chat_message(
         recipient_ids: Comma-separated participant IDs to send TO (optional).
                       These people will be @mentioned in the message.
                       Example: "user-123,agent-456,user-789"
-                      Must be verified chat participants.
         message_type: Optional message type (defaults to 'text').
 
     Returns:
@@ -194,95 +136,47 @@ def create_chat_message(
     client = get_app_context(ctx).client
 
     # Get the authenticated user's ID from the API key
+    # my_profile.get_my_profile() returns UserDetails directly (no .data wrapper)
     profile = client.my_profile.get_my_profile()
-    sender_id = profile.data.id if hasattr(profile, "data") else profile.id
+    sender_id = profile.id
     logger.debug(f"Authenticated user ID: {sender_id}")
 
-    # Process recipients if provided
-    mentions_list = None
-    formatted_content = content
-
+    # Process recipients if provided - server will validate that they are chat participants
+    mentions_list: Optional[List[Dict[str, str]]] = None
     if recipient_ids:
-        # Parse recipient IDs
         recipient_list = [
             rid.strip() for rid in recipient_ids.split(",") if rid.strip()
         ]
-
         if recipient_list:
-            # Get chat participants to verify recipients are in the chat
-            participants_result = client.chat_participants.list_chat_participants(
-                chat_id=chat_id
-            )
-            participants_data = (
-                participants_result.data if hasattr(participants_result, "data") else []
-            )
-            participants_data = participants_data or []
-
-            # Extract participant IDs and their details
-            participant_map = {}
-            for p in participants_data:
-                p_id = (
-                    p.participant_id
-                    if hasattr(p, "participant_id")
-                    else (p.id if hasattr(p, "id") else None)
-                )
-                if p_id:
-                    # For agents, use agent_name; for users, use name
-                    display_name = None
-                    if hasattr(p, "agent_name") and p.agent_name:
-                        display_name = p.agent_name
-                    elif hasattr(p, "name") and p.name:
-                        display_name = p.name
-
-                    participant_map[p_id] = {
-                        "display_name": display_name or p_id,
-                        "type": p.participant_type
-                        if hasattr(p, "participant_type")
-                        else (p.type if hasattr(p, "type") else None),
-                    }
-
-            # Verify all recipients are in the chat
-            invalid_recipients = [
-                rid for rid in recipient_list if rid not in participant_map
-            ]
-            if invalid_recipients:
-                error_msg = f"The following recipients are not participants in the chat room: {', '.join(invalid_recipients)}"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-
-            # Build mentions list
-            mentions_list = []
-            mention_tags: list[str] = []
-            for rid in recipient_list:
-                participant = participant_map[rid]
-                display_name = participant["display_name"]
-                # Ensure types for mentions
-                mentions_list.append({"id": str(rid), "username": str(display_name)})
-                mention_tags.append(str(f"@{display_name}"))
-
-            # Format message with @ mentions: @user1 @user2 @user3 message content
-            formatted_content = f"{' '.join(mention_tags)} {content}"
+            # Build mentions list with IDs - server will resolve display names
+            mentions_list = [{"id": rid, "username": rid} for rid in recipient_list]
 
     # Build request
     request = ChatMessageRequest(
-        content=formatted_content,
+        content=content,
         sender_id=sender_id,
         sender_type="User",  # Always User since we're sending from authenticated user
         message_type=message_type or "text",
         mentions=mentions_list,
     )
 
-    # Send the message
-    result = client.chat_messages.create_chat_message(
-        chat_id=chat_id,
-        message=request,
-    )
-    message = result.data if hasattr(result, "data") else result
+    # Send the message - let server validate recipients and handle errors
+    try:
+        result = client.chat_messages.create_chat_message(
+            chat_id=chat_id,
+            message=request,
+        )
+    except Exception as e:
+        # Surface API errors cleanly
+        error_str = str(e)
+        logger.error(f"Failed to send message: {error_str}")
+        raise RuntimeError(f"Failed to send message: {error_str}") from e
+
+    message = result.data
 
     if message is None:
         logger.error("Message sent but response data is None")
         raise RuntimeError("Message sent but ID not available in response")
 
-    message_id = getattr(message, "id", "unknown")
-    logger.info(f"Message sent successfully: {message_id}")
-    return f"Message sent successfully: {message_id}"
+    logger.info(f"Message sent successfully: {message.id}")
+    return f"Message sent successfully: {message.id}"

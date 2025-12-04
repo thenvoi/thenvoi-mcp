@@ -1,11 +1,14 @@
+import json
 import logging
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+from pydantic import BaseModel
 from thenvoi.client.rest import RestClient
 
 from thenvoi_mcp.config import settings
@@ -58,6 +61,26 @@ def get_app_context(ctx: AppContextType) -> AppContext:
         client = app_ctx.client
     """
     return ctx.request_context.lifespan_context
+
+
+def serialize_response(result: Any, **kwargs) -> str:
+    """
+    Serialize a Pydantic model response to JSON.
+
+    Uses model_dump() for Pydantic models, enabling clean serialization
+    without manual field extraction.
+
+    Args:
+        result: A Pydantic model or any object with model_dump() method.
+        **kwargs: Additional arguments passed to model_dump() (e.g., exclude, include).
+
+    Returns:
+        JSON string representation of the result.
+    """
+    if isinstance(result, BaseModel):
+        return json.dumps(result.model_dump(**kwargs), indent=2, default=str)
+    # Fallback for non-Pydantic objects
+    return json.dumps(result, indent=2, default=str)
 
 
 # MCP server instance with lifespan for proper dependency injection
