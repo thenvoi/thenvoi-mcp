@@ -2,15 +2,16 @@ import json
 import logging
 from typing import Optional
 
-from thenvoi_api.chat_participants.types import AddChatParticipantRequestParticipant
+from thenvoi.client.rest import AddChatParticipantRequestParticipant
 
-from thenvoi_mcp.shared import mcp, client
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chat_participants(
+    ctx: AppContextType,
     chat_id: str,
     participant_type: Optional[str] = None,
 ) -> str:
@@ -27,6 +28,7 @@ async def list_chat_participants(
         JSON string containing the list of participants.
     """
     logger.debug(f"Fetching participants for chat: {chat_id}")
+    client = get_app_context(ctx).client
     result = client.chat_participants.list_chat_participants(
         chat_id=chat_id,
         participant_type=participant_type,
@@ -60,6 +62,7 @@ async def list_chat_participants(
 
 @mcp.tool()
 async def add_chat_participant(
+    ctx: AppContextType,
     chat_id: str,
     participant_id: str,
     role: str = "member",
@@ -80,6 +83,7 @@ async def add_chat_participant(
     logger.debug(
         f"Adding participant {participant_id} to chat {chat_id} with role {role}"
     )
+    client = get_app_context(ctx).client
     participant = AddChatParticipantRequestParticipant(
         participant_id=participant_id,
         role=role,
@@ -92,7 +96,9 @@ async def add_chat_participant(
 
 
 @mcp.tool()
-async def remove_chat_participant(chat_id: str, participant_id: str) -> str:
+async def remove_chat_participant(
+    ctx: AppContextType, chat_id: str, participant_id: str
+) -> str:
     """Remove a participant from a chat room.
 
     Removes a participant (user or agent) from the specified chat room.
@@ -105,6 +111,7 @@ async def remove_chat_participant(chat_id: str, participant_id: str) -> str:
         Success message confirming the participant was removed.
     """
     logger.debug(f"Removing participant {participant_id} from chat {chat_id}")
+    client = get_app_context(ctx).client
     client.chat_participants.remove_chat_participant(chat_id=chat_id, id=participant_id)
     logger.info(f"Participant removed successfully: {participant_id}")
     return f"Participant removed successfully: {participant_id}"
@@ -112,6 +119,7 @@ async def remove_chat_participant(chat_id: str, participant_id: str) -> str:
 
 @mcp.tool()
 async def list_available_participants(
+    ctx: AppContextType,
     chat_id: str,
     participant_type: str,
 ) -> str:
@@ -130,6 +138,7 @@ async def list_available_participants(
     logger.debug(
         f"Fetching available {participant_type} participants for chat: {chat_id}"
     )
+    client = get_app_context(ctx).client
     result = client.chat_participants.get_available_chat_participants(
         chat_id=chat_id,
         participant_type=participant_type,

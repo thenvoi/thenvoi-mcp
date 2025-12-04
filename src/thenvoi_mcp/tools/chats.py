@@ -1,14 +1,15 @@
 import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, cast
 
-from thenvoi_mcp.shared import mcp, client
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chats(
+    ctx: AppContextType,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
     status: Optional[str] = None,
@@ -28,6 +29,7 @@ async def list_chats(
         JSON string containing the list of chat rooms.
     """
     logger.debug("Fetching list of chats")
+    client = get_app_context(ctx).client
     result = client.chat_rooms.list_chats(
         page=page,
         per_page=per_page,
@@ -64,7 +66,7 @@ async def list_chats(
 
 
 @mcp.tool()
-async def get_chat(chat_id: str) -> str:
+async def get_chat(ctx: AppContextType, chat_id: str) -> str:
     """Get a specific chat room by ID.
 
     Retrieves detailed information about a single chat room.
@@ -76,6 +78,7 @@ async def get_chat(chat_id: str) -> str:
         JSON string containing the chat room details.
     """
     logger.debug(f"Fetching chat with ID: {chat_id}")
+    client = get_app_context(ctx).client
     result = client.chat_rooms.get_chat(id=chat_id)
     chat = result.data if hasattr(result, "data") else result
 
@@ -95,6 +98,7 @@ async def get_chat(chat_id: str) -> str:
 
 @mcp.tool()
 async def create_chat(
+    ctx: AppContextType,
     title: str,
     chat_type: str,
     owner_id: str,
@@ -121,6 +125,7 @@ async def create_chat(
         Success message with the created chat room's ID.
     """
     logger.debug(f"Creating chat: {title}")
+    client = get_app_context(ctx).client
 
     # Parse metadata if provided
     metadata_dict = None
@@ -144,8 +149,8 @@ async def create_chat(
     if metadata_dict is not None:
         request_data["metadata"] = metadata_dict
 
-    result = client.chat_rooms.create_chat(chat=request_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
+    chat = result.data if hasattr(result, "data") else result
 
     if chat is None:
         logger.error("Chat room created but response data is None")
@@ -158,6 +163,7 @@ async def create_chat(
 
 @mcp.tool()
 async def update_chat(
+    ctx: AppContextType,
     chat_id: str,
     title: Optional[str] = None,
     status: Optional[str] = None,
@@ -178,6 +184,7 @@ async def update_chat(
         Success message with the updated chat room's ID.
     """
     logger.debug(f"Updating chat: {chat_id}")
+    client = get_app_context(ctx).client
 
     # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
@@ -192,8 +199,8 @@ async def update_chat(
             logger.error(f"Invalid JSON for metadata: {e}")
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
-    result = client.chat_rooms.update_chat(id=chat_id, chat=update_data)  # type: ignore
-    chat = result.data if hasattr(result, "data") else result  # type: ignore
+    result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
+    chat = result.data if hasattr(result, "data") else result
 
     if chat is None:
         logger.error(f"Chat {chat_id} updated but response data is None")
@@ -205,7 +212,7 @@ async def update_chat(
 
 
 @mcp.tool()
-async def delete_chat(chat_id: str) -> str:
+async def delete_chat(ctx: AppContextType, chat_id: str) -> str:
     """Delete a chat room.
 
     Permanently deletes a chat room. This action cannot be undone.
@@ -217,6 +224,7 @@ async def delete_chat(chat_id: str) -> str:
         Success message confirming deletion.
     """
     logger.debug(f"Deleting chat: {chat_id}")
+    client = get_app_context(ctx).client
     client.chat_rooms.delete_chat(id=chat_id)
     logger.info(f"Chat room deleted successfully: {chat_id}")
     return f"Chat room deleted successfully: {chat_id}"

@@ -2,15 +2,16 @@ import json
 import logging
 from typing import Optional
 
-from thenvoi_api.core.api_error import ApiError
+from thenvoi.client.rest import ChatMessageRequest
 
-from thenvoi_mcp.shared import mcp, client
+from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
 async def list_chat_messages(
+    ctx: AppContextType,
     chat_id: str,
     page: Optional[int] = None,
     per_page: Optional[int] = None,
@@ -36,6 +37,7 @@ async def list_chat_messages(
         Example: "sender_name": "john" means you can reply with "@john" to tag them.
     """
     logger.debug(f"Fetching messages for chat: {chat_id}")
+    client = get_app_context(ctx).client
 
     # Parse since timestamp if provided
     since_dt = None
@@ -117,6 +119,7 @@ async def list_chat_messages(
 
 @mcp.tool()
 async def create_chat_message(
+    ctx: AppContextType,
     chat_id: str,
     content: str,
     recipient_ids: Optional[str] = None,
@@ -188,6 +191,7 @@ async def create_chat_message(
     to get IDs of people you want to send TO.
     """
     logger.debug(f"Creating message in chat: {chat_id}")
+    client = get_app_context(ctx).client
 
     # Get the authenticated user's ID from the API key
     profile = client.my_profile.get_my_profile()
@@ -260,25 +264,20 @@ async def create_chat_message(
             formatted_content = f"{' '.join(mention_tags)} {content}"
 
     # Build request
-    request_data = {
-        "content": formatted_content,
-        "sender_id": sender_id,
-        "sender_type": "User",  # Always User since we're sending from authenticated user
-    }
-    if message_type is not None:
-        request_data["message_type"] = message_type
-    else:
-        request_data["message_type"] = "text"  # Default to text
-
-    if mentions_list is not None:
-        request_data["mentions"] = mentions_list
+    request = ChatMessageRequest(
+        content=formatted_content,
+        sender_id=sender_id,
+        sender_type="User",  # Always User since we're sending from authenticated user
+        message_type=message_type or "text",
+        mentions=mentions_list,
+    )
 
     # Send the message
     result = client.chat_messages.create_chat_message(
         chat_id=chat_id,
-        message=request_data,  # type: ignore
+        message=request,
     )
-    message = result.data if hasattr(result, "data") else result  # type: ignore
+    message = result.data if hasattr(result, "data") else result
 
     if message is None:
         logger.error("Message sent but response data is None")
@@ -287,34 +286,3 @@ async def create_chat_message(
     message_id = getattr(message, "id", "unknown")
     logger.info(f"Message sent successfully: {message_id}")
     return f"Message sent successfully: {message_id}"
-
-
-# TODO: check if neeeded
-@mcp.tool()
-async def delete_chat_message(chat_id: str, message_id: str) -> str:
-    """Delete a message from a chat room.
-
-    Permanently deletes a message from the specified chat room.
-    This action cannot be undone.
-
-    Args:
-        chat_id: The unique identifier of the chat room (required).
-        message_id: The unique identifier of the message to delete (required).
-
-    Returns:
-        Success message confirming deletion.
-    """
-    logger.debug(f"Deleting message {message_id} from chat {chat_id}")
-    try:
-        client.chat_messages.delete_chat_message(chat_id=chat_id, id=message_id)
-        logger.info(f"Message deleted successfully: {message_id}")
-        return f"Message deleted successfully: {message_id}"
-    except ApiError as e:
-        # HTTP 204 (No Content) is a successful delete response that some APIs treat as error
-        error_str = str(e)
-        if "status_code: 204" in error_str or "204" in error_str:
-            logger.info(f"Message deleted successfully (204 response): {message_id}")
-            return f"Message deleted successfully: {message_id}"
-        # Re-raise the actual API error
-        logger.error(f"Failed to delete message {message_id}: {e}")
-        raise
