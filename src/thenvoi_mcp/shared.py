@@ -52,12 +52,25 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 
 
 def get_app_context(ctx: AppContextType) -> AppContext:
-    """Helper to extract AppContext from the lifespan context."""
+    """Helper to extract AppContext from the lifespan context.
+
+    Usage in tools:
+        app_ctx = get_app_context(ctx)
+        client = app_ctx.client
+    """
     return ctx.request_context.lifespan_context
 
 
 def serialize_response(result: Any, **kwargs) -> str:
-    """Serialize a Pydantic model response to JSON."""
+    """Serialize a Pydantic model response to JSON.
+
+    Args:
+        result: A Pydantic model or any object with model_dump() method.
+        **kwargs: Additional arguments passed to model_dump().
+
+    Returns:
+        JSON string representation of the result.
+    """
     if isinstance(result, BaseModel):
         return json.dumps(result.model_dump(**kwargs), indent=2, default=str)
     return json.dumps(result, indent=2, default=str)

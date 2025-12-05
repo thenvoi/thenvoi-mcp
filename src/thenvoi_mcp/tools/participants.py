@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from thenvoi_client_rest import AddChatParticipantRequestParticipant
 
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 def list_chat_participants(
     ctx: AppContextType,
     chat_id: str,
-    participant_type: Optional[str] = None,
+    participant_type: str | None = None,
 ) -> str:
     """List participants in a chat room.
 
@@ -59,11 +58,11 @@ def add_chat_participant(
     logger.debug(
         f"Adding participant {participant_id} to chat {chat_id} with role {role}"
     )
+    client = get_app_context(ctx).client
     participant = AddChatParticipantRequestParticipant(
         participant_id=participant_id,
         role=role,
     )
-    client = get_app_context(ctx).client
     client.chat_participants.add_chat_participant(
         chat_id=chat_id, participant=participant
     )

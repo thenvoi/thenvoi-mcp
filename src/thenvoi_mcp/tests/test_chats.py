@@ -1,32 +1,31 @@
 import time
 
-from thenvoi_client_rest import AgentRequest
-
-from thenvoi_mcp.shared import get_app_context
-from thenvoi_mcp.tools.chats import (
-    create_chat,
-    delete_chat,
-    get_chat,
-    list_chats,
-    update_chat,
-)
-
 
 class TestChatIntegration:
     """Test chat management tools against real API."""
 
-    def test_chat_lifecycle(self, ctx):
+    def test_chat_lifecycle(self, setup_test_client):
         """Test creating, reading, updating, and deleting a chat."""
-        client = get_app_context(ctx).client
+        from thenvoi_mcp.tools.chats import (
+            create_chat,
+            get_chat,
+            update_chat,
+            delete_chat,
+            list_chats,
+        )
+
+        client, ctx = setup_test_client
+
+        # Use timestamp with milliseconds for unique names
         timestamp = int(time.time() * 1000)
 
-        # Setup: Create an agent to be the chat owner
+        # Setup: Create an agent to be the chat owner using direct API call
         response = client.agents.create_agent(
-            agent=AgentRequest(
-                name=f"Chat Owner Agent {timestamp}",
-                model_type="gpt-4o-mini",
-                description="Agent for chat ownership",
-            )
+            agent={
+                "name": f"Chat Owner Agent {timestamp}",
+                "model_type": "gpt-4o-mini",
+                "description": "Agent for chat ownership",
+            }
         )
         assert response.data is not None
         agent_id = response.data.id
@@ -35,7 +34,7 @@ class TestChatIntegration:
         try:
             # 1. Create chat
             create_result = create_chat(
-                ctx=ctx,
+                ctx,
                 title=f"Test Chat Integration {timestamp}",
                 chat_type="direct",
                 owner_id=agent_id,
@@ -47,23 +46,25 @@ class TestChatIntegration:
 
             try:
                 # 2. Get chat
-                get_result = get_chat(ctx=ctx, chat_id=chat_id)
+                get_result = get_chat(ctx, chat_id=chat_id)
                 assert f"Test Chat Integration {timestamp}" in get_result
                 assert chat_id in get_result
 
                 # 3. Update chat
                 update_result = update_chat(
-                    ctx=ctx, chat_id=chat_id, title=f"Updated Test Chat {timestamp}"
+                    ctx, chat_id=chat_id, title=f"Updated Test Chat {timestamp}"
                 )
                 assert "Chat room updated successfully" in update_result
 
                 # 4. List chats (should include our test chat)
-                list_result = list_chats(ctx=ctx)
+                list_result = list_chats(ctx)
                 assert chat_id in list_result
 
             finally:
-                delete_chat(ctx=ctx, chat_id=chat_id)
+                # Cleanup: Delete chat
+                delete_chat(ctx, chat_id=chat_id)
         finally:
+            # Cleanup: Delete agent
             try:
                 client.agents.delete_agent(id=agent_id)
             except Exception as e:

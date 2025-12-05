@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -88,8 +88,8 @@ def create_chat(
         Success message with the created chat room's ID.
     """
     logger.debug(f"Creating chat: {title}")
+    client = get_app_context(ctx).client
 
-    # Parse metadata if provided
     metadata_dict = None
     if metadata is not None:
         try:
@@ -98,7 +98,6 @@ def create_chat(
             logger.error(f"Invalid JSON for metadata: {e}")
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
-    # Build request with only non-None values
     request_data: Dict[str, Any] = {
         "title": title,
         "type": chat_type,
@@ -111,8 +110,7 @@ def create_chat(
     if metadata_dict is not None:
         request_data["metadata"] = metadata_dict
 
-    client = get_app_context(ctx).client
-    result = client.chat_rooms.create_chat(chat=request_data)  # type: ignore
+    result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
     chat = result.data
 
     if chat is None:
@@ -146,8 +144,8 @@ def update_chat(
         Success message with the updated chat room's ID.
     """
     logger.debug(f"Updating chat: {chat_id}")
+    client = get_app_context(ctx).client
 
-    # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
     if title is not None:
         update_data["title"] = title
@@ -160,8 +158,7 @@ def update_chat(
             logger.error(f"Invalid JSON for metadata: {e}")
             raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
-    client = get_app_context(ctx).client
-    result = client.chat_rooms.update_chat(id=chat_id, chat=update_data)  # type: ignore
+    result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
     chat = result.data
 
     if chat is None:

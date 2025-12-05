@@ -6,19 +6,19 @@ Configuration:
     Create a .env.test file with your test credentials:
         THENVOI_API_KEY=your_api_key
         THENVOI_BASE_URL=http://localhost:4000
-        TEST_AGENT_ID=your_agent_uuid
 
     Or set environment variables directly before running tests.
 """
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 from dotenv import load_dotenv
 
 from thenvoi_client_rest import RestClient
+
 from thenvoi_mcp.shared import AppContext
 
 # Load test environment from .env.test if it exists
@@ -33,35 +33,39 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-@pytest.fixture(scope="function")
-def ctx():
-    """Create a mock Context with the test client.
+@dataclass
+class MockRequestContext:
+    """Mock request context for testing."""
 
-    Tools require a Context parameter for dependency injection.
-    This fixture creates a mock that provides access to the client
-    via get_app_context(ctx).client.
-    """
+    lifespan_context: AppContext
+
+
+class MockContext:
+    """Mock MCP Context for testing with real API client."""
+
+    def __init__(self, client: RestClient):
+        self.request_context = MockRequestContext(
+            lifespan_context=AppContext(client=client)
+        )
+
+
+@pytest.fixture(scope="function")
+def test_client() -> RestClient:
+    """Create a test client with API credentials."""
     api_key = os.getenv("THENVOI_API_KEY")
     base_url = os.getenv("THENVOI_BASE_URL", "http://localhost:4000")
+
     assert api_key is not None, "API key should not be None in tests"
-
-    client = RestClient(api_key=api_key, base_url=base_url)
-    app_context = AppContext(client=client)
-
-    # Mock the request_context.lifespan_context chain
-    mock_request_context = MagicMock()
-    mock_request_context.lifespan_context = app_context
-
-    mock_ctx = MagicMock()
-    mock_ctx.request_context = mock_request_context
-
-    return mock_ctx
+    return RestClient(api_key=api_key, base_url=base_url)
 
 
 @pytest.fixture(scope="function")
-def test_agent_id():
-    """Get the test agent ID from environment."""
-    agent_id = os.getenv("TEST_AGENT_ID")
-    if not agent_id:
-        pytest.skip("TEST_AGENT_ID not set - skipping test")
-    return agent_id
+def mock_ctx(test_client: RestClient) -> MockContext:
+    """Create a mock Context with a real API client for integration tests."""
+    return MockContext(client=test_client)
+
+
+@pytest.fixture(scope="function")
+def setup_test_client(test_client: RestClient, mock_ctx: MockContext):
+    """Fixture that yields (client, ctx) tuple for tests."""
+    yield test_client, mock_ctx

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -81,8 +81,8 @@ def update_agent(
         Success message with the updated agent's ID.
     """
     logger.debug(f"Updating agent: {agent_id}")
+    client = get_app_context(ctx).client
 
-    # Build update request with only provided fields
     update_data: Dict[str, Any] = {}
     if name is not None:
         update_data["name"] = name
@@ -107,8 +107,7 @@ def update_agent(
             logger.error(f"Invalid JSON for structured_output_schema: {e}")
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
-    client = get_app_context(ctx).client
-    result = client.agents.update_agent(id=agent_id, agent=update_data)  # type: ignore
+    result = client.agents.update_agent(id=agent_id, agent=cast(Any, update_data))
     agent = result.data
 
     if agent is None:
