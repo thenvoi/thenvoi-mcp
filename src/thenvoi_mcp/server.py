@@ -18,8 +18,7 @@ def health_check(ctx: AppContextType) -> str:
 
         # Make actual API call to verify connectivity
         profile = client.my_profile.get_my_profile()
-        user_id = profile.data.id if hasattr(profile, "data") else profile.id
-        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}\nAuthenticated user: {user_id}"
+        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}\nAuthenticated user: {profile.id}"
     except Exception as e:
         return f"Health check failed: {str(e)}"
 
