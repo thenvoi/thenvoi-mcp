@@ -17,7 +17,6 @@ import os
 
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
-from langchain_core.runnables import RunnableLambda
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState, StateGraph, START
@@ -69,8 +68,7 @@ async def main() -> None:
 
     # Build the graph
     builder = StateGraph(MessagesState)
-    # LangGraph type stubs issue: https://github.com/langchain-ai/langgraph/issues/1028
-    builder.add_node("agent", RunnableLambda(call_model))  # type: ignore[no-matching-overload]
+    builder.add_node("agent", call_model)  # pyrefly: ignore[no-matching-overload]
     builder.add_node("tools", ToolNode(tools))
     builder.add_edge(START, "agent")
     builder.add_conditional_edges("agent", tools_condition)
