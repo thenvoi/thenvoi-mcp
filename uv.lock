@@ -1811,7 +1811,7 @@ wheels = [
 [[package]]
 name = "thenvoi"
 version = "0.0.0"
-source = { git = "ssh://git@github.com/thenvoi/fern-python-sdk.git#3d5ea504f9a05aab503f5e3234017265237c493d" }
+source = { git = "ssh://git@github.com/thenvoi/fern-python-sdk.git#1a068bf4d382b67149cf117f515c130e210d9e99" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },

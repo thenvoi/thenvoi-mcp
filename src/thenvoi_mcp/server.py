@@ -1,5 +1,5 @@
 from thenvoi_mcp.config import settings
-from thenvoi_mcp.shared import mcp, client, logger
+from thenvoi_mcp.shared import AppContextType, get_app_context, logger, mcp
 
 # Import tools to register them with the MCP server
 from thenvoi_mcp.tools import agents  # noqa: F401
@@ -9,13 +9,17 @@ from thenvoi_mcp.tools import participants  # noqa: F401
 
 
 @mcp.tool()
-async def health_check() -> str:
+def health_check(ctx: AppContextType) -> str:
     """Test MCP server and API connectivity."""
     try:
-        # Verify Thenvoi API connection
-        if client and settings.thenvoi_api_key and settings.thenvoi_base_url:
-            return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}"
-        return "MCP server operational (API not configured)"
+        client = get_app_context(ctx).client
+        if not client or not settings.thenvoi_api_key:
+            return "MCP server operational (API not configured)"
+
+        # Make actual API call to verify connectivity
+        profile = client.my_profile.get_my_profile()
+        user_id = profile.data.id if hasattr(profile, "data") else profile.id
+        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}\nAuthenticated user: {user_id}"
     except Exception as e:
         return f"Health check failed: {str(e)}"
 

@@ -1,16 +1,16 @@
-import json
 import logging
 from typing import Optional
 
-from thenvoi_api.chat_participants.types import AddChatParticipantRequestParticipant
+from thenvoi_client_rest import AddChatParticipantRequestParticipant
 
-from thenvoi_mcp.shared import mcp, client
+from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-async def list_chat_participants(
+def list_chat_participants(
+    ctx: AppContextType,
     chat_id: str,
     participant_type: Optional[str] = None,
 ) -> str:
@@ -27,39 +27,18 @@ async def list_chat_participants(
         JSON string containing the list of participants.
     """
     logger.debug(f"Fetching participants for chat: {chat_id}")
+    client = get_app_context(ctx).client
     result = client.chat_participants.list_chat_participants(
         chat_id=chat_id,
         participant_type=participant_type,
     )
-
-    participants_list = result.data if hasattr(result, "data") else []
-    participants_list = participants_list or []
-
-    participants_data = {
-        "participants": [
-            {
-                "id": getattr(p, "id", None),
-                "name": getattr(p, "name", None),
-                "type": getattr(p, "type", None),
-                "agent_name": getattr(p, "agent_name", None),
-                "avatar_url": getattr(p, "avatar_url", None),
-                "email": getattr(p, "email", None),
-                "first_name": getattr(p, "first_name", None),
-                "last_name": getattr(p, "last_name", None),
-                "role": getattr(p, "role", None),
-                "participant_id": getattr(p, "participant_id", None),
-                "participant_type": getattr(p, "participant_type", None),
-            }
-            for p in participants_list
-        ]
-    }
-
-    logger.info(f"Retrieved {len(participants_list)} participants for chat: {chat_id}")
-    return json.dumps(participants_data, indent=2)
+    logger.info(f"Retrieved {len(result.data or [])} participants for chat: {chat_id}")
+    return serialize_response(result)
 
 
 @mcp.tool()
-async def add_chat_participant(
+def add_chat_participant(
+    ctx: AppContextType,
     chat_id: str,
     participant_id: str,
     role: str = "member",
@@ -84,6 +63,7 @@ async def add_chat_participant(
         participant_id=participant_id,
         role=role,
     )
+    client = get_app_context(ctx).client
     client.chat_participants.add_chat_participant(
         chat_id=chat_id, participant=participant
     )
@@ -92,7 +72,11 @@ async def add_chat_participant(
 
 
 @mcp.tool()
-async def remove_chat_participant(chat_id: str, participant_id: str) -> str:
+def remove_chat_participant(
+    ctx: AppContextType,
+    chat_id: str,
+    participant_id: str,
+) -> str:
     """Remove a participant from a chat room.
 
     Removes a participant (user or agent) from the specified chat room.
@@ -105,13 +89,15 @@ async def remove_chat_participant(chat_id: str, participant_id: str) -> str:
         Success message confirming the participant was removed.
     """
     logger.debug(f"Removing participant {participant_id} from chat {chat_id}")
+    client = get_app_context(ctx).client
     client.chat_participants.remove_chat_participant(chat_id=chat_id, id=participant_id)
     logger.info(f"Participant removed successfully: {participant_id}")
     return f"Participant removed successfully: {participant_id}"
 
 
 @mcp.tool()
-async def list_available_participants(
+def list_available_participants(
+    ctx: AppContextType,
     chat_id: str,
     participant_type: str,
 ) -> str:
@@ -130,31 +116,12 @@ async def list_available_participants(
     logger.debug(
         f"Fetching available {participant_type} participants for chat: {chat_id}"
     )
+    client = get_app_context(ctx).client
     result = client.chat_participants.get_available_chat_participants(
         chat_id=chat_id,
         participant_type=participant_type,
     )
-
-    participants_list = result.data if hasattr(result, "data") else []
-    participants_list = participants_list or []
-
-    participants_data = {
-        "available_participants": [
-            {
-                "id": getattr(p, "id", None),
-                "name": getattr(p, "name", None),
-                "type": getattr(p, "type", None),
-                "agent_name": getattr(p, "agent_name", None),
-                "avatar_url": getattr(p, "avatar_url", None),
-                "email": getattr(p, "email", None),
-                "first_name": getattr(p, "first_name", None),
-                "last_name": getattr(p, "last_name", None),
-            }
-            for p in participants_list
-        ]
-    }
-
     logger.info(
-        f"Retrieved {len(participants_list)} available participants for chat: {chat_id}"
+        f"Retrieved {len(result.data or [])} available participants for chat: {chat_id}"
     )
-    return json.dumps(participants_data, indent=2)
+    return serialize_response(result)
