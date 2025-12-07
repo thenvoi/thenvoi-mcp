@@ -18,12 +18,17 @@ def list_chat_participants(
     Retrieves a list of all participants (users and/or agents) in a specific
     chat room with optional filtering by participant type.
 
+    IMPORTANT: The 'id' field in the response is the participant ID for this chat,
+    which is different from the agent's global ID. Use this 'id' when:
+    - Removing participants with remove_chat_participant
+    - Sending messages with create_chat_message (recipient_ids)
+
     Args:
         chat_id: The unique identifier of the chat room (required).
         participant_type: Filter by participant type: 'User' or 'Agent' (optional).
 
     Returns:
-        JSON string containing the list of participants.
+        JSON string containing the list of participants with their chat-specific IDs.
     """
     logger.debug(f"Fetching participants for chat: {chat_id}")
     client = get_app_context(ctx).client
@@ -78,9 +83,18 @@ def remove_chat_participant(
 
     Removes a participant (user or agent) from the specified chat room.
 
+    IMPORTANT: The participant_id must be the ID returned by list_chat_participants,
+    NOT the agent's global ID from list_agents. These are different IDs!
+
+    Steps to remove a participant:
+    1. Call list_chat_participants(chat_id) to get the list of participants
+    2. Find the participant you want to remove and get their 'id' field
+    3. Use that 'id' as participant_id in this function
+
     Args:
         chat_id: The unique identifier of the chat room (required).
-        participant_id: The unique identifier of the participant to remove (required).
+        participant_id: The participant's ID from list_chat_participants (required).
+                       This is NOT the same as the agent ID from list_agents!
 
     Returns:
         Success message confirming the participant was removed.

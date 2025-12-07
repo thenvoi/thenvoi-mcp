@@ -16,6 +16,10 @@ def list_agents(ctx: AppContextType) -> str:
     Returns a list of agents that the authenticated user has access to.
     Each agent includes its ID, name, model type, description, and other metadata.
 
+    NOTE: Creating new agents is NOT available through this API.
+    If a user asks to create a new agent, inform them that agent creation
+    must be done through the Thenvoi web UI at https://app.thenvoi.com
+
     Returns:
         JSON string containing the list of agents.
     """
