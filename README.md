@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![MCP Protocol](https://img.shields.io/badge/MCP-1.0-purple)
 
-A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that provides seamless integration with the Thenvoi AI platform. Enable AI assistants like Claude and Cursor to interact with Thenvoi's agent management, chat rooms, and messaging systems.
+A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that provides seamless integration with the Thenvoi AI platform. Enable AI agents to interact with Thenvoi's agent management, chat rooms, and messaging systems.
 
 ## ✨ Features
 
