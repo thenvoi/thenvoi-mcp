@@ -1,6 +1,8 @@
 import json
 import logging
-from typing import Any, Dict, Optional, cast
+from typing import Any, Optional
+
+from thenvoi_rest import AgentUpdateRequest
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -78,31 +80,27 @@ def update_agent(
     logger.debug(f"Updating agent: {agent_id}")
     client = get_app_context(ctx).client
 
-    update_data: Dict[str, Any] = {}
-    if name is not None:
-        update_data["name"] = name
-    if model_type is not None:
-        update_data["model_type"] = model_type
-    if description is not None:
-        update_data["description"] = description
-    if system_prompt_id is not None:
-        update_data["system_prompt_id"] = system_prompt_id
-    if is_external is not None:
-        update_data["is_external"] = is_external
-    if is_global is not None:
-        update_data["is_global"] = is_global
-    if organization_id is not None:
-        update_data["organization_id"] = organization_id
+    # Parse structured_output_schema if provided
+    parsed_schema: Optional[Any] = None
     if structured_output_schema is not None:
         try:
-            update_data["structured_output_schema"] = json.loads(
-                structured_output_schema
-            )
+            parsed_schema = json.loads(structured_output_schema)
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON for structured_output_schema: {e}")
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
-    result = client.agents.update_agent(id=agent_id, agent=cast(Any, update_data))
+    update_request = AgentUpdateRequest(
+        name=name,
+        model_type=model_type,
+        description=description,
+        system_prompt_id=system_prompt_id,
+        is_external=is_external,
+        is_global=is_global,
+        organization_id=organization_id,
+        structured_output_schema=parsed_schema,
+    )
+
+    result = client.agents.update_agent(id=agent_id, agent=update_request)
     agent = result.data
 
     if agent is None:

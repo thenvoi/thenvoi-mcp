@@ -1,7 +1,5 @@
 import logging
-from typing import Dict, List, Optional
-
-from thenvoi_rest import ChatMessageRequest
+from typing import Any, Dict, List, Optional, cast
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -108,20 +106,12 @@ def create_chat_message(
         )
         Result: "@sarah @mike Can you help?" sent FROM authenticated user
 
-    User Request: "Broadcast 'meeting in 5 minutes'"
-    Correct Usage:
-        create_chat_message(
-            chat_id="123",
-            content="meeting in 5 minutes"
-            # No recipient_ids = broadcast to everyone
-        )
-        Result: "meeting in 5 minutes" sent FROM authenticated user
-
     Args:
         chat_id: The unique identifier of the chat room (required).
         content: The message content/text (required).
-        recipient_ids: Comma-separated participant IDs to send TO (optional).
-                      These people will be @mentioned in the message.
+        recipient_ids: Comma-separated participant IDs to tag (REQUIRED).
+                      The API requires at least one recipient to be mentioned.
+                      Use list_chat_participants to get IDs first.
                       Example: "user-123,agent-456,user-789"
         message_type: Optional message type (defaults to 'text').
 
@@ -134,30 +124,62 @@ def create_chat_message(
     logger.debug(f"Creating message in chat: {chat_id}")
     client = get_app_context(ctx).client
 
+    if not recipient_ids:
+        # API requires at least one recipient - provide actionable error for LLM
+        raise ValueError(
+            f"Missing recipient_ids. To send a message, you must tag at least one participant. "
+            f"Step 1: Call list_chat_participants(chat_id='{chat_id}') to get participant IDs. "
+            f"Step 2: Call create_chat_message with those IDs in recipient_ids parameter."
+        )
+
+    recipient_list = [
+        rid.strip() for rid in recipient_ids.split(",") if rid.strip()
+    ]
+
+    if not recipient_list:
+        raise ValueError("recipient_ids cannot be empty")
+
+    # Fetch participants to get their names for proper @mentions
+    participants_response = client.chat_participants.list_chat_participants(chat_id=chat_id)
+    participants = participants_response.data or []
+
+    # Build ID -> name mapping
+    id_to_name: Dict[str, str] = {}
+    for p in participants:
+        # Get the participant's display name
+        if hasattr(p, "agent_name") and p.agent_name:
+            id_to_name[p.id] = p.agent_name
+        elif hasattr(p, "first_name") and p.first_name:
+            name = p.first_name
+            if hasattr(p, "last_name") and p.last_name:
+                name += f" {p.last_name}"
+            id_to_name[p.id] = name
+        else:
+            id_to_name[p.id] = p.id  # Fallback to ID
+
+    # Build mentions with proper names
+    mentions_list: List[Dict[str, str]] = []
+    for rid in recipient_list:
+        username = id_to_name.get(rid, rid)  # Use name if found, else ID
+        mentions_list.append({"id": rid, "username": username})
+
+    # Get sender info from authenticated user
     profile = client.my_profile.get_my_profile()
     sender_id = profile.id
-    logger.debug(f"Authenticated user ID: {sender_id}")
 
-    mentions_list: Optional[List[Dict[str, str]]] = None
-    if recipient_ids:
-        recipient_list = [
-            rid.strip() for rid in recipient_ids.split(",") if rid.strip()
-        ]
-        if recipient_list:
-            mentions_list = [{"id": rid, "username": rid} for rid in recipient_list]
-
-    request = ChatMessageRequest(
-        content=content,
-        sender_id=sender_id,
-        sender_type="User",
-        message_type=message_type or "text",
-        mentions=mentions_list,
-    )
+    # Use raw dict - API may require sender_id/sender_type even if not in SDK model
+    request_data: Dict[str, Any] = {
+        "content": content,
+        "sender_id": sender_id,
+        "sender_type": "User",
+        "message_type": message_type or "text",
+        "mentions": mentions_list,
+    }
 
     try:
         result = client.chat_messages.create_chat_message(
             chat_id=chat_id,
-            message=request,
+            message=cast(Any, request_data),
         )
     except Exception as e:
         error_str = str(e)

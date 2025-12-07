@@ -90,25 +90,24 @@ def create_chat(
     logger.debug(f"Creating chat: {title}")
     client = get_app_context(ctx).client
 
-    metadata_dict = None
-    if metadata is not None:
-        try:
-            metadata_dict = json.loads(metadata)
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON for metadata: {e}")
-            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
-
-    request_data = {
+    # Build request as dict to avoid sending null values (API rejects them)
+    request_data: Dict[str, Any] = {
         "title": title,
         "type": chat_type,
         "owner_id": owner_id,
         "owner_type": owner_type,
         "status": status,
     }
+
     if task_id is not None:
         request_data["task_id"] = task_id
-    if metadata_dict is not None:
-        request_data["metadata"] = metadata_dict
+
+    if metadata is not None:
+        try:
+            request_data["metadata"] = json.loads(metadata)
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON for metadata: {e}")
+            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
     result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
     chat = result.data
@@ -146,7 +145,9 @@ def update_chat(
     logger.debug(f"Updating chat: {chat_id}")
     client = get_app_context(ctx).client
 
+    # Build request as dict to avoid sending null values (API rejects them)
     update_data: Dict[str, Any] = {}
+
     if title is not None:
         update_data["title"] = title
     if status is not None:
