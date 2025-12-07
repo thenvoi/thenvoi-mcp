@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from thenvoi.client.rest import ChatMessageRequest
+from thenvoi_rest import ChatMessageRequest
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 

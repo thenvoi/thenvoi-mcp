@@ -1,6 +1,6 @@
 import logging
 
-from thenvoi.client.rest import AddChatParticipantRequestParticipant
+from thenvoi_rest import AddChatParticipantRequestParticipant
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
