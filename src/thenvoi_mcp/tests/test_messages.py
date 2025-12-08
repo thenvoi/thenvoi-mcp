@@ -11,16 +11,18 @@ class TestMessageIntegration:
             create_chat_message,
             list_chat_messages,
         )
+        from thenvoi_mcp.tools.participants import add_chat_participant
 
         client, ctx = setup_test_client
 
         # Use timestamp with milliseconds for unique names
         timestamp = int(time.time() * 1000)
+        agent_name = f"Message Test Agent {timestamp}"
 
         # Setup: Create agent using direct API call
         response = client.agents.create_agent(
             agent={
-                "name": f"Message Test Agent {timestamp}",
+                "name": agent_name,
                 "model_type": "gpt-4o-mini",
                 "description": "Agent for message tests",
             }
@@ -30,23 +32,29 @@ class TestMessageIntegration:
         assert agent_id is not None
 
         try:
+            # Create chat (authenticated user is automatically the owner)
             create_chat_result = create_chat(
                 ctx,
                 title=f"Test Chat for Messages {timestamp}",
                 chat_type="direct",
-                owner_id=agent_id,
-                owner_type="Agent",
             )
 
             assert "Chat room created successfully" in create_chat_result
             chat_id = create_chat_result.split(": ")[1].strip()
 
             try:
-                # 1. Create message (note: create_chat_message now gets sender from auth)
+                # Add the agent as a participant so we can message them
+                add_result = add_chat_participant(
+                    ctx, chat_id=chat_id, participant_id=agent_id, role="member"
+                )
+                assert "Participant added successfully" in add_result
+
+                # 1. Create message with recipient (required by API)
                 create_msg_result = create_chat_message(
                     ctx,
                     chat_id=chat_id,
                     content="Test message from integration test",
+                    recipients=agent_name,
                 )
 
                 assert "Message sent successfully" in create_msg_result

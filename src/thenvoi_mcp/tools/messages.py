@@ -188,15 +188,10 @@ def create_chat_message(
         "mentions": mentions_list,
     }
 
-    try:
-        result = client.chat_messages.create_chat_message(
-            chat_id=chat_id,
-            message=cast(Any, request_data),
-        )
-    except Exception as e:
-        error_str = str(e)
-        logger.error(f"Failed to send message: {error_str}")
-        raise RuntimeError(f"Failed to send message: {error_str}") from e
+    result = client.chat_messages.create_chat_message(
+        chat_id=chat_id,
+        message=cast(Any, request_data),
+    )
 
     message = result.data
 
