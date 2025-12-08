@@ -1642,7 +1642,7 @@ wheels = [
 
 [[package]]
 name = "thenvoi-client-rest"
-version = "0.0.1rc4"
+version = "0.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -1650,9 +1650,9 @@ dependencies = [
     { name = "pydantic-core" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/a9/fc483e8f6d02374792a0bbe968c9cc3f06a14f0515e88eda5a53ebceb729/thenvoi_client_rest-0.0.1rc4.tar.gz", hash = "sha256:cc2c9f5407f76df76e0e4cb2da030e4970b596a56da5a9f1bfd1f0ae3ec1ffa1", size = 65414, upload-time = "2025-12-07T15:11:33.698Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/93/cb489415ee39a4dc6f4517ebea79b9fa3d280a2fa0b6882e72c0521052aa/thenvoi_client_rest-0.0.1.tar.gz", hash = "sha256:e227149b25900096452f5e4ec2d5453b419e00637bf71e01878f414fdc9d439b", size = 65417, upload-time = "2025-12-07T21:28:25.796Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/0b/cf40e90bf114b8a5086413daaa565cb32853b46c475d52cf287af76fe8d1/thenvoi_client_rest-0.0.1rc4-py3-none-any.whl", hash = "sha256:b5e2da8b4c0f0f270e3ccf12d81fc8219d5d4fcea40da46dd8050f2566629892", size = 151209, upload-time = "2025-12-07T15:11:32.748Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/10/9b6d7a3394847e625b14b070fa4ebd88674289a04a12e89a513314630967/thenvoi_client_rest-0.0.1-py3-none-any.whl", hash = "sha256:ebb9ee4aed7734cf5573a0bb1274a5aacc058d04afcce8f0f384560f6f4ae42c", size = 151179, upload-time = "2025-12-07T21:28:24.705Z" },
 ]
 
 [[package]]
@@ -1726,7 +1726,7 @@ requires-dist = [
     { name = "python-dotenv", marker = "extra == 'langchain'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'langgraph'", specifier = ">=1.0.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.20.0" },
-    { name = "thenvoi-client-rest", specifier = ">=0.0.1rc4" },
+    { name = "thenvoi-client-rest", specifier = ">=0.0.1" },
 ]
 provides-extras = ["dev", "langgraph", "langchain", "examples"]
 

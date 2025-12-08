@@ -103,7 +103,9 @@ def update_agent(
         update_data["organization_id"] = organization_id
     if structured_output_schema is not None:
         try:
-            update_data["structured_output_schema"] = json.loads(structured_output_schema)
+            update_data["structured_output_schema"] = json.loads(
+                structured_output_schema
+            )
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON for structured_output_schema: {e}")
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")

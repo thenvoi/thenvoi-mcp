@@ -134,7 +134,9 @@ def create_chat_message(
         raise ValueError("recipients cannot be empty")
 
     # Fetch participants to map names to IDs
-    participants_response = client.chat_participants.list_chat_participants(chat_id=chat_id)
+    participants_response = client.chat_participants.list_chat_participants(
+        chat_id=chat_id
+    )
     participants = participants_response.data or []
 
     # Build name -> participant mapping (case-insensitive)

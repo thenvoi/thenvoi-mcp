@@ -61,7 +61,7 @@ def get_chat(ctx: AppContextType, chat_id: str) -> str:
 
 @mcp.tool()
 def create_chat(
-    ctx: AppContextType,    
+    ctx: AppContextType,
     chat_type: str,
     title: str,
     status: str = "active",
