@@ -1,9 +1,9 @@
 import os
 from dataclasses import dataclass
 
-import pytest
+import pytest  # pyrefly: ignore
 
-from thenvoi.client.rest import RestClient
+from thenvoi_rest import RestClient
 
 from thenvoi_mcp.shared import AppContext
 

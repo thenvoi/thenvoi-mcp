@@ -9,7 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 from pydantic import BaseModel
-from thenvoi.client.rest import RestClient
+from thenvoi_rest import RestClient
 
 from thenvoi_mcp.config import settings
 

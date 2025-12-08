@@ -62,10 +62,8 @@ def get_chat(ctx: AppContextType, chat_id: str) -> str:
 @mcp.tool()
 def create_chat(
     ctx: AppContextType,
-    title: str,
     chat_type: str,
-    owner_id: str,
-    owner_type: str,
+    title: str,
     status: str = "active",
     task_id: Optional[str] = None,
     metadata: Optional[str] = None,
@@ -75,11 +73,11 @@ def create_chat(
     Creates a new chat room with the specified configuration. Chat rooms are
     conversation spaces where users and agents can interact.
 
+    The authenticated user will automatically be set as the owner.
+
     Args:
-        title: The title/name of the chat room (required).
-        chat_type: The type of chat: 'direct', 'group', or 'task' (required).
-        owner_id: ID of the owner (user or agent) (required).
-        owner_type: Type of owner: 'User' or 'Agent' (required).
+        title: The title/name of the chat room (default: 'New Session').
+        chat_type: The type of chat: 'direct', 'group', or 'task' (default: 'group').
         status: Initial status: 'active', 'archived', or 'closed' (default: 'active').
         task_id: Optional ID of an associated task.
         metadata: Optional JSON string containing additional metadata (will be parsed as JSON).
@@ -90,25 +88,30 @@ def create_chat(
     logger.debug(f"Creating chat: {title}")
     client = get_app_context(ctx).client
 
-    metadata_dict = None
-    if metadata is not None:
-        try:
-            metadata_dict = json.loads(metadata)
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON for metadata: {e}")
-            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
+    # Get authenticated user's ID to use as owner (ensures they have access)
+    profile = client.my_profile.get_my_profile()
+    owner_id = profile.id
+    if not owner_id:
+        raise RuntimeError("Could not get authenticated user's ID")
 
-    request_data = {
+    # Build request as dict to avoid sending null values (API rejects them)
+    request_data: Dict[str, Any] = {
         "title": title,
         "type": chat_type,
         "owner_id": owner_id,
-        "owner_type": owner_type,
+        "owner_type": "User",
         "status": status,
     }
+
     if task_id is not None:
         request_data["task_id"] = task_id
-    if metadata_dict is not None:
-        request_data["metadata"] = metadata_dict
+
+    if metadata is not None:
+        try:
+            request_data["metadata"] = json.loads(metadata)
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON for metadata: {e}")
+            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
 
     result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
     chat = result.data
@@ -146,7 +149,9 @@ def update_chat(
     logger.debug(f"Updating chat: {chat_id}")
     client = get_app_context(ctx).client
 
+    # Build request as dict to avoid sending null values (API rejects them)
     update_data: Dict[str, Any] = {}
+
     if title is not None:
         update_data["title"] = title
     if status is not None:

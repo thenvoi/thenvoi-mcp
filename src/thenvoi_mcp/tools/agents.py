@@ -1,6 +1,8 @@
 import json
 import logging
-from typing import Any, Dict, Optional, cast
+from typing import Any, Optional
+
+from thenvoi_rest import AgentUpdateRequest
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -13,6 +15,10 @@ def list_agents(ctx: AppContextType) -> str:
 
     Returns a list of agents that the authenticated user has access to.
     Each agent includes its ID, name, model type, description, and other metadata.
+
+    NOTE: Creating new agents is NOT available through this API.
+    If a user asks to create a new agent, inform them that agent creation
+    must be done through the Thenvoi web UI at https://app.thenvoi.com
 
     Returns:
         JSON string containing the list of agents.
@@ -78,7 +84,9 @@ def update_agent(
     logger.debug(f"Updating agent: {agent_id}")
     client = get_app_context(ctx).client
 
-    update_data: Dict[str, Any] = {}
+    # Build update data with only non-None values
+    update_data: dict[str, Any] = {}
+
     if name is not None:
         update_data["name"] = name
     if model_type is not None:
@@ -102,7 +110,9 @@ def update_agent(
             logger.error(f"Invalid JSON for structured_output_schema: {e}")
             raise ValueError(f"Invalid JSON for structured_output_schema: {str(e)}")
 
-    result = client.agents.update_agent(id=agent_id, agent=cast(Any, update_data))
+    update_request = AgentUpdateRequest(**update_data)
+
+    result = client.agents.update_agent(id=agent_id, agent=update_request)
     agent = result.data
 
     if agent is None:
