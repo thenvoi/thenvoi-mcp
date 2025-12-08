@@ -4,10 +4,10 @@ version = "1.0.0"
 description = "Model Context Protocol (MCP) server for Thenvoi integration"
 readme = "README.md"
 authors = [{ name = "thenvoi" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.2.0",
-    "thenvoi @ git+ssh://git@github.com/thenvoi/fern-python-sdk.git",
+    "thenvoi-client-rest>=0.0.1",
 ]
 
 [project.optional-dependencies]
@@ -17,6 +17,31 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
     "respx>=0.20.0",
+]
+# LangGraph agent example dependencies
+langgraph = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langgraph>=0.2.0",
+    "python-dotenv>=1.0.0",
+]
+# LangChain agent example dependencies
+langchain = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langchain>=0.3.0",
+    "python-dotenv>=1.0.0",
+]
+# All examples dependencies (convenience group)
+examples = [
+    "langchain-core>=0.3.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "langchain-openai>=0.2.0",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.scripts]
