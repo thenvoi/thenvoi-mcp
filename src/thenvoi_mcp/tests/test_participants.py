@@ -46,7 +46,7 @@ class TestParticipantIntegration:
             available_result = list_available_participants(
                 ctx, chat_id=chat_id, participant_type="Agent"
             )
-            assert "participants" in available_result
+            assert "data" in available_result
 
             # 2. Add participant
             add_result = add_chat_participant(
