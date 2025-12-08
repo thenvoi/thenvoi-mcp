@@ -125,56 +125,6 @@ def create_chat(
 
 
 @mcp.tool()
-def update_chat(
-    ctx: AppContextType,
-    chat_id: str,
-    title: Optional[str] = None,
-    status: Optional[str] = None,
-    metadata: Optional[str] = None,
-) -> str:
-    """Update an existing chat room.
-
-    Updates a chat room's configuration. Only the fields provided will be updated
-    (partial updates are supported). Fields not provided will remain unchanged.
-
-    Args:
-        chat_id: The unique identifier of the chat room to update (required).
-        title: New title for the chat room.
-        status: New status: 'active', 'archived', or 'closed'.
-        metadata: New JSON string containing metadata (will be parsed as JSON).
-
-    Returns:
-        Success message with the updated chat room's ID.
-    """
-    logger.debug(f"Updating chat: {chat_id}")
-    client = get_app_context(ctx).client
-
-    # Build request as dict to avoid sending null values (API rejects them)
-    update_data: Dict[str, Any] = {}
-
-    if title is not None:
-        update_data["title"] = title
-    if status is not None:
-        update_data["status"] = status
-    if metadata is not None:
-        try:
-            update_data["metadata"] = json.loads(metadata)
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON for metadata: {e}")
-            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
-
-    result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
-    chat = result.data
-
-    if chat is None:
-        logger.error(f"Chat {chat_id} updated but response data is None")
-        raise RuntimeError("Chat room updated but ID not available in response")
-
-    logger.info(f"Chat room updated successfully: {chat.id}")
-    return f"Chat room updated successfully: {chat.id}"
-
-
-@mcp.tool()
 def delete_chat(ctx: AppContextType, chat_id: str) -> str:
     """Delete a chat room.
 
