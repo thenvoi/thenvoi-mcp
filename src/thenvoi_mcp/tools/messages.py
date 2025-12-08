@@ -83,14 +83,14 @@ def create_chat_message(
 
     EXAMPLES:
 
-    User Request: "Send message TO chen saying hello"
+    User Request: "Send message to weather agent saying hello"
     Correct Usage:
         create_chat_message(
             chat_id="123",
             content="hello",
-            recipients="chen"
+            recipients="weather agent"
         )
-        Result: "@chen hello" sent FROM authenticated user
+        Result: "@weather agent hello" sent FROM authenticated user
 
     User Request: "Send message TO sarah and mike"
     Correct Usage:
@@ -106,8 +106,8 @@ def create_chat_message(
         content: The message content/text (required).
         recipients: Comma-separated names/usernames to tag (REQUIRED).
                    The API requires at least one recipient to be mentioned.
-                   Use the participant's name (e.g., "chen", "sarah").
-                   Example: "chen,sarah,mike"
+                   Use the participant's name (e.g., "weather agent", "sarah").
+                   Example: "weather agent,sarah,mike"
         message_type: Optional message type (defaults to 'text').
 
     Returns:
