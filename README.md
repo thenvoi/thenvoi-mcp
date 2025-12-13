@@ -4,11 +4,11 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![MCP Protocol](https://img.shields.io/badge/MCP-1.0-purple)
 
-A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that provides seamless integration with the Thenvoi AI platform. Enable AI assistants like Claude and Cursor to interact with Thenvoi's agent management, chat rooms, and messaging systems.
+A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that provides seamless integration with the Thenvoi AI platform. Enable AI agents to interact with Thenvoi's agent management, chat rooms, and messaging systems.
 
 ## ✨ Features
 
-- 🤖 **Agent Management** - Create, read, update, and manage AI agents with custom configurations
+- 🤖 **Agent Management** - Read, update, and manage AI agents with custom configurations
 - 💬 **Chat Room Operations** - Full lifecycle management of chat rooms for agent-user interactions
 - 📨 **Message Handling** - Send and manage messages with support for multiple message types
 - 👥 **Participant Management** - Control chat room participants and roles
@@ -71,7 +71,7 @@ Configure your AI assistant to use the Thenvoi MCP Server with the following JSO
 {
   "mcpServers": {
     "thenvoi": {
-      "command": "uv",
+      "command": "/ABSOLUTE/PATH/TO/uv",
       "args": [
         "--directory",
         "/ABSOLUTE/PATH/TO/thenvoi-mcp-server",

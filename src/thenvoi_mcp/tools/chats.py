@@ -1,6 +1,13 @@
-import json
+"""Chat room management tools.
+
+This module provides tools for managing chat rooms where the agent
+participates using the agent-centric API.
+"""
+
 import logging
-from typing import Any, Dict, Optional, cast
+from typing import Optional
+
+from thenvoi_rest import ChatRoomRequest
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -8,181 +15,81 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-def list_chats(
+def listAgentChats(
     ctx: AppContextType,
     page: Optional[int] = None,
-    per_page: Optional[int] = None,
-    status: Optional[str] = None,
-    chat_type: Optional[str] = None,
+    pageSize: Optional[int] = None,
 ) -> str:
-    """List all accessible chat rooms.
+    """List chat rooms where the agent is a participant.
 
-    Retrieves a list of chat rooms with support for pagination and filtering.
+    Retrieves a list of chat rooms that the authenticated agent participates in.
+    Supports pagination.
 
     Args:
         page: Page number for pagination (optional).
-        per_page: Number of items per page (optional).
-        status: Filter by chat status: 'active', 'archived', or 'closed' (optional).
-        chat_type: Filter by chat type: 'direct', 'group', or 'task' (optional).
+        pageSize: Number of items per page (optional).
 
     Returns:
         JSON string containing the list of chat rooms.
     """
-    logger.debug("Fetching list of chats")
+    logger.debug("Fetching agent's chat rooms")
     client = get_app_context(ctx).client
-    result = client.chat_rooms.list_chats(
+    result = client.agent_api.list_agent_chats(
         page=page,
-        per_page=per_page,
-        status=status,
-        type=chat_type,
+        page_size=pageSize,
     )
-    logger.info(f"Retrieved {len(result.data or [])} chats")
+    chat_count = len(result.data or []) if hasattr(result, "data") else 0
+    logger.info(f"Retrieved {chat_count} chats")
     return serialize_response(result)
 
 
 @mcp.tool()
-def get_chat(ctx: AppContextType, chat_id: str) -> str:
+def getAgentChat(ctx: AppContextType, chatId: str) -> str:
     """Get a specific chat room by ID.
 
-    Retrieves detailed information about a single chat room.
+    Retrieves detailed information about a single chat room where
+    the agent is a participant.
 
     Args:
-        chat_id: The unique identifier of the chat room to retrieve (required).
+        chatId: The unique identifier of the chat room (required).
 
     Returns:
         JSON string containing the chat room details.
     """
-    logger.debug(f"Fetching chat with ID: {chat_id}")
+    logger.debug(f"Fetching chat with ID: {chatId}")
     client = get_app_context(ctx).client
-    result = client.chat_rooms.get_chat(id=chat_id)
-    logger.info(f"Retrieved chat: {chat_id}")
+    result = client.agent_api.get_agent_chat(id=chatId)
+    logger.info(f"Retrieved chat: {chatId}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def create_chat(
+def createAgentChat(
     ctx: AppContextType,
-    title: str,
-    chat_type: str,
-    owner_id: str,
-    owner_type: str,
-    status: str = "active",
-    task_id: Optional[str] = None,
-    metadata: Optional[str] = None,
+    taskId: Optional[str] = None,
 ) -> str:
-    """Create a new chat room.
+    """Create a new chat room with the agent as owner.
 
-    Creates a new chat room with the specified configuration. Chat rooms are
-    conversation spaces where users and agents can interact.
+    Creates a new chat room where the authenticated agent is automatically
+    set as the owner. Optionally associates the chat with a task.
 
     Args:
-        title: The title/name of the chat room (required).
-        chat_type: The type of chat: 'direct', 'group', or 'task' (required).
-        owner_id: ID of the owner (user or agent) (required).
-        owner_type: Type of owner: 'User' or 'Agent' (required).
-        status: Initial status: 'active', 'archived', or 'closed' (default: 'active').
-        task_id: Optional ID of an associated task.
-        metadata: Optional JSON string containing additional metadata (will be parsed as JSON).
+        taskId: Optional ID of an associated task.
 
     Returns:
-        Success message with the created chat room's ID.
+        JSON string containing the created chat room details.
     """
-    logger.debug(f"Creating chat: {title}")
+    logger.debug("Creating new chat room")
     client = get_app_context(ctx).client
 
-    metadata_dict = None
-    if metadata is not None:
-        try:
-            metadata_dict = json.loads(metadata)
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON for metadata: {e}")
-            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
+    # Build request
+    chat_request = ChatRoomRequest(task_id=taskId) if taskId else ChatRoomRequest()
 
-    request_data: Dict[str, Any] = {
-        "title": title,
-        "type": chat_type,
-        "owner_id": owner_id,
-        "owner_type": owner_type,
-        "status": status,
-    }
-    if task_id is not None:
-        request_data["task_id"] = task_id
-    if metadata_dict is not None:
-        request_data["metadata"] = metadata_dict
+    result = client.agent_api.create_agent_chat(chat=chat_request)
 
-    result = client.chat_rooms.create_chat(chat=cast(Any, request_data))
-    chat = result.data
-
-    if chat is None:
+    if result.data is None:
         logger.error("Chat room created but response data is None")
-        raise RuntimeError("Chat room created but ID not available in response")
+        raise RuntimeError("Chat room created but data not available in response")
 
-    logger.info(f"Chat room created successfully: {chat.id}")
-    return f"Chat room created successfully: {chat.id}"
-
-
-@mcp.tool()
-def update_chat(
-    ctx: AppContextType,
-    chat_id: str,
-    title: Optional[str] = None,
-    status: Optional[str] = None,
-    metadata: Optional[str] = None,
-) -> str:
-    """Update an existing chat room.
-
-    Updates a chat room's configuration. Only the fields provided will be updated
-    (partial updates are supported). Fields not provided will remain unchanged.
-
-    Args:
-        chat_id: The unique identifier of the chat room to update (required).
-        title: New title for the chat room.
-        status: New status: 'active', 'archived', or 'closed'.
-        metadata: New JSON string containing metadata (will be parsed as JSON).
-
-    Returns:
-        Success message with the updated chat room's ID.
-    """
-    logger.debug(f"Updating chat: {chat_id}")
-    client = get_app_context(ctx).client
-
-    update_data: Dict[str, Any] = {}
-    if title is not None:
-        update_data["title"] = title
-    if status is not None:
-        update_data["status"] = status
-    if metadata is not None:
-        try:
-            update_data["metadata"] = json.loads(metadata)
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON for metadata: {e}")
-            raise ValueError(f"Invalid JSON for metadata: {str(e)}")
-
-    result = client.chat_rooms.update_chat(id=chat_id, chat=cast(Any, update_data))
-    chat = result.data
-
-    if chat is None:
-        logger.error(f"Chat {chat_id} updated but response data is None")
-        raise RuntimeError("Chat room updated but ID not available in response")
-
-    logger.info(f"Chat room updated successfully: {chat.id}")
-    return f"Chat room updated successfully: {chat.id}"
-
-
-@mcp.tool()
-def delete_chat(ctx: AppContextType, chat_id: str) -> str:
-    """Delete a chat room.
-
-    Permanently deletes a chat room. This action cannot be undone.
-
-    Args:
-        chat_id: The unique identifier of the chat room to delete (required).
-
-    Returns:
-        Success message confirming deletion.
-    """
-    logger.debug(f"Deleting chat: {chat_id}")
-    client = get_app_context(ctx).client
-    client.chat_rooms.delete_chat(id=chat_id)
-    logger.info(f"Chat room deleted successfully: {chat_id}")
-    return f"Chat room deleted successfully: {chat_id}"
+    logger.info(f"Chat room created successfully: {result.data.id}")
+    return serialize_response(result)

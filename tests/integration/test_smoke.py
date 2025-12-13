@@ -1,0 +1,80 @@
+"""Integration tests to verify API operations against a real server.
+
+These tests run against a real API server using credentials from .env.test.
+They verify the MCP tools work correctly end-to-end.
+
+Run with:
+    uv run pytest tests/integration/test_smoke.py -v --no-cov
+"""
+
+import json
+
+
+from tests.integration.conftest import get_test_agent_id, requires_api
+from thenvoi_mcp.tools.identity import getAgentMe, listAgentPeers
+from thenvoi_mcp.tools.chats import listAgentChats
+
+
+@requires_api
+class TestAgentIdentity:
+    """Tests for agent identity tools."""
+
+    def test_get_agent_me_returns_correct_agent(self, integration_ctx):
+        """Test that getAgentMe returns the correct agent profile."""
+        result = getAgentMe(integration_ctx)
+
+        parsed = json.loads(result)
+        assert "data" in parsed
+        assert parsed["data"] is not None
+
+        # Verify required fields
+        agent = parsed["data"]
+        assert "id" in agent
+        assert "name" in agent
+
+        # Verify this is the expected test agent
+        expected_agent_id = get_test_agent_id()
+        if expected_agent_id:
+            assert agent["id"] == expected_agent_id, (
+                f"Expected agent ID {expected_agent_id}, got {agent['id']}"
+            )
+
+        print(f"\nAgent: {agent['name']} (ID: {agent['id']})")
+
+    def test_list_agent_peers_returns_list(self, integration_ctx):
+        """Test that listAgentPeers returns a list of available peers."""
+        result = listAgentPeers(integration_ctx)
+
+        parsed = json.loads(result)
+        assert "data" in parsed
+        assert isinstance(parsed["data"], list)
+
+        # Verify peer structure if any exist
+        if parsed["data"]:
+            peer = parsed["data"][0]
+            assert "id" in peer
+            assert "name" in peer
+            assert "type" in peer  # "Agent" or "User"
+
+        print(f"\nFound {len(parsed['data'])} peers")
+
+
+@requires_api
+class TestAgentChats:
+    """Tests for agent chat tools."""
+
+    def test_list_agent_chats_returns_list(self, integration_ctx):
+        """Test that listAgentChats returns a list of chats."""
+        result = listAgentChats(integration_ctx)
+
+        parsed = json.loads(result)
+        assert "data" in parsed
+        assert isinstance(parsed["data"], list)
+
+        # Verify chat structure if any exist
+        if parsed["data"]:
+            chat = parsed["data"][0]
+            assert "id" in chat
+            assert "title" in chat or chat.get("title") is None  # title can be null
+
+        print(f"\nFound {len(parsed['data'])} chats")

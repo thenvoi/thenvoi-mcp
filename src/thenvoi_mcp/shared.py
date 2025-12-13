@@ -11,7 +11,7 @@ from typing import Any
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 from pydantic import BaseModel
-from thenvoi_client_rest import RestClient
+from thenvoi_rest import RestClient
 
 from thenvoi_mcp.config import settings
 
@@ -71,6 +71,9 @@ def serialize_response(result: Any, **kwargs) -> str:
     Returns:
         JSON string representation of the result.
     """
+    # Check for model_dump method (duck typing) or isinstance (type checking)
+    if hasattr(result, "model_dump") and callable(result.model_dump):
+        return json.dumps(result.model_dump(**kwargs), indent=2, default=str)
     if isinstance(result, BaseModel):
         return json.dumps(result.model_dump(**kwargs), indent=2, default=str)
     return json.dumps(result, indent=2, default=str)

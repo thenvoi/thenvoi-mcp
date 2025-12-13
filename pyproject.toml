@@ -7,8 +7,11 @@ authors = [{ name = "thenvoi" }]
 requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.2.0",
-    "thenvoi-sdk @ git+https://github.com/thenvoi/thenvoi-sdk-python.git",
+    "thenvoi-rest",
 ]
+
+[tool.uv.sources]
+thenvoi-rest = { path = "../../../../dist_rearch/fern", editable = true }
 
 [project.optional-dependencies]
 dev = [
@@ -16,6 +19,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
+    "python-dotenv>=1.0.0",
     "respx>=0.20.0",
 ]
 # LangGraph agent example dependencies
@@ -50,8 +54,6 @@ thenvoi-mcp = "thenvoi_mcp.server:run"
 [tool.uv]
 package = true
 
-[tool.uv.sources]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
@@ -79,7 +81,7 @@ exclude_lines = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.8.22,<0.9.0"]
+requires = ["uv_build>=0.8.22,<0.10.0"]
 build-backend = "uv_build"
 
 [dependency-groups]

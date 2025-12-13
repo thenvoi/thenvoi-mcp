@@ -1,6 +1,17 @@
+"""Chat message tools.
+
+This module provides tools for retrieving conversation context and
+sending text messages using the agent-centric API.
+"""
+
 import json
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional
+
+from thenvoi_rest import (
+    ChatMessageRequest,
+    ChatMessageRequestMentionsItem,
+)
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -8,114 +19,188 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-def list_chat_messages(
+def getAgentChatContext(
     ctx: AppContextType,
-    chat_id: str,
+    chatId: str,
     page: Optional[int] = None,
-    per_page: Optional[int] = None,
-    since: Optional[str] = None,
-    message_type: Optional[str] = None,
+    pageSize: Optional[int] = None,
 ) -> str:
-    """List messages in a chat room with sender names.
+    """Get conversation context for agent rehydration.
 
-    Retrieves a list of messages from a specific chat room with support for
-    pagination and filtering. Each message includes the sender's name (not just ID)
-    so you can easily tag them when responding.
+    Returns all messages relevant to the agent for execution context/rehydration.
+    This includes:
+    - All messages the agent sent (any type: text, tool_call, tool_result, thought, etc.)
+    - All text messages that @mention the agent
+
+    Use this to load the complete context an external agent needs to resume execution.
+    Messages are returned in chronological order (oldest first).
 
     Args:
-        chat_id: The unique identifier of the chat room (required).
-        page: Page number for pagination (optional).
-        per_page: Number of items per page (optional).
-        since: ISO 8601 timestamp to filter messages after this time (optional).
-        message_type: Filter by message type: 'text', 'system', 'action', 'thought',
-                      'guidelines', 'error', 'tool_call', 'tool_result', 'task' (optional).
+        chatId: The unique identifier of the chat room (required).
+        page: Page number for pagination (optional, default: 1).
+        pageSize: Items per page (optional, default: 50, max: 100).
 
     Returns:
-        JSON string containing messages with sender_name field for easy tagging.
-        Example: "sender_name": "john" means you can reply with "@john" to tag them.
+        JSON string containing the agent's conversation context with messages.
     """
-    logger.debug(f"Fetching messages for chat: {chat_id}")
+    logger.debug(f"Fetching agent context for chat: {chatId}")
     client = get_app_context(ctx).client
-
-    since_dt = None
-    if since is not None:
-        from datetime import datetime
-
-        try:
-            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
-        except ValueError as e:
-            logger.error(f"Invalid ISO 8601 timestamp for since: {e}")
-            raise ValueError(f"Invalid ISO 8601 timestamp for since: {str(e)}")
-
-    result = client.chat_messages.list_chat_messages(
-        chat_id=chat_id,
+    result = client.agent_api.get_agent_chat_context(
+        id=chatId,
         page=page,
-        per_page=per_page,
-        since=since_dt,
-        message_type=message_type,
+        page_size=pageSize,
     )
-    logger.info(f"Retrieved {len(result.data or [])} messages for chat: {chat_id}")
+    message_count = len(result.data or []) if hasattr(result, "data") else 0
+    logger.info(f"Retrieved {message_count} context messages for chat: {chatId}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def create_chat_message(
+def createAgentChatMessage(
     ctx: AppContextType,
-    chat_id: str,
+    chatId: str,
     content: str,
+    recipients: Optional[str] = None,
     mentions: Optional[str] = None,
-    message_type: Optional[str] = None,
 ) -> str:
-    """Send a message in a chat room.
+    """Send a text message in a chat room.
 
-    The sender is automatically determined from the API key (authenticated user or agent).
+    Creates a new text message in a chat room. Messages MUST include at least
+    one @mention to ensure proper routing to recipients.
+
+    TWO WAYS TO SPECIFY RECIPIENTS:
+
+    Option 1 - Use `recipients` (recommended for LLMs):
+        Provide comma-separated names. The tool resolves names to IDs automatically.
+        Example: recipients="weather agent,sarah"
+
+    Option 2 - Use `mentions` (for libraries with caching):
+        Provide a JSON array with pre-resolved IDs.
+        Example: mentions='[{"id": "uuid-123", "name": "weather agent"}]'
+
+    If both are provided, `mentions` takes precedence (no API call needed).
+
+    For event-type messages (tool_call, tool_result, thought, error, etc.),
+    use createAgentChatEvent instead.
 
     Args:
-        chat_id: The unique identifier of the chat room (required).
-        content: The message content/text (required). Include @username in content
-                 for each mentioned user.
-        mentions: JSON array of mentions (optional). Each mention requires both fields:
-                  [{"id": "user-uuid", "username": "display_name"}, ...]
-                  Get IDs and usernames from list_chat_participants.
-        message_type: Message type (optional, defaults to 'text').
-                      Options: 'text', 'system', 'action', 'thought', 'error'.
+        chatId: The unique identifier of the chat room (required).
+        content: The message content/text (required).
+        recipients: Comma-separated participant names to tag (LLM-friendly).
+                   Example: "weather agent,sarah,mike"
+                   Names are resolved to IDs via listAgentChatParticipants.
+        mentions: JSON array of mentions with pre-resolved IDs (for libraries).
+                 Format: [{"id": "uuid", "name": "display_name"}, ...]
+                 When provided, skips name resolution (more efficient).
 
     Returns:
-        Success message with the created message's ID.
+        JSON string containing the created message details.
 
-    Example:
-        create_chat_message(
-            chat_id="chat-123",
-            content="@dan_agent hello there!",
-            mentions='[{"id": "agent-uuid", "username": "dan_agent"}]'
+    Examples:
+        # LLM usage (names):
+        createAgentChatMessage(chatId="123", content="Hello!", recipients="weather agent")
+
+        # Library usage (pre-resolved IDs):
+        createAgentChatMessage(
+            chatId="123",
+            content="Hello!",
+            mentions='[{"id": "uuid-456", "name": "weather agent"}]'
         )
     """
-    logger.debug(f"Creating message in chat: {chat_id}")
+    logger.debug(f"Creating message in chat: {chatId}")
     client = get_app_context(ctx).client
 
-    # Parse mentions if provided
-    mentions_list = None
+    mentions_list: List[ChatMessageRequestMentionsItem] = []
+
+    # Option 1: Pre-resolved mentions provided (efficient path for libraries)
     if mentions:
-        mentions_list = json.loads(mentions)
+        try:
+            parsed_mentions = json.loads(mentions)
+            mentions_list = [
+                ChatMessageRequestMentionsItem(id=m["id"], name=m["name"])
+                for m in parsed_mentions
+            ]
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON for mentions: {str(e)}")
+        except KeyError as e:
+            raise ValueError(f"Missing required field in mentions: {str(e)}")
 
-    # Build request - sender is determined by API from API key
-    request_data = {
-        "content": content,
-        "message_type": message_type or "text",
-    }
+    # Option 2: Resolve names to IDs (LLM-friendly path)
+    elif recipients:
+        recipient_names = [
+            name.strip().lower() for name in recipients.split(",") if name.strip()
+        ]
 
-    if mentions_list:
-        request_data["mentions"] = mentions_list
+        if not recipient_names:
+            raise ValueError("recipients cannot be empty")
 
-    # Send the message
-    result = client.chat_messages.create_chat_message(
-        chat_id=chat_id,
-        message=request_data,  # type: ignore
+        # Fetch participants to map names to IDs
+        participants_response = client.agent_api.list_agent_chat_participants(
+            chats_id=chatId
+        )
+        participants = participants_response.data or []
+
+        # Build name -> participant mapping (case-insensitive)
+        name_to_participant: Dict[str, Any] = {}
+        for p in participants:
+            # Agent participants have 'name' field
+            if hasattr(p, "name") and p.name:
+                name_to_participant[p.name.lower()] = p
+            # User participants may have 'username' or 'display_name'
+            if hasattr(p, "username") and p.username:
+                name_to_participant[p.username.lower()] = p
+            if hasattr(p, "display_name") and p.display_name:
+                name_to_participant[p.display_name.lower()] = p
+
+        # Resolve names to mentions
+        not_found: List[str] = []
+        for name in recipient_names:
+            participant = name_to_participant.get(name)
+            if participant:
+                display_name = (
+                    getattr(participant, "name", None)
+                    or getattr(participant, "username", None)
+                    or getattr(participant, "display_name", "Unknown")
+                )
+                mentions_list.append(
+                    ChatMessageRequestMentionsItem(id=participant.id, name=display_name)
+                )
+            else:
+                not_found.append(name)
+
+        if not_found:
+            available_names = list(name_to_participant.keys())
+            raise ValueError(
+                f"Could not find participants: {', '.join(not_found)}. "
+                f"Available participants: {', '.join(available_names)}"
+            )
+
+    # Neither provided - error with helpful guidance
+    else:
+        raise ValueError(
+            f"Missing recipients or mentions. To send a message, specify who to tag. "
+            f'Use recipients=\'name1,name2\' (names) or mentions=\'[{{"id":"uuid","name":"display_name"}}]\' (IDs). '
+            f"Call listAgentChatParticipants(chatId='{chatId}') to see available participants."
+        )
+
+    # Build and send message
+    message_request = ChatMessageRequest(
+        content=content,
+        mentions=mentions_list,
     )
-    message = result.data
 
-    if message is None:
-        raise RuntimeError("Message sent but ID not available in response")
+    try:
+        result = client.agent_api.create_agent_chat_message(
+            chats_id=chatId,
+            message=message_request,
+        )
+    except Exception as e:
+        error_str = str(e)
+        logger.error(f"Failed to send message: {error_str}")
+        raise RuntimeError(f"Failed to send message: {error_str}") from e
 
-    logger.info(f"Message sent successfully: {message.id}")
-    return f"Message sent successfully: {message.id}"
+    if result.data is None:
+        raise RuntimeError("Message created but data not available in response")
+
+    logger.info(f"Message sent successfully: {result.data.id}")
+    return serialize_response(result)
