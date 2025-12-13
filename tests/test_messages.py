@@ -25,7 +25,7 @@ class TestGetAgentChatContext:
         result = getAgentChatContext(mock_ctx, chatId=chat_id)
 
         mock_agent_api.get_agent_chat_context.assert_called_once_with(
-            id=chat_id,
+            chat_id=chat_id,
             page=None,
             page_size=None,
         )
@@ -39,7 +39,7 @@ class TestGetAgentChatContext:
         getAgentChatContext(mock_ctx, chatId="chat-123", page=2, pageSize=25)
 
         mock_agent_api.get_agent_chat_context.assert_called_once_with(
-            id="chat-123",
+            chat_id="chat-123",
             page=2,
             page_size=25,
         )
@@ -75,7 +75,7 @@ class TestCreateAgentChatMessage:
         )
 
         mock_agent_api.list_agent_chat_participants.assert_called_once_with(
-            chats_id=chat_id
+            chat_id=chat_id
         )
         mock_agent_api.create_agent_chat_message.assert_called_once()
         parsed = json.loads(result)

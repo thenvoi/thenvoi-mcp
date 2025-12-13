@@ -131,7 +131,7 @@ def createAgentChatEvent(
 
     try:
         result = client.agent_api.create_agent_chat_event(
-            chats_id=chatId,
+            chat_id=chatId,
             event=event_request,
         )
     except Exception as e:

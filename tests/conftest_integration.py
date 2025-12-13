@@ -113,11 +113,11 @@ def test_chat(api_client: RestClient | None):
     if api_client is None:
         pytest.skip("THENVOI_API_KEY not set")
 
-    from thenvoi_rest import ChatRequest
+    from thenvoi_rest import ChatRoomRequest
 
     # Create a test chat
     response = api_client.agent_api.create_agent_chat(
-        chat=ChatRequest(title="Integration Test Chat")
+        chat=ChatRoomRequest(title="Integration Test Chat")
     )
     chat_id = response.data.id
 

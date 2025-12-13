@@ -8,13 +8,13 @@ A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that pr
 
 ## ✨ Features
 
-- 🤖 **Agent Management** - Read, update, and manage AI agents with custom configurations
-- 💬 **Chat Room Operations** - Full lifecycle management of chat rooms for agent-user interactions
-- 📨 **Message Handling** - Send and manage messages with support for multiple message types
-- 👥 **Participant Management** - Control chat room participants and roles
+- 🤖 **Agent Identity** - Validate agent connection and discover peers
+- 💬 **Chat Room Operations** - Create and manage chat rooms for agent collaboration
+- 📨 **Message & Events** - Send messages with mentions and post execution events
+- 👥 **Participant Management** - Add and remove chat room participants
+- 🔄 **Message Lifecycle** - Track message processing status
 - 🔌 **MCP Protocol** - Full compliance with the Model Context Protocol specification
-- 🔒 **Secure Configuration** - Environment-based configuration with validation
-- ✅ **Comprehensive Testing** - Integration tests for end-to-end workflows
+- ✅ **Comprehensive Testing** - Mock-based unit tests and integration tests
 
 ## 🚀 Quick Start
 
@@ -202,62 +202,38 @@ npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server r
 
 ## 🔨 Available Tools
 
-### Agent Management
+### Identity
 
-- `list_agents` - List all accessible agents
-- `get_agent` - Get detailed agent information
-- `create_agent` - Create a new AI agent
-- `update_agent` - Update agent properties
-- `list_agent_chats` - List chats for a specific agent
+- `getAgentMe` - Get the authenticated agent's profile (validates connection)
+- `listAgentPeers` - List collaborators (users/agents) the agent can interact with
 
 ### Chat Management
 
-- `list_chats` - List all chat rooms
-- `get_chat` - Get chat room details
-- `create_chat` - Create a new chat room
-- `update_chat` - Update chat properties
-- `delete_chat` - Delete a chat room
+- `listAgentChats` - List all chats the agent participates in
+- `getAgentChat` - Get chat room details
+- `createAgentChat` - Create a new chat room
 
 ### Message Operations
 
-- `list_chat_messages` - List messages in a chat with sender names for easy tagging
-- `create_chat_message` - Send a message (always from authenticated user)
-- `delete_chat_message` - Delete a message
+- `getAgentChatContext` - Get conversation history for context rehydration
+- `createAgentChatMessage` - Send a message (requires mentions)
+- `createAgentChatEvent` - Post events (tool_call, tool_result, thought, error, task)
 
 ### Participant Management
 
-- `list_chat_participants` - List all participants in a chat
-- `add_chat_participant` - Add a user or agent to a chat
-- `remove_chat_participant` - Remove a participant from a chat
-- `list_available_participants` - List users/agents available to add
+- `listAgentChatParticipants` - List all participants in a chat
+- `addAgentChatParticipant` - Add a user or agent to a chat
+- `removeAgentChatParticipant` - Remove a participant from a chat
 
-### System
+### Message Lifecycle
 
-- `health_check` - Verify server and API connectivity
+- `markAgentMessageProcessing` - Mark a message as being processed
+- `markAgentMessageProcessed` - Mark a message as done
+- `markAgentMessageFailed` - Mark a message as failed
 
-**Supported Message Types:** `text`, `system`, `action`, `thought`, `guidelines`, `error`, `task`
-
-**Chat Types:** `direct`, `group`, `task`
-
-**Chat Statuses:** `active`, `archived`, `closed`
+**Event Types:** `tool_call`, `tool_result`, `thought`, `error`, `task`
 
 ## 💡 Usage Examples
-
-### Natural Language in AI Assistants
-
-Once connected, interact with Thenvoi through natural language:
-
-```
-Create a new agent named "Research Assistant" using model gpt-4o
-```
-
-```
-Show me all my agents and their active chats
-```
-
-```
-Send a message to the team saying "Project update meeting at 3pm"
-```
 
 ### Agent Framework Examples
 
@@ -296,22 +272,10 @@ uv run examples/langgraph_agent.py
 ```
 
 **What it does:**
-- Loads all 17 Thenvoi MCP tools
+- Loads all 14 Thenvoi MCP tools
 - Creates an interactive chat loop with a GPT-4o powered agent
-- The agent can list agents, create chats, send messages, manage participants, and more
+- The agent can manage chats, send messages, manage participants, and more
 - Type `exit`, `quit`, or `q` to exit
-
-**Example interaction:**
-
-```
-You: list all the agents in the platform
-Agent: Here are the agents available on the platform:
-1. **Executive Assistant**
-   - ID: aeae3cf4-c127-45d5-ac4c-57fbceb19f61
-   - Model Type: gpt-4o
-   - Description: Handles any task-like request from a user.
-[...]
-```
 
 See `examples/langgraph_agent.py` for the complete implementation.
 
@@ -409,19 +373,26 @@ thenvoi-mcp-server/
 │   └── thenvoi_mcp/              # Main package
 │       ├── __init__.py            # Package initialization
 │       ├── config.py              # Configuration management
-│       ├── server.py              # MCP server
-│       ├── shared.py              # Shared instances
-│       ├── tools/                 # MCP tool implementations
-│       │   ├── agents.py          # Agent management tools
-│       │   ├── chats.py           # Chat room tools
-│       │   ├── messages.py        # Message operation tools
-│       │   └── participants.py    # Participant management tools
-│       └── tests/                 # Test suite
-│           ├── conftest.py        # Test fixtures
-│           ├── test_agents.py     # Agent tests
-│           ├── test_chats.py      # Chat tests
-│           ├── test_messages.py   # Message tests
-│           └── test_participants.py # Participant tests
+│       ├── server.py              # MCP server entry point
+│       ├── shared.py              # AppContext, serialization helpers
+│       └── tools/                 # MCP tool implementations
+│           ├── identity.py        # getAgentMe, listAgentPeers
+│           ├── chats.py           # listAgentChats, getAgentChat, createAgentChat
+│           ├── messages.py        # getAgentChatContext, createAgentChatMessage
+│           ├── events.py          # createAgentChatEvent
+│           ├── participants.py    # list/add/remove participants
+│           └── lifecycle.py       # markProcessing/Processed/Failed
+├── tests/                         # Test suite
+│   ├── conftest.py                # Mock fixtures for unit tests
+│   ├── fixtures.py                # MockDataFactory
+│   ├── test_identity.py           # Identity tool tests
+│   ├── test_chats.py              # Chat tool tests
+│   ├── test_messages.py           # Message tool tests
+│   ├── test_events.py             # Event tool tests
+│   ├── test_participants.py       # Participant tool tests
+│   ├── test_lifecycle.py          # Lifecycle tool tests
+│   └── integration/               # Integration tests (require API)
+│       └── test_full_workflow.py  # End-to-end workflow tests
 ├── examples/                      # Usage examples
 │   ├── langgraph_agent.py         # LangGraph integration example
 │   └── langchain_agent.py         # LangChain AgentExecutor example
@@ -494,7 +465,24 @@ cd /path/to/thenvoi-mcp
 uv lock && uv sync --all-extras
 ```
 
-After SDK changes, regenerate with Fern, copy to `sdk_package/thenvoi_rest/`, rebuild, and run `uv sync --reinstall-package thenvoi-rest`.
+**After SDK changes:**
+
+```bash
+# 1. Regenerate and rebuild wheel
+cd /path/to/sdk-repo
+fern generate --group python-sdk-local
+rm -rf sdk_package/thenvoi_rest && mkdir -p sdk_package/thenvoi_rest
+cp -r generated_sdk/* sdk_package/thenvoi_rest/
+cd sdk_package && rm -rf dist && uv build
+
+# 2. Clear uv cache and force reinstall
+cd /path/to/thenvoi-mcp
+uv cache clean --force thenvoi-rest
+uv lock --upgrade-package thenvoi-rest
+uv sync --all-extras
+```
+
+> **Important:** You must clear the uv cache with `uv cache clean --force thenvoi-rest` before re-resolving. Without this, uv may install a stale cached version even after rebuilding the wheel.
 
 ### Running Tests
 

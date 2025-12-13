@@ -1729,16 +1729,15 @@ dev = [
 
 [[package]]
 name = "thenvoi-rest"
-version = "0.0.2.dev1"
+version = "0.0.1"
 source = { registry = "../../../../dist_rearch/fern/sdk_package/dist" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
 ]
-sdist = { path = "thenvoi_rest-0.0.2.dev1.tar.gz" }
+sdist = { path = "thenvoi_rest-0.0.1.tar.gz" }
 wheels = [
-    { path = "thenvoi_rest-0.0.2.dev1-py3-none-any.whl" },
-    { path = "thenvoi_rest-0.0.2.dev1-py3-none-any.whl" },
+    { path = "thenvoi_rest-0.0.1-py3-none-any.whl" },
 ]
 
 [[package]]

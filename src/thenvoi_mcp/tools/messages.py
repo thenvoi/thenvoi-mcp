@@ -46,7 +46,7 @@ def getAgentChatContext(
     logger.debug(f"Fetching agent context for chat: {chatId}")
     client = get_app_context(ctx).client
     result = client.agent_api.get_agent_chat_context(
-        id=chatId,
+        chat_id=chatId,
         page=page,
         page_size=pageSize,
     )
@@ -136,7 +136,7 @@ def createAgentChatMessage(
 
         # Fetch participants to map names to IDs
         participants_response = client.agent_api.list_agent_chat_participants(
-            chats_id=chatId
+            chat_id=chatId
         )
         participants = participants_response.data or []
 
@@ -191,7 +191,7 @@ def createAgentChatMessage(
 
     try:
         result = client.agent_api.create_agent_chat_message(
-            chats_id=chatId,
+            chat_id=chatId,
             message=message_request,
         )
     except Exception as e:

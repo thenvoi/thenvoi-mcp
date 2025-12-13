@@ -27,7 +27,7 @@ class TestMarkAgentMessageProcessing:
         )
 
         mock_agent_api.mark_agent_message_processing.assert_called_once_with(
-            chats_id=chat_id,
+            chat_id=chat_id,
             id=message_id,
         )
         parsed = json.loads(result)
@@ -64,7 +64,7 @@ class TestMarkAgentMessageProcessed:
         )
 
         mock_agent_api.mark_agent_message_processed.assert_called_once_with(
-            chats_id=chat_id,
+            chat_id=chat_id,
             id=message_id,
         )
         parsed = json.loads(result)
@@ -101,7 +101,7 @@ class TestMarkAgentMessageFailed:
         )
 
         mock_agent_api.mark_agent_message_failed.assert_called_once_with(
-            chats_id=chat_id,
+            chat_id=chat_id,
             id=message_id,
             error=error_message,
         )

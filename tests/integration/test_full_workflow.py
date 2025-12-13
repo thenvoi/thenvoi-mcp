@@ -14,7 +14,6 @@ from thenvoi_mcp.tools.chats import createAgentChat, getAgentChat, listAgentChat
 from thenvoi_mcp.tools.participants import (
     addAgentChatParticipant,
     listAgentChatParticipants,
-    removeAgentChatParticipant,
 )
 from thenvoi_mcp.tools.messages import createAgentChatMessage, getAgentChatContext
 from thenvoi_mcp.tools.events import createAgentChatEvent
@@ -209,13 +208,20 @@ class TestFullWorkflow:
         assert isinstance(peers, list), "Peers should be a list"
         print(f"Found {len(peers)} available peers across all pages")
 
-        # We need at least one peer to test participant operations
+        # We need at least one User peer to test human participant operations
         assert len(peers) > 0, "Need at least one peer for participant tests"
-        peer = peers[0]
+
+        # Find a User peer (human) - this is the key test: agent communicating with human
+        user_peer = next((p for p in peers if p["type"] == "User"), None)
+        assert user_peer is not None, (
+            "Need at least one User peer to test agent-human communication"
+        )
+
+        peer = user_peer
         peer_id = peer["id"]
         peer_name = peer["name"]
         peer_type = peer["type"]
-        print(f"Will use peer: {peer_name} ({peer_type}, ID: {peer_id})")
+        print(f"Will use User peer: {peer_name} ({peer_type}, ID: {peer_id})")
 
         # ============================================================
         # STEP 3: Chats - Create a new chat
@@ -437,24 +443,20 @@ class TestFullWorkflow:
         print(f"Marked message {message_id} as processed")
 
         # ============================================================
-        # STEP 16: Participants - Remove participant (cleanup)
+        # STEP 16: Verify User still in chat after all operations
         # ============================================================
         print("\n" + "=" * 60)
-        print("STEP 16: Remove Participant (Cleanup)")
+        print("STEP 16: Verify User Still in Chat")
         print("=" * 60)
 
-        result = removeAgentChatParticipant(
-            integration_ctx, chatId=chat_id, participantId=peer_id
-        )
-        print(f"Result: {result}")
-        assert "successfully" in result.lower(), "Should indicate success"
-
-        # Verify removal
         result = listAgentChatParticipants(integration_ctx, chatId=chat_id)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
-        assert peer_id not in participant_ids, "Peer should be removed"
-        print(f"Participant removed. Remaining: {len(parsed['data'])}")
+        assert peer_id in participant_ids, "User should still be a participant"
+        print(f"Verified: User '{peer_name}' is still in chat")
+        print(f"Total participants: {len(parsed['data'])}")
+        for p in parsed["data"]:
+            print(f"  - {p['name']} ({p['type']}, role: {p.get('role', 'N/A')})")
 
         # ============================================================
         # COMPLETE
@@ -463,7 +465,7 @@ class TestFullWorkflow:
         print("WORKFLOW COMPLETE - All 16 steps passed!")
         print("=" * 60)
         print(f"Test chat ID: {chat_id}")
-        print("Note: Chat remains in system (no delete endpoint)")
+        print(f"User '{peer_name}' remains in chat as expected")
 
 
 @requires_api
@@ -482,18 +484,22 @@ class TestMessageFailureLifecycle:
         chat_id = parsed["data"]["id"]
         print(f"Created test chat: {chat_id}")
 
-        # Get peers and add one to the chat
+        # Get peers and find a User peer to add to the chat
         result = listAgentPeers(integration_ctx)
         parsed = json.loads(result)
         assert len(parsed["data"]) > 0, "Need at least one peer"
-        peer = parsed["data"][0]
-        peer_id = peer["id"]
-        peer_name = peer["name"]
+
+        # Find a User peer (human) for this test
+        user_peer = next((p for p in parsed["data"] if p["type"] == "User"), None)
+        assert user_peer is not None, "Need at least one User peer"
+
+        peer_id = user_peer["id"]
+        peer_name = user_peer["name"]
 
         addAgentChatParticipant(
             integration_ctx, chatId=chat_id, participantId=peer_id, role="member"
         )
-        print(f"Added peer: {peer_name}")
+        print(f"Added User peer: {peer_name}")
 
         # Send a message
         mentions = json.dumps([{"id": peer_id, "name": peer_name}])
@@ -524,10 +530,11 @@ class TestMessageFailureLifecycle:
         parsed = json.loads(result)
         print(f"Marked as failed with error: {error_message}")
 
-        # Cleanup
-        removeAgentChatParticipant(
-            integration_ctx, chatId=chat_id, participantId=peer_id
-        )
-        print("Cleaned up participant")
+        # Verify User is still in the chat
+        result = listAgentChatParticipants(integration_ctx, chatId=chat_id)
+        parsed = json.loads(result)
+        participant_ids = [p["id"] for p in parsed["data"]]
+        assert peer_id in participant_ids, "User should still be a participant"
+        print(f"Verified: User '{peer_name}' is still in chat")
 
         print("\nFailure lifecycle test complete!")

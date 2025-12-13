@@ -30,7 +30,7 @@ class TestListAgentChatParticipants:
         result = listAgentChatParticipants(mock_ctx, chatId=chat_id)
 
         mock_agent_api.list_agent_chat_participants.assert_called_once_with(
-            chats_id=chat_id
+            chat_id=chat_id
         )
         parsed = json.loads(result)
         assert len(parsed["data"]) == 2
@@ -83,7 +83,7 @@ class TestAddAgentChatParticipant:
 
         mock_agent_api.add_agent_chat_participant.assert_called_once()
         call_args = mock_agent_api.add_agent_chat_participant.call_args
-        assert call_args.kwargs["chats_id"] == chat_id
+        assert call_args.kwargs["chat_id"] == chat_id
         assert call_args.kwargs["participant"].participant_id == participant_id
         assert call_args.kwargs["participant"].role is None
         assert f"Participant added successfully: {participant_id}" == result
@@ -162,7 +162,7 @@ class TestRemoveAgentChatParticipant:
         )
 
         mock_agent_api.remove_agent_chat_participant.assert_called_once_with(
-            chats_id=chat_id,
+            chat_id=chat_id,
             id=participant_id,
         )
         assert f"Participant removed successfully: {participant_id}" == result

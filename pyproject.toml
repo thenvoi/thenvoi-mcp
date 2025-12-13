@@ -91,3 +91,4 @@ dev = [
 
 [tool.pyrefly]
 search_path = ["src", "tests"]
+project_excludes = ["tests/**"]

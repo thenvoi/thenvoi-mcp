@@ -26,7 +26,7 @@ class TestCreateAgentChatEvent:
 
         mock_agent_api.create_agent_chat_event.assert_called_once()
         call_args = mock_agent_api.create_agent_chat_event.call_args
-        assert call_args.kwargs["chats_id"] == chat_id
+        assert call_args.kwargs["chat_id"] == chat_id
         assert call_args.kwargs["event"].content == content
         assert call_args.kwargs["event"].message_type == "thought"
         parsed = json.loads(result)

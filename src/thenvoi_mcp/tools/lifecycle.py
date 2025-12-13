@@ -39,7 +39,7 @@ def markAgentMessageProcessing(
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processing(
-        chats_id=chatId,
+        chat_id=chatId,
         id=messageId,
     )
 
@@ -78,7 +78,7 @@ def markAgentMessageProcessed(
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processed(
-        chats_id=chatId,
+        chat_id=chatId,
         id=messageId,
     )
 
@@ -119,7 +119,7 @@ def markAgentMessageFailed(
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_failed(
-        chats_id=chatId,
+        chat_id=chatId,
         id=messageId,
         error=error,
     )
