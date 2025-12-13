@@ -459,6 +459,43 @@ This repository uses automated code quality tools:
 
 The hooks will automatically check and format your code before each commit.
 
+### Local SDK Development
+
+To develop against a local `thenvoi-rest` SDK instead of PyPI:
+
+```bash
+# 1. Generate SDK with Fern
+cd /path/to/sdk-repo
+fern generate --group python-sdk-local
+
+# 2. Create package structure (Fern output needs wrapping)
+mkdir -p sdk_package/thenvoi_rest
+cp -r generated_sdk/* sdk_package/thenvoi_rest/
+
+# 3. Create pyproject.toml for the package
+cat > sdk_package/pyproject.toml << 'EOF'
+[project]
+name = "thenvoi-rest"
+version = "0.0.1"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.25.0", "pydantic>=2.0.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+EOF
+
+# 4. Build wheel
+cd sdk_package && uv build
+
+# 5. Use local SDK in MCP project
+export UV_FIND_LINKS="/path/to/sdk-repo/sdk_package/dist/"
+cd /path/to/thenvoi-mcp
+uv lock && uv sync --all-extras
+```
+
+After SDK changes, regenerate with Fern, copy to `sdk_package/thenvoi_rest/`, rebuild, and run `uv sync --reinstall-package thenvoi-rest`.
+
 ### Running Tests
 
 ```bash

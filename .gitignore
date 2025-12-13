@@ -48,3 +48,4 @@ htmlcov/
 
 # uv
 .python-version
+uv.toml

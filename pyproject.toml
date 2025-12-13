@@ -10,9 +10,6 @@ dependencies = [
     "thenvoi-rest",
 ]
 
-[tool.uv.sources]
-thenvoi-rest = { path = "../../../../dist_rearch/fern", editable = true }
-
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
@@ -87,6 +84,10 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pre-commit>=4.4.0",
+    "pydantic-settings>=2.1.0",
     "ruff>=0.8.0",
     "pyrefly>=0.2.0",
 ]
+
+[tool.pyrefly]
+search_path = ["src", "tests"]
