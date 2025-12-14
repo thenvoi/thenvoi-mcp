@@ -2,8 +2,6 @@
 
 import json
 
-import pytest
-
 from tests.fixtures import factory
 from thenvoi_mcp.tools.chats import create_agent_chat, get_agent_chat, list_agent_chats
 
@@ -109,12 +107,3 @@ class TestCreateAgentChat:
         parsed = json.loads(result)
         assert parsed["data"]["id"] == chat_id
         assert parsed["data"]["task_id"] == task_id
-
-    def test_raises_when_response_data_is_none(self, mock_ctx, mock_agent_api):
-        """Test error handling when API returns no data."""
-        mock_agent_api.create_agent_chat.return_value = factory.response(None)
-
-        with pytest.raises(
-            RuntimeError, match="Chat room created but data not available"
-        ):
-            create_agent_chat(mock_ctx)

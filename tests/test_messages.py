@@ -194,15 +194,3 @@ class TestCreateAgentChatMessage:
         )
 
         mock_agent_api.create_agent_chat_message.assert_called_once()
-
-    def test_raises_when_response_data_is_none(self, mock_ctx, mock_agent_api):
-        """Test error handling when API returns no data."""
-        mentions = '[{"id": "agent-456", "name": "Test"}]'
-        mock_agent_api.create_agent_chat_message.return_value = factory.response(None)
-
-        with pytest.raises(
-            RuntimeError, match="Message created but data not available"
-        ):
-            create_agent_chat_message(
-                mock_ctx, chat_id="chat-123", content="Hello!", mentions=mentions
-            )

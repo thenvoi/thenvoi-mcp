@@ -139,8 +139,5 @@ def create_agent_chat_event(
         logger.error(f"Failed to create event: {error_str}")
         raise RuntimeError(f"Failed to create event: {error_str}") from e
 
-    if result.data is None:
-        raise RuntimeError("Event created but data not available in response")
-
     logger.info(f"Event created successfully: {result.data.id}")
     return serialize_response(result)

@@ -150,15 +150,6 @@ class TestCreateAgentChatEvent:
                 metadata="not valid json",
             )
 
-    def test_raises_when_response_data_is_none(self, mock_ctx, mock_agent_api):
-        """Test error handling when API returns no data."""
-        mock_agent_api.create_agent_chat_event.return_value = factory.response(None)
-
-        with pytest.raises(RuntimeError, match="Event created but data not available"):
-            create_agent_chat_event(
-                mock_ctx, chat_id="chat-123", content="Test", message_type="thought"
-            )
-
     def test_valid_event_types_constant(self):
         """Test that VALID_EVENT_TYPES contains expected values."""
         expected = {"tool_call", "tool_result", "thought", "error", "task"}

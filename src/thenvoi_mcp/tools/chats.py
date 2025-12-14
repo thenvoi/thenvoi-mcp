@@ -38,7 +38,7 @@ def list_agent_chats(
         page=page,
         page_size=page_size,
     )
-    chat_count = len(result.data or []) if hasattr(result, "data") else 0
+    chat_count = len(result.data)
     logger.info(f"Retrieved {chat_count} chats")
     return serialize_response(result)
 
@@ -86,10 +86,6 @@ def create_agent_chat(
     chat_request = ChatRoomRequest(task_id=task_id) if task_id else ChatRoomRequest()
 
     result = client.agent_api.create_agent_chat(chat=chat_request)
-
-    if result.data is None:
-        logger.error("Chat room created but response data is None")
-        raise RuntimeError("Chat room created but data not available in response")
 
     logger.info(f"Chat room created successfully: {result.data.id}")
     return serialize_response(result)

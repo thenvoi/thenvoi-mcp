@@ -36,7 +36,7 @@ def list_agent_chat_participants(
     logger.debug(f"Fetching participants for chat: {chat_id}")
     client = get_app_context(ctx).client
     result = client.agent_api.list_agent_chat_participants(chat_id=chat_id)
-    participant_count = len(result.data or []) if hasattr(result, "data") else 0
+    participant_count = len(result.data)
     logger.info(f"Retrieved {participant_count} participants for chat: {chat_id}")
     return serialize_response(result)
 

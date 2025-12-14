@@ -50,7 +50,7 @@ def get_agent_chat_context(
         page=page,
         page_size=page_size,
     )
-    message_count = len(result.data or []) if hasattr(result, "data") else 0
+    message_count = len(result.data)
     logger.info(f"Retrieved {message_count} context messages for chat: {chat_id}")
     return serialize_response(result)
 
@@ -138,7 +138,7 @@ def create_agent_chat_message(
         participants_response = client.agent_api.list_agent_chat_participants(
             chat_id=chat_id
         )
-        participants = participants_response.data or []
+        participants = participants_response.data
 
         # Build name -> participant mapping (case-insensitive)
         name_to_participant: Dict[str, Any] = {}
@@ -198,9 +198,6 @@ def create_agent_chat_message(
         error_str = str(e)
         logger.error(f"Failed to send message: {error_str}")
         raise RuntimeError(f"Failed to send message: {error_str}") from e
-
-    if result.data is None:
-        raise RuntimeError("Message created but data not available in response")
 
     logger.info(f"Message sent successfully: {result.data.id}")
     return serialize_response(result)

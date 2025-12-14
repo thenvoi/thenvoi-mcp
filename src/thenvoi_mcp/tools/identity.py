@@ -61,6 +61,6 @@ def list_agent_peers(
         page=page,
         page_size=page_size,
     )
-    peer_count = len(result.data or []) if hasattr(result, "data") else 0
+    peer_count = len(result.data)
     logger.info(f"Retrieved {peer_count} peers")
     return serialize_response(result)
