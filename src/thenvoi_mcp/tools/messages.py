@@ -189,15 +189,10 @@ def create_agent_chat_message(
         mentions=mentions_list,
     )
 
-    try:
-        result = client.agent_api.create_agent_chat_message(
-            chat_id=chat_id,
-            message=message_request,
-        )
-    except Exception as e:
-        error_str = str(e)
-        logger.error(f"Failed to send message: {error_str}")
-        raise RuntimeError(f"Failed to send message: {error_str}") from e
+    result = client.agent_api.create_agent_chat_message(
+        chat_id=chat_id,
+        message=message_request,
+    )
 
     logger.info(f"Message sent successfully: {result.data.id}")
     return serialize_response(result)

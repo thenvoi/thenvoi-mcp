@@ -129,15 +129,10 @@ def create_agent_chat_event(
         metadata=metadata_dict,
     )
 
-    try:
-        result = client.agent_api.create_agent_chat_event(
-            chat_id=chat_id,
-            event=event_request,
-        )
-    except Exception as e:
-        error_str = str(e)
-        logger.error(f"Failed to create event: {error_str}")
-        raise RuntimeError(f"Failed to create event: {error_str}") from e
+    result = client.agent_api.create_agent_chat_event(
+        chat_id=chat_id,
+        event=event_request,
+    )
 
     logger.info(f"Event created successfully: {result.data.id}")
     return serialize_response(result)
