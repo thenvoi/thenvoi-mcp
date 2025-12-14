@@ -1,15 +1,15 @@
-"""Unit tests for event tools (createAgentChatEvent)."""
+"""Unit tests for event tools (create_agent_chat_event)."""
 
 import json
 
 import pytest
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.events import VALID_EVENT_TYPES, createAgentChatEvent
+from thenvoi_mcp.tools.events import VALID_EVENT_TYPES, create_agent_chat_event
 
 
 class TestCreateAgentChatEvent:
-    """Tests for createAgentChatEvent tool."""
+    """Tests for create_agent_chat_event tool."""
 
     def test_creates_thought_event(self, mock_ctx, mock_agent_api):
         """Test creating a thought event."""
@@ -20,8 +20,8 @@ class TestCreateAgentChatEvent:
         )
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        result = createAgentChatEvent(
-            mock_ctx, chatId=chat_id, content=content, messageType="thought"
+        result = create_agent_chat_event(
+            mock_ctx, chat_id=chat_id, content=content, message_type="thought"
         )
 
         mock_agent_api.create_agent_chat_event.assert_called_once()
@@ -40,11 +40,11 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(id="event-789", message_type="tool_call")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
+        create_agent_chat_event(
             mock_ctx,
-            chatId=chat_id,
+            chat_id=chat_id,
             content=content,
-            messageType="tool_call",
+            message_type="tool_call",
             metadata=metadata,
         )
 
@@ -60,11 +60,11 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(id="event-101", message_type="tool_result")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
+        create_agent_chat_event(
             mock_ctx,
-            chatId=chat_id,
+            chat_id=chat_id,
             content=content,
-            messageType="tool_result",
+            message_type="tool_result",
             metadata=metadata,
         )
 
@@ -80,11 +80,11 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(id="event-err", message_type="error")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
+        create_agent_chat_event(
             mock_ctx,
-            chatId=chat_id,
+            chat_id=chat_id,
             content=content,
-            messageType="error",
+            message_type="error",
             metadata=metadata,
         )
 
@@ -98,8 +98,8 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(id="event-task", message_type="task")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
-            mock_ctx, chatId=chat_id, content=content, messageType="task"
+        create_agent_chat_event(
+            mock_ctx, chat_id=chat_id, content=content, message_type="task"
         )
 
         call_args = mock_agent_api.create_agent_chat_event.call_args
@@ -110,20 +110,23 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(id="event-no-meta")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
-            mock_ctx, chatId="chat-123", content="Simple thought", messageType="thought"
+        create_agent_chat_event(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Simple thought",
+            message_type="thought",
         )
 
         call_args = mock_agent_api.create_agent_chat_event.call_args
         assert call_args.kwargs["event"].metadata is None
 
     def test_message_type_is_case_insensitive(self, mock_ctx, mock_agent_api):
-        """Test that messageType parameter is case insensitive."""
+        """Test that message_type parameter is case insensitive."""
         event = factory.chat_event(id="event-case")
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
-            mock_ctx, chatId="chat-123", content="Test", messageType="THOUGHT"
+        create_agent_chat_event(
+            mock_ctx, chat_id="chat-123", content="Test", message_type="THOUGHT"
         )
 
         call_args = mock_agent_api.create_agent_chat_event.call_args
@@ -131,19 +134,19 @@ class TestCreateAgentChatEvent:
 
     def test_raises_on_invalid_message_type(self, mock_ctx, mock_agent_api):
         """Test error handling for invalid message type."""
-        with pytest.raises(ValueError, match="Invalid messageType: invalid"):
-            createAgentChatEvent(
-                mock_ctx, chatId="chat-123", content="Test", messageType="invalid"
+        with pytest.raises(ValueError, match="Invalid message_type: invalid"):
+            create_agent_chat_event(
+                mock_ctx, chat_id="chat-123", content="Test", message_type="invalid"
             )
 
     def test_raises_on_invalid_metadata_json(self, mock_ctx, mock_agent_api):
         """Test error handling for invalid JSON in metadata."""
         with pytest.raises(ValueError, match="Invalid JSON for metadata"):
-            createAgentChatEvent(
+            create_agent_chat_event(
                 mock_ctx,
-                chatId="chat-123",
+                chat_id="chat-123",
                 content="Test",
-                messageType="thought",
+                message_type="thought",
                 metadata="not valid json",
             )
 
@@ -152,8 +155,8 @@ class TestCreateAgentChatEvent:
         mock_agent_api.create_agent_chat_event.return_value = factory.response(None)
 
         with pytest.raises(RuntimeError, match="Event created but data not available"):
-            createAgentChatEvent(
-                mock_ctx, chatId="chat-123", content="Test", messageType="thought"
+            create_agent_chat_event(
+                mock_ctx, chat_id="chat-123", content="Test", message_type="thought"
             )
 
     def test_valid_event_types_constant(self):
@@ -169,8 +172,8 @@ class TestCreateAgentChatEvent:
         event = factory.chat_event(message_type=event_type)
         mock_agent_api.create_agent_chat_event.return_value = factory.response(event)
 
-        createAgentChatEvent(
-            mock_ctx, chatId="chat-123", content="Test", messageType=event_type
+        create_agent_chat_event(
+            mock_ctx, chat_id="chat-123", content="Test", message_type=event_type
         )
 
         call_args = mock_agent_api.create_agent_chat_event.call_args

@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-def markAgentMessageProcessing(
+def mark_agent_message_processing(
     ctx: AppContextType,
-    chatId: str,
-    messageId: str,
+    chat_id: str,
+    message_id: str,
 ) -> str:
     """Mark a message as being processed by the agent.
 
@@ -29,29 +29,29 @@ def markAgentMessageProcessing(
     - Updates the agent's delivery status to "processing"
 
     Args:
-        chatId: The unique identifier of the chat room (required).
-        messageId: The ID of the message to mark as processing (required).
+        chat_id: The unique identifier of the chat room (required).
+        message_id: The ID of the message to mark as processing (required).
 
     Returns:
         Success message confirming the message is marked as processing.
     """
-    logger.debug(f"Marking message {messageId} as processing in chat {chatId}")
+    logger.debug(f"Marking message {message_id} as processing in chat {chat_id}")
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processing(
-        chat_id=chatId,
-        id=messageId,
+        chat_id=chat_id,
+        id=message_id,
     )
 
-    logger.info(f"Message marked as processing: {messageId}")
+    logger.info(f"Message marked as processing: {message_id}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def markAgentMessageProcessed(
+def mark_agent_message_processed(
     ctx: AppContextType,
-    chatId: str,
-    messageId: str,
+    chat_id: str,
+    message_id: str,
 ) -> str:
     """Mark a message as successfully processed by the agent.
 
@@ -65,32 +65,32 @@ def markAgentMessageProcessed(
     - Updates the agent's delivery status to "processed"
 
     Note: Requires an active processing attempt. If no processing attempt exists,
-    returns a 422 error. Call markAgentMessageProcessing first.
+    returns a 422 error. Call mark_agent_message_processing first.
 
     Args:
-        chatId: The unique identifier of the chat room (required).
-        messageId: The ID of the message to mark as processed (required).
+        chat_id: The unique identifier of the chat room (required).
+        message_id: The ID of the message to mark as processed (required).
 
     Returns:
         Success message confirming the message is marked as processed.
     """
-    logger.debug(f"Marking message {messageId} as processed in chat {chatId}")
+    logger.debug(f"Marking message {message_id} as processed in chat {chat_id}")
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processed(
-        chat_id=chatId,
-        id=messageId,
+        chat_id=chat_id,
+        id=message_id,
     )
 
-    logger.info(f"Message marked as processed: {messageId}")
+    logger.info(f"Message marked as processed: {message_id}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def markAgentMessageFailed(
+def mark_agent_message_failed(
     ctx: AppContextType,
-    chatId: str,
-    messageId: str,
+    chat_id: str,
+    message_id: str,
     error: str,
 ) -> str:
     """Mark a message processing as failed by the agent.
@@ -105,24 +105,24 @@ def markAgentMessageFailed(
     - Updates the agent's delivery status to "failed"
 
     Note: Requires an active processing attempt. If no processing attempt exists,
-    returns a 422 error. Call markAgentMessageProcessing first.
+    returns a 422 error. Call mark_agent_message_processing first.
 
     Args:
-        chatId: The unique identifier of the chat room (required).
-        messageId: The ID of the message to mark as failed (required).
+        chat_id: The unique identifier of the chat room (required).
+        message_id: The ID of the message to mark as failed (required).
         error: Error message describing why processing failed (required).
 
     Returns:
         Success message confirming the message is marked as failed.
     """
-    logger.debug(f"Marking message {messageId} as failed in chat {chatId}: {error}")
+    logger.debug(f"Marking message {message_id} as failed in chat {chat_id}: {error}")
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_failed(
-        chat_id=chatId,
-        id=messageId,
+        chat_id=chat_id,
+        id=message_id,
         error=error,
     )
 
-    logger.info(f"Message marked as failed: {messageId}")
+    logger.info(f"Message marked as failed: {message_id}")
     return serialize_response(result)

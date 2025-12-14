@@ -1,15 +1,15 @@
-"""Unit tests for message tools (getAgentChatContext, createAgentChatMessage)."""
+"""Unit tests for message tools (get_agent_chat_context, create_agent_chat_message)."""
 
 import json
 
 import pytest
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.messages import createAgentChatMessage, getAgentChatContext
+from thenvoi_mcp.tools.messages import create_agent_chat_message, get_agent_chat_context
 
 
 class TestGetAgentChatContext:
-    """Tests for getAgentChatContext tool."""
+    """Tests for get_agent_chat_context tool."""
 
     def test_returns_context_messages(self, mock_ctx, mock_agent_api):
         """Test successful retrieval of context messages."""
@@ -22,7 +22,7 @@ class TestGetAgentChatContext:
             messages
         )
 
-        result = getAgentChatContext(mock_ctx, chatId=chat_id)
+        result = get_agent_chat_context(mock_ctx, chat_id=chat_id)
 
         mock_agent_api.get_agent_chat_context.assert_called_once_with(
             chat_id=chat_id,
@@ -36,7 +36,7 @@ class TestGetAgentChatContext:
         """Test pagination parameters are passed through."""
         mock_agent_api.get_agent_chat_context.return_value = factory.list_response([])
 
-        getAgentChatContext(mock_ctx, chatId="chat-123", page=2, pageSize=25)
+        get_agent_chat_context(mock_ctx, chat_id="chat-123", page=2, page_size=25)
 
         mock_agent_api.get_agent_chat_context.assert_called_once_with(
             chat_id="chat-123",
@@ -48,14 +48,14 @@ class TestGetAgentChatContext:
         """Test handling of empty context."""
         mock_agent_api.get_agent_chat_context.return_value = factory.list_response([])
 
-        result = getAgentChatContext(mock_ctx, chatId="empty-chat")
+        result = get_agent_chat_context(mock_ctx, chat_id="empty-chat")
 
         parsed = json.loads(result)
         assert parsed["data"] == []
 
 
 class TestCreateAgentChatMessage:
-    """Tests for createAgentChatMessage tool."""
+    """Tests for create_agent_chat_message tool."""
 
     def test_creates_message_with_recipients(self, mock_ctx, mock_agent_api):
         """Test creating a message using recipients parameter."""
@@ -70,8 +70,8 @@ class TestCreateAgentChatMessage:
             message
         )
 
-        result = createAgentChatMessage(
-            mock_ctx, chatId=chat_id, content=content, recipients="Weather Agent"
+        result = create_agent_chat_message(
+            mock_ctx, chat_id=chat_id, content=content, recipients="Weather Agent"
         )
 
         mock_agent_api.list_agent_chat_participants.assert_called_once_with(
@@ -91,8 +91,8 @@ class TestCreateAgentChatMessage:
             message
         )
 
-        result = createAgentChatMessage(
-            mock_ctx, chatId=chat_id, content=content, mentions=mentions
+        result = create_agent_chat_message(
+            mock_ctx, chat_id=chat_id, content=content, mentions=mentions
         )
 
         # Should NOT call list_agent_chat_participants when mentions is provided
@@ -110,9 +110,9 @@ class TestCreateAgentChatMessage:
             message
         )
 
-        createAgentChatMessage(
+        create_agent_chat_message(
             mock_ctx,
-            chatId=chat_id,
+            chat_id=chat_id,
             content="Hello!",
             recipients="Other Agent",  # Should be ignored
             mentions=mentions,
@@ -124,13 +124,16 @@ class TestCreateAgentChatMessage:
     def test_raises_when_no_recipients_or_mentions(self, mock_ctx, mock_agent_api):
         """Test error when neither recipients nor mentions is provided."""
         with pytest.raises(ValueError, match="Missing recipients or mentions"):
-            createAgentChatMessage(mock_ctx, chatId="chat-123", content="Hello!")
+            create_agent_chat_message(mock_ctx, chat_id="chat-123", content="Hello!")
 
     def test_raises_on_invalid_mentions_json(self, mock_ctx, mock_agent_api):
         """Test error handling for invalid JSON in mentions."""
         with pytest.raises(ValueError, match="Invalid JSON for mentions"):
-            createAgentChatMessage(
-                mock_ctx, chatId="chat-123", content="Hello!", mentions="not valid json"
+            create_agent_chat_message(
+                mock_ctx,
+                chat_id="chat-123",
+                content="Hello!",
+                mentions="not valid json",
             )
 
     def test_raises_when_recipient_not_found(self, mock_ctx, mock_agent_api):
@@ -143,9 +146,9 @@ class TestCreateAgentChatMessage:
         with pytest.raises(
             ValueError, match="Could not find participants: unknown agent"
         ):
-            createAgentChatMessage(
+            create_agent_chat_message(
                 mock_ctx,
-                chatId="chat-123",
+                chat_id="chat-123",
                 content="Hello!",
                 recipients="unknown agent",
             )
@@ -164,9 +167,9 @@ class TestCreateAgentChatMessage:
             message
         )
 
-        createAgentChatMessage(
+        create_agent_chat_message(
             mock_ctx,
-            chatId="chat-123",
+            chat_id="chat-123",
             content="Hello!",
             recipients="Agent One, Agent Two",
         )
@@ -186,8 +189,8 @@ class TestCreateAgentChatMessage:
             message
         )
 
-        createAgentChatMessage(
-            mock_ctx, chatId="chat-123", content="Hello!", recipients="WEATHER AGENT"
+        create_agent_chat_message(
+            mock_ctx, chat_id="chat-123", content="Hello!", recipients="WEATHER AGENT"
         )
 
         mock_agent_api.create_agent_chat_message.assert_called_once()
@@ -200,6 +203,6 @@ class TestCreateAgentChatMessage:
         with pytest.raises(
             RuntimeError, match="Message created but data not available"
         ):
-            createAgentChatMessage(
-                mock_ctx, chatId="chat-123", content="Hello!", mentions=mentions
+            create_agent_chat_message(
+                mock_ctx, chat_id="chat-123", content="Hello!", mentions=mentions
             )

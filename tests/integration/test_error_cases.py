@@ -21,12 +21,12 @@ from thenvoi_rest.errors import (
 )
 
 from tests.integration.conftest import get_base_url, requires_api
-from thenvoi_mcp.tools.chats import getAgentChat
-from thenvoi_mcp.tools.identity import listAgentPeers
+from thenvoi_mcp.tools.chats import get_agent_chat
+from thenvoi_mcp.tools.identity import list_agent_peers
 from thenvoi_mcp.tools.participants import (
-    addAgentChatParticipant,
-    listAgentChatParticipants,
-    removeAgentChatParticipant,
+    add_agent_chat_participant,
+    list_agent_chat_participants,
+    remove_agent_chat_participant,
 )
 
 
@@ -44,9 +44,11 @@ def fetch_all_peers(
     page = 1
     while True:
         if not_in_chat:
-            result = listAgentPeers(ctx, page=page, pageSize=100, notInChat=not_in_chat)
+            result = list_agent_peers(
+                ctx, page=page, page_size=100, not_in_chat=not_in_chat
+            )
         else:
-            result = listAgentPeers(ctx, page=page, pageSize=100)
+            result = list_agent_peers(ctx, page=page, page_size=100)
         parsed = json.loads(result)
         peers = parsed.get("data", [])
         all_peers.extend(peers)
@@ -106,7 +108,7 @@ class TestChatAccessErrors:
         print(f"Attempting to access fake chat: {fake_chat_id}")
 
         with pytest.raises(NotFoundError) as exc_info:
-            getAgentChat(integration_ctx, chatId=fake_chat_id)
+            get_agent_chat(integration_ctx, chat_id=fake_chat_id)
 
         print(f"Got expected NotFoundError: {exc_info.value}")
         print("✓ Non-existent chat correctly raises NotFoundError")
@@ -121,7 +123,7 @@ class TestChatAccessErrors:
         print(f"Attempting to list participants for fake chat: {fake_chat_id}")
 
         with pytest.raises(NotFoundError) as exc_info:
-            listAgentChatParticipants(integration_ctx, chatId=fake_chat_id)
+            list_agent_chat_participants(integration_ctx, chat_id=fake_chat_id)
 
         print(f"Got expected NotFoundError: {exc_info.value}")
         print(
@@ -141,10 +143,10 @@ class TestChatAccessErrors:
         print(f"Attempting to add participant to fake chat: {fake_chat_id}")
 
         with pytest.raises(NotFoundError) as exc_info:
-            addAgentChatParticipant(
+            add_agent_chat_participant(
                 integration_ctx,
-                chatId=fake_chat_id,
-                participantId=test_peer_id,
+                chat_id=fake_chat_id,
+                participant_id=test_peer_id,
                 role="member",
             )
 
@@ -167,10 +169,10 @@ class TestParticipantErrors:
 
         # Expect either NotFoundError or UnprocessableEntityError
         with pytest.raises((NotFoundError, UnprocessableEntityError)) as exc_info:
-            addAgentChatParticipant(
+            add_agent_chat_participant(
                 integration_ctx,
-                chatId=test_chat,
-                participantId=fake_participant_id,
+                chat_id=test_chat,
+                participant_id=fake_participant_id,
                 role="member",
             )
 
@@ -188,10 +190,10 @@ class TestParticipantErrors:
 
         # Expect UnprocessableEntityError for validation failure
         with pytest.raises(UnprocessableEntityError) as exc_info:
-            addAgentChatParticipant(
+            add_agent_chat_participant(
                 integration_ctx,
-                chatId=test_chat,
-                participantId=invalid_uuid,
+                chat_id=test_chat,
+                participant_id=invalid_uuid,
                 role="member",
             )
 
@@ -209,8 +211,8 @@ class TestParticipantErrors:
 
         # Expect NotFoundError or similar
         with pytest.raises((NotFoundError, UnprocessableEntityError)) as exc_info:
-            removeAgentChatParticipant(
-                integration_ctx, chatId=test_chat, participantId=fake_participant_id
+            remove_agent_chat_participant(
+                integration_ctx, chat_id=test_chat, participant_id=fake_participant_id
             )
 
         print(f"Got expected error: {type(exc_info.value).__name__}: {exc_info.value}")
@@ -257,8 +259,8 @@ class TestPeersFiltering:
         peer_name = peer_to_add["name"]
         print(f"\nStep 3: Adding peer '{peer_name}' (ID: {peer_id}) to chat")
 
-        result = addAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=peer_id, role="member"
+        result = add_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=peer_id, role="member"
         )
         assert "successfully" in result.lower()
         print(f"Added: {result}")
@@ -283,8 +285,8 @@ class TestPeersFiltering:
         )
 
         # Cleanup
-        removeAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=peer_id
+        remove_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=peer_id
         )
         print("\nCleanup: Removed peer from chat")
 
@@ -339,14 +341,14 @@ class TestParticipantRoles:
         print(f"Found agent peer: {agent_name} (ID: {agent_id})")
 
         # Add agent as member
-        result = addAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=agent_id, role="member"
+        result = add_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=agent_id, role="member"
         )
         print(f"Add result: {result}")
         assert "successfully" in result.lower()
 
         # Verify agent was added
-        result = listAgentChatParticipants(integration_ctx, chatId=test_chat)
+        result = list_agent_chat_participants(integration_ctx, chat_id=test_chat)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
         assert agent_id in participant_ids, "Agent should be in participant list"
@@ -360,8 +362,8 @@ class TestParticipantRoles:
         assert agent_participant["type"] == "Agent"
 
         # Cleanup: remove the agent
-        removeAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=agent_id
+        remove_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=agent_id
         )
         print("✓ Successfully added and removed agent as participant")
 
@@ -384,14 +386,14 @@ class TestParticipantRoles:
         print(f"Found user peer: {user_name} (ID: {user_id})")
 
         # Add user as owner
-        result = addAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=user_id, role="owner"
+        result = add_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=user_id, role="owner"
         )
         print(f"Add result: {result}")
         assert "successfully" in result.lower()
 
         # Verify user was added with owner role
-        result = listAgentChatParticipants(integration_ctx, chatId=test_chat)
+        result = list_agent_chat_participants(integration_ctx, chat_id=test_chat)
         parsed = json.loads(result)
         user_participant = next((p for p in parsed["data"] if p["id"] == user_id), None)
         print(f"User participant: {user_participant}")
@@ -400,8 +402,8 @@ class TestParticipantRoles:
         assert user_participant.get("role") == "owner"
 
         # Cleanup: remove the user
-        removeAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=user_id
+        remove_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=user_id
         )
         print("✓ Successfully added user as owner and removed")
 
@@ -426,15 +428,18 @@ class TestParticipantRoles:
 
         # Step 1: Add participant
         print("\nStep 1: Adding participant...")
-        result = addAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=test_peer_id, role="member"
+        result = add_agent_chat_participant(
+            integration_ctx,
+            chat_id=test_chat,
+            participant_id=test_peer_id,
+            role="member",
         )
         print(f"Add result: {result}")
         assert "successfully" in result.lower()
 
         # Step 2: Verify participant is present
         print("\nStep 2: Verifying participant is present...")
-        result = listAgentChatParticipants(integration_ctx, chatId=test_chat)
+        result = list_agent_chat_participants(integration_ctx, chat_id=test_chat)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
         assert test_peer_id in participant_ids, "Peer should be in participant list"
@@ -442,15 +447,15 @@ class TestParticipantRoles:
 
         # Step 3: Remove participant
         print("\nStep 3: Removing participant...")
-        result = removeAgentChatParticipant(
-            integration_ctx, chatId=test_chat, participantId=test_peer_id
+        result = remove_agent_chat_participant(
+            integration_ctx, chat_id=test_chat, participant_id=test_peer_id
         )
         print(f"Remove result: {result}")
         assert "successfully" in result.lower()
 
         # Step 4: Verify participant is removed
         print("\nStep 4: Verifying participant is removed...")
-        result = listAgentChatParticipants(integration_ctx, chatId=test_chat)
+        result = list_agent_chat_participants(integration_ctx, chat_id=test_chat)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
         assert test_peer_id not in participant_ids, (

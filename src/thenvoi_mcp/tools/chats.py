@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-def listAgentChats(
+def list_agent_chats(
     ctx: AppContextType,
     page: Optional[int] = None,
-    pageSize: Optional[int] = None,
+    page_size: Optional[int] = None,
 ) -> str:
     """List chat rooms where the agent is a participant.
 
@@ -27,7 +27,7 @@ def listAgentChats(
 
     Args:
         page: Page number for pagination (optional).
-        pageSize: Number of items per page (optional).
+        page_size: Number of items per page (optional).
 
     Returns:
         JSON string containing the list of chat rooms.
@@ -36,7 +36,7 @@ def listAgentChats(
     client = get_app_context(ctx).client
     result = client.agent_api.list_agent_chats(
         page=page,
-        page_size=pageSize,
+        page_size=page_size,
     )
     chat_count = len(result.data or []) if hasattr(result, "data") else 0
     logger.info(f"Retrieved {chat_count} chats")
@@ -44,29 +44,29 @@ def listAgentChats(
 
 
 @mcp.tool()
-def getAgentChat(ctx: AppContextType, chatId: str) -> str:
+def get_agent_chat(ctx: AppContextType, chat_id: str) -> str:
     """Get a specific chat room by ID.
 
     Retrieves detailed information about a single chat room where
     the agent is a participant.
 
     Args:
-        chatId: The unique identifier of the chat room (required).
+        chat_id: The unique identifier of the chat room (required).
 
     Returns:
         JSON string containing the chat room details.
     """
-    logger.debug(f"Fetching chat with ID: {chatId}")
+    logger.debug(f"Fetching chat with ID: {chat_id}")
     client = get_app_context(ctx).client
-    result = client.agent_api.get_agent_chat(id=chatId)
-    logger.info(f"Retrieved chat: {chatId}")
+    result = client.agent_api.get_agent_chat(id=chat_id)
+    logger.info(f"Retrieved chat: {chat_id}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def createAgentChat(
+def create_agent_chat(
     ctx: AppContextType,
-    taskId: Optional[str] = None,
+    task_id: Optional[str] = None,
 ) -> str:
     """Create a new chat room with the agent as owner.
 
@@ -74,7 +74,7 @@ def createAgentChat(
     set as the owner. Optionally associates the chat with a task.
 
     Args:
-        taskId: Optional ID of an associated task.
+        task_id: Optional ID of an associated task.
 
     Returns:
         JSON string containing the created chat room details.
@@ -83,7 +83,7 @@ def createAgentChat(
     client = get_app_context(ctx).client
 
     # Build request
-    chat_request = ChatRoomRequest(task_id=taskId) if taskId else ChatRoomRequest()
+    chat_request = ChatRoomRequest(task_id=task_id) if task_id else ChatRoomRequest()
 
     result = client.agent_api.create_agent_chat(chat=chat_request)
 

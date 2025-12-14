@@ -11,7 +11,7 @@ from thenvoi_mcp.tools import lifecycle  # noqa: F401
 
 
 @mcp.tool()
-def healthCheck(ctx: AppContextType) -> str:
+def health_check(ctx: AppContextType) -> str:
     """Test MCP server and API connectivity.
 
     Validates that the MCP server is running and can communicate with the

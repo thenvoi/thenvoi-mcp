@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
-def getAgentChatContext(
+def get_agent_chat_context(
     ctx: AppContextType,
-    chatId: str,
+    chat_id: str,
     page: Optional[int] = None,
-    pageSize: Optional[int] = None,
+    page_size: Optional[int] = None,
 ) -> str:
     """Get conversation context for agent rehydration.
 
@@ -36,29 +36,29 @@ def getAgentChatContext(
     Messages are returned in chronological order (oldest first).
 
     Args:
-        chatId: The unique identifier of the chat room (required).
+        chat_id: The unique identifier of the chat room (required).
         page: Page number for pagination (optional, default: 1).
-        pageSize: Items per page (optional, default: 50, max: 100).
+        page_size: Items per page (optional, default: 50, max: 100).
 
     Returns:
         JSON string containing the agent's conversation context with messages.
     """
-    logger.debug(f"Fetching agent context for chat: {chatId}")
+    logger.debug(f"Fetching agent context for chat: {chat_id}")
     client = get_app_context(ctx).client
     result = client.agent_api.get_agent_chat_context(
-        chat_id=chatId,
+        chat_id=chat_id,
         page=page,
-        page_size=pageSize,
+        page_size=page_size,
     )
     message_count = len(result.data or []) if hasattr(result, "data") else 0
-    logger.info(f"Retrieved {message_count} context messages for chat: {chatId}")
+    logger.info(f"Retrieved {message_count} context messages for chat: {chat_id}")
     return serialize_response(result)
 
 
 @mcp.tool()
-def createAgentChatMessage(
+def create_agent_chat_message(
     ctx: AppContextType,
-    chatId: str,
+    chat_id: str,
     content: str,
     recipients: Optional[str] = None,
     mentions: Optional[str] = None,
@@ -81,14 +81,14 @@ def createAgentChatMessage(
     If both are provided, `mentions` takes precedence (no API call needed).
 
     For event-type messages (tool_call, tool_result, thought, error, etc.),
-    use createAgentChatEvent instead.
+    use create_agent_chat_event instead.
 
     Args:
-        chatId: The unique identifier of the chat room (required).
+        chat_id: The unique identifier of the chat room (required).
         content: The message content/text (required).
         recipients: Comma-separated participant names to tag (LLM-friendly).
                    Example: "weather agent,sarah,mike"
-                   Names are resolved to IDs via listAgentChatParticipants.
+                   Names are resolved to IDs via list_agent_chat_participants.
         mentions: JSON array of mentions with pre-resolved IDs (for libraries).
                  Format: [{"id": "uuid", "name": "display_name"}, ...]
                  When provided, skips name resolution (more efficient).
@@ -98,16 +98,16 @@ def createAgentChatMessage(
 
     Examples:
         # LLM usage (names):
-        createAgentChatMessage(chatId="123", content="Hello!", recipients="weather agent")
+        create_agent_chat_message(chat_id="123", content="Hello!", recipients="weather agent")
 
         # Library usage (pre-resolved IDs):
-        createAgentChatMessage(
-            chatId="123",
+        create_agent_chat_message(
+            chat_id="123",
             content="Hello!",
             mentions='[{"id": "uuid-456", "name": "weather agent"}]'
         )
     """
-    logger.debug(f"Creating message in chat: {chatId}")
+    logger.debug(f"Creating message in chat: {chat_id}")
     client = get_app_context(ctx).client
 
     mentions_list: List[ChatMessageRequestMentionsItem] = []
@@ -136,7 +136,7 @@ def createAgentChatMessage(
 
         # Fetch participants to map names to IDs
         participants_response = client.agent_api.list_agent_chat_participants(
-            chat_id=chatId
+            chat_id=chat_id
         )
         participants = participants_response.data or []
 
@@ -180,7 +180,7 @@ def createAgentChatMessage(
         raise ValueError(
             f"Missing recipients or mentions. To send a message, specify who to tag. "
             f'Use recipients=\'name1,name2\' (names) or mentions=\'[{{"id":"uuid","name":"display_name"}}]\' (IDs). '
-            f"Call listAgentChatParticipants(chatId='{chatId}') to see available participants."
+            f"Call list_agent_chat_participants(chat_id='{chat_id}') to see available participants."
         )
 
     # Build and send message
@@ -191,7 +191,7 @@ def createAgentChatMessage(
 
     try:
         result = client.agent_api.create_agent_chat_message(
-            chat_id=chatId,
+            chat_id=chat_id,
             message=message_request,
         )
     except Exception as e:

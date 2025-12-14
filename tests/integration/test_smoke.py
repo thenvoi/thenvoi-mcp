@@ -11,8 +11,8 @@ import json
 
 
 from tests.integration.conftest import get_test_agent_id, requires_api
-from thenvoi_mcp.tools.identity import getAgentMe, listAgentPeers
-from thenvoi_mcp.tools.chats import listAgentChats
+from thenvoi_mcp.tools.identity import get_agent_me, list_agent_peers
+from thenvoi_mcp.tools.chats import list_agent_chats
 
 
 @requires_api
@@ -20,8 +20,8 @@ class TestAgentIdentity:
     """Tests for agent identity tools."""
 
     def test_get_agent_me_returns_correct_agent(self, integration_ctx):
-        """Test that getAgentMe returns the correct agent profile."""
-        result = getAgentMe(integration_ctx)
+        """Test that get_agent_me returns the correct agent profile."""
+        result = get_agent_me(integration_ctx)
 
         parsed = json.loads(result)
         assert "data" in parsed
@@ -42,8 +42,8 @@ class TestAgentIdentity:
         print(f"\nAgent: {agent['name']} (ID: {agent['id']})")
 
     def test_list_agent_peers_returns_list(self, integration_ctx):
-        """Test that listAgentPeers returns a list of available peers."""
-        result = listAgentPeers(integration_ctx)
+        """Test that list_agent_peers returns a list of available peers."""
+        result = list_agent_peers(integration_ctx)
 
         parsed = json.loads(result)
         assert "data" in parsed
@@ -64,8 +64,8 @@ class TestAgentChats:
     """Tests for agent chat tools."""
 
     def test_list_agent_chats_returns_list(self, integration_ctx):
-        """Test that listAgentChats returns a list of chats."""
-        result = listAgentChats(integration_ctx)
+        """Test that list_agent_chats returns a list of chats."""
+        result = list_agent_chats(integration_ctx)
 
         parsed = json.loads(result)
         assert "data" in parsed

@@ -18,7 +18,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 logger = logging.getLogger(__name__)
 
 
-# Valid event types for createAgentChatEvent (matches ChatEventMessageType enum)
+# Valid event types for create_agent_chat_event (matches ChatEventMessageType enum)
 VALID_EVENT_TYPES = frozenset(
     [
         "tool_call",
@@ -31,11 +31,11 @@ VALID_EVENT_TYPES = frozenset(
 
 
 @mcp.tool()
-def createAgentChatEvent(
+def create_agent_chat_event(
     ctx: AppContextType,
-    chatId: str,
+    chat_id: str,
     content: str,
-    messageType: str,
+    message_type: str,
     metadata: Optional[str] = None,
 ) -> str:
     """Post an event in a chat room (tool_call, tool_result, thought, error, task).
@@ -65,51 +65,51 @@ def createAgentChatEvent(
       - content: Task message
       - metadata: Optional
 
-    For text messages with mentions, use createAgentChatMessage instead.
+    For text messages with mentions, use create_agent_chat_message instead.
 
     Args:
-        chatId: The unique identifier of the chat room (required).
+        chat_id: The unique identifier of the chat room (required).
         content: Human-readable event content (required).
-        messageType: Event type (required). One of: 'tool_call', 'tool_result',
+        message_type: Event type (required). One of: 'tool_call', 'tool_result',
                     'thought', 'error', 'task'.
-        metadata: Optional JSON object with structured event data. Structure varies by messageType.
+        metadata: Optional JSON object with structured event data. Structure varies by message_type.
 
     Returns:
         JSON string containing the created event details.
 
     Examples:
         # Tool call event
-        createAgentChatEvent(
-            chatId="123",
+        create_agent_chat_event(
+            chat_id="123",
             content="Calling weather_service",
-            messageType="tool_call",
+            message_type="tool_call",
             metadata='{"function": {"name": "get_weather", "arguments": {"city": "NYC"}}, "id": "call_1", "type": "function"}'
         )
 
         # Tool result event
-        createAgentChatEvent(
-            chatId="123",
+        create_agent_chat_event(
+            chat_id="123",
             content="Weather retrieved successfully",
-            messageType="tool_result",
+            message_type="tool_result",
             metadata='{"success": true, "temperature": 72, "conditions": "sunny"}'
         )
 
         # Thought event
-        createAgentChatEvent(
-            chatId="123",
+        create_agent_chat_event(
+            chat_id="123",
             content="I should check the weather before suggesting outdoor activities",
-            messageType="thought"
+            message_type="thought"
         )
     """
-    logger.debug(f"Creating event in chat: {chatId}, type: {messageType}")
+    logger.debug(f"Creating event in chat: {chat_id}, type: {message_type}")
     client = get_app_context(ctx).client
 
     # Validate message type
-    message_type_lower = messageType.lower()
+    message_type_lower = message_type.lower()
     if message_type_lower not in VALID_EVENT_TYPES:
         valid_types = ", ".join(sorted(VALID_EVENT_TYPES))
         raise ValueError(
-            f"Invalid messageType: {messageType}. Must be one of: {valid_types}"
+            f"Invalid message_type: {message_type}. Must be one of: {valid_types}"
         )
 
     # Parse optional metadata
@@ -131,7 +131,7 @@ def createAgentChatEvent(
 
     try:
         result = client.agent_api.create_agent_chat_event(
-            chat_id=chatId,
+            chat_id=chat_id,
             event=event_request,
         )
     except Exception as e:

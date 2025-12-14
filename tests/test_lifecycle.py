@@ -1,18 +1,18 @@
-"""Unit tests for lifecycle tools (markAgentMessageProcessing, markAgentMessageProcessed, markAgentMessageFailed)."""
+"""Unit tests for lifecycle tools (mark_agent_message_processing, mark_agent_message_processed, mark_agent_message_failed)."""
 
 import json
 
 
 from tests.fixtures import factory
 from thenvoi_mcp.tools.lifecycle import (
-    markAgentMessageFailed,
-    markAgentMessageProcessed,
-    markAgentMessageProcessing,
+    mark_agent_message_failed,
+    mark_agent_message_processed,
+    mark_agent_message_processing,
 )
 
 
 class TestMarkAgentMessageProcessing:
-    """Tests for markAgentMessageProcessing tool."""
+    """Tests for mark_agent_message_processing tool."""
 
     def test_marks_message_processing(self, mock_ctx, mock_agent_api):
         """Test marking a message as processing."""
@@ -22,8 +22,8 @@ class TestMarkAgentMessageProcessing:
             {"status": "processing", "attempt_number": 1}
         )
 
-        result = markAgentMessageProcessing(
-            mock_ctx, chatId=chat_id, messageId=message_id
+        result = mark_agent_message_processing(
+            mock_ctx, chat_id=chat_id, message_id=message_id
         )
 
         mock_agent_api.mark_agent_message_processing.assert_called_once_with(
@@ -39,8 +39,8 @@ class TestMarkAgentMessageProcessing:
             {"attempt_number": 1, "started_at": "2024-01-01T00:00:00Z"}
         )
 
-        result = markAgentMessageProcessing(
-            mock_ctx, chatId="chat-123", messageId="msg-456"
+        result = mark_agent_message_processing(
+            mock_ctx, chat_id="chat-123", message_id="msg-456"
         )
 
         parsed = json.loads(result)
@@ -49,7 +49,7 @@ class TestMarkAgentMessageProcessing:
 
 
 class TestMarkAgentMessageProcessed:
-    """Tests for markAgentMessageProcessed tool."""
+    """Tests for mark_agent_message_processed tool."""
 
     def test_marks_message_processed(self, mock_ctx, mock_agent_api):
         """Test marking a message as processed."""
@@ -59,8 +59,8 @@ class TestMarkAgentMessageProcessed:
             {"status": "processed", "completed_at": "2024-01-01T00:01:00Z"}
         )
 
-        result = markAgentMessageProcessed(
-            mock_ctx, chatId=chat_id, messageId=message_id
+        result = mark_agent_message_processed(
+            mock_ctx, chat_id=chat_id, message_id=message_id
         )
 
         mock_agent_api.mark_agent_message_processed.assert_called_once_with(
@@ -76,8 +76,8 @@ class TestMarkAgentMessageProcessed:
             {"status": "success", "processed_at": "2024-01-01T00:01:00Z"}
         )
 
-        result = markAgentMessageProcessed(
-            mock_ctx, chatId="chat-123", messageId="msg-456"
+        result = mark_agent_message_processed(
+            mock_ctx, chat_id="chat-123", message_id="msg-456"
         )
 
         parsed = json.loads(result)
@@ -85,7 +85,7 @@ class TestMarkAgentMessageProcessed:
 
 
 class TestMarkAgentMessageFailed:
-    """Tests for markAgentMessageFailed tool."""
+    """Tests for mark_agent_message_failed tool."""
 
     def test_marks_message_failed(self, mock_ctx, mock_agent_api):
         """Test marking a message as failed."""
@@ -96,8 +96,8 @@ class TestMarkAgentMessageFailed:
             {"status": "failed", "error": error_message}
         )
 
-        result = markAgentMessageFailed(
-            mock_ctx, chatId=chat_id, messageId=message_id, error=error_message
+        result = mark_agent_message_failed(
+            mock_ctx, chat_id=chat_id, message_id=message_id, error=error_message
         )
 
         mock_agent_api.mark_agent_message_failed.assert_called_once_with(
@@ -115,8 +115,8 @@ class TestMarkAgentMessageFailed:
             {"error": error_message}
         )
 
-        markAgentMessageFailed(
-            mock_ctx, chatId="chat-123", messageId="msg-456", error=error_message
+        mark_agent_message_failed(
+            mock_ctx, chat_id="chat-123", message_id="msg-456", error=error_message
         )
 
         call_args = mock_agent_api.mark_agent_message_failed.call_args
@@ -128,10 +128,10 @@ class TestMarkAgentMessageFailed:
             {"status": "failed", "attempt_number": 3, "error": "Max retries exceeded"}
         )
 
-        result = markAgentMessageFailed(
+        result = mark_agent_message_failed(
             mock_ctx,
-            chatId="chat-123",
-            messageId="msg-456",
+            chat_id="chat-123",
+            message_id="msg-456",
             error="Max retries exceeded",
         )
 

@@ -204,32 +204,32 @@ npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server r
 
 ### Identity
 
-- `getAgentMe` - Get the authenticated agent's profile (validates connection)
-- `listAgentPeers` - List collaborators (users/agents) the agent can interact with
+- `get_agent_me` - Get the authenticated agent's profile (validates connection)
+- `list_agent_peers` - List collaborators (users/agents) the agent can interact with
 
 ### Chat Management
 
-- `listAgentChats` - List all chats the agent participates in
-- `getAgentChat` - Get chat room details
-- `createAgentChat` - Create a new chat room
+- `list_agent_chats` - List all chats the agent participates in
+- `get_agent_chat` - Get chat room details
+- `create_agent_chat` - Create a new chat room
 
 ### Message Operations
 
-- `getAgentChatContext` - Get conversation history for context rehydration
-- `createAgentChatMessage` - Send a message (requires mentions)
-- `createAgentChatEvent` - Post events (tool_call, tool_result, thought, error, task)
+- `get_agent_chat_context` - Get conversation history for context rehydration
+- `create_agent_chat_message` - Send a message (requires mentions)
+- `create_agent_chat_event` - Post events (tool_call, tool_result, thought, error, task)
 
 ### Participant Management
 
-- `listAgentChatParticipants` - List all participants in a chat
-- `addAgentChatParticipant` - Add a user or agent to a chat
-- `removeAgentChatParticipant` - Remove a participant from a chat
+- `list_agent_chat_participants` - List all participants in a chat
+- `add_agent_chat_participant` - Add a user or agent to a chat
+- `remove_agent_chat_participant` - Remove a participant from a chat
 
 ### Message Lifecycle
 
-- `markAgentMessageProcessing` - Mark a message as being processed
-- `markAgentMessageProcessed` - Mark a message as done
-- `markAgentMessageFailed` - Mark a message as failed
+- `mark_agent_message_processing` - Mark a message as being processed
+- `mark_agent_message_processed` - Mark a message as done
+- `mark_agent_message_failed` - Mark a message as failed
 
 **Event Types:** `tool_call`, `tool_result`, `thought`, `error`, `task`
 
@@ -376,12 +376,12 @@ thenvoi-mcp-server/
 │       ├── server.py              # MCP server entry point
 │       ├── shared.py              # AppContext, serialization helpers
 │       └── tools/                 # MCP tool implementations
-│           ├── identity.py        # getAgentMe, listAgentPeers
-│           ├── chats.py           # listAgentChats, getAgentChat, createAgentChat
-│           ├── messages.py        # getAgentChatContext, createAgentChatMessage
-│           ├── events.py          # createAgentChatEvent
+│           ├── identity.py        # get_agent_me, list_agent_peers
+│           ├── chats.py           # list_agent_chats, get_agent_chat, create_agent_chat
+│           ├── messages.py        # get_agent_chat_context, create_agent_chat_message
+│           ├── events.py          # create_agent_chat_event
 │           ├── participants.py    # list/add/remove participants
-│           └── lifecycle.py       # markProcessing/Processed/Failed
+│           └── lifecycle.py       # mark_agent_message_processing/processed/failed
 ├── tests/                         # Test suite
 │   ├── conftest.py                # Mock fixtures for unit tests
 │   ├── fixtures.py                # MockDataFactory

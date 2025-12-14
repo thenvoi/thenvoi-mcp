@@ -1,14 +1,14 @@
-"""Unit tests for identity tools (getAgentMe, listAgentPeers)."""
+"""Unit tests for identity tools (get_agent_me, list_agent_peers)."""
 
 import json
 
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.identity import getAgentMe, listAgentPeers
+from thenvoi_mcp.tools.identity import get_agent_me, list_agent_peers
 
 
 class TestGetAgentMe:
-    """Tests for getAgentMe tool."""
+    """Tests for get_agent_me tool."""
 
     def test_returns_agent_profile(self, mock_ctx, mock_agent_api):
         """Test successful retrieval of agent profile."""
@@ -17,7 +17,7 @@ class TestGetAgentMe:
         )
         mock_agent_api.get_agent_me.return_value = factory.response(agent)
 
-        result = getAgentMe(mock_ctx)
+        result = get_agent_me(mock_ctx)
 
         mock_agent_api.get_agent_me.assert_called_once()
         parsed = json.loads(result)
@@ -29,7 +29,7 @@ class TestGetAgentMe:
         agent = factory.agent_me()
         mock_agent_api.get_agent_me.return_value = factory.response(agent)
 
-        result = getAgentMe(mock_ctx)
+        result = get_agent_me(mock_ctx)
 
         parsed = json.loads(result)
         assert "id" in parsed["data"]
@@ -38,7 +38,7 @@ class TestGetAgentMe:
 
 
 class TestListAgentPeers:
-    """Tests for listAgentPeers tool."""
+    """Tests for list_agent_peers tool."""
 
     def test_returns_list_of_peers(self, mock_ctx, mock_agent_api):
         """Test successful retrieval of peer list."""
@@ -48,7 +48,7 @@ class TestListAgentPeers:
         ]
         mock_agent_api.list_agent_peers.return_value = factory.list_response(peers)
 
-        result = listAgentPeers(mock_ctx)
+        result = list_agent_peers(mock_ctx)
 
         mock_agent_api.list_agent_peers.assert_called_once_with(
             not_in_chat=None,
@@ -65,7 +65,7 @@ class TestListAgentPeers:
         peers = [factory.peer(name="Available Agent")]
         mock_agent_api.list_agent_peers.return_value = factory.list_response(peers)
 
-        listAgentPeers(mock_ctx, notInChat=chat_id)
+        list_agent_peers(mock_ctx, not_in_chat=chat_id)
 
         mock_agent_api.list_agent_peers.assert_called_once_with(
             not_in_chat=chat_id,
@@ -77,7 +77,7 @@ class TestListAgentPeers:
         """Test pagination parameters are passed through."""
         mock_agent_api.list_agent_peers.return_value = factory.list_response([])
 
-        listAgentPeers(mock_ctx, page=2, pageSize=10)
+        list_agent_peers(mock_ctx, page=2, page_size=10)
 
         mock_agent_api.list_agent_peers.assert_called_once_with(
             not_in_chat=None,
@@ -89,7 +89,7 @@ class TestListAgentPeers:
         """Test handling of empty peer list."""
         mock_agent_api.list_agent_peers.return_value = factory.list_response([])
 
-        result = listAgentPeers(mock_ctx)
+        result = list_agent_peers(mock_ctx)
 
         parsed = json.loads(result)
         assert parsed["data"] == []
