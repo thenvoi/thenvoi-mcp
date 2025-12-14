@@ -6,7 +6,7 @@ thought, error, task) using the agent-centric API.
 
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from thenvoi_rest import (
     ChatEventMessageType,
@@ -35,7 +35,7 @@ def create_agent_chat_event(
     ctx: AppContextType,
     chat_id: str,
     content: str,
-    message_type: str,
+    message_type: Literal["tool_call", "tool_result", "thought", "error", "task"],
     metadata: Optional[str] = None,
 ) -> str:
     """Post an event in a chat room (tool_call, tool_result, thought, error, task).

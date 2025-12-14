@@ -5,7 +5,7 @@ using the agent-centric API.
 """
 
 import logging
-from typing import Optional
+from typing import Literal, Optional
 
 from thenvoi_rest import ParticipantRequest, ParticipantRole
 
@@ -46,7 +46,7 @@ def add_agent_chat_participant(
     ctx: AppContextType,
     chat_id: str,
     participant_id: str,
-    role: Optional[str] = None,
+    role: Optional[Literal["owner", "admin", "member"]] = None,
 ) -> str:
     """Add a participant (agent or user) to a chat room.
 
