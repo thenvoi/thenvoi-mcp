@@ -73,8 +73,8 @@ def add_agent_chat_participant(
     )
     client = get_app_context(ctx).client
 
-    # Validate and normalize role
-    role_value: Optional[ParticipantRole] = None
+    # Validate and normalize role (default to "member" if not provided)
+    role_value: ParticipantRole = "member"
     if role:
         role_lower = role.lower()
         if role_lower not in VALID_ROLES:

@@ -85,7 +85,7 @@ class TestAddAgentChatParticipant:
         call_args = mock_agent_api.add_agent_chat_participant.call_args
         assert call_args.kwargs["chat_id"] == chat_id
         assert call_args.kwargs["participant"].participant_id == participant_id
-        assert call_args.kwargs["participant"].role is None
+        assert call_args.kwargs["participant"].role == "member"  # Default role
         assert f"Participant added successfully: {participant_id}" == result
 
     def test_adds_participant_with_member_role(self, mock_ctx, mock_agent_api):

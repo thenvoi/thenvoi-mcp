@@ -471,6 +471,64 @@ class TestFullWorkflow:
 
 
 @requires_api
+class TestAddParticipantWithoutRole:
+    """Test adding a participant without specifying a role (should default to member)."""
+
+    def test_add_participant_without_role_defaults_to_member(self, integration_ctx):
+        """Test that adding a participant without role defaults to 'member'.
+
+        This test verifies the bug fix: the docstring says role 'defaults to member'
+        but the code was sending None, causing a 422 error from the API.
+        """
+        print("\n" + "=" * 60)
+        print("Testing Add Participant Without Role")
+        print("=" * 60)
+
+        # Create a chat for this test
+        result = create_agent_chat(integration_ctx)
+        parsed = json.loads(result)
+        chat_id = parsed["data"]["id"]
+        print(f"Created test chat: {chat_id}")
+
+        # Get peers and find a User peer to add to the chat
+        result = list_agent_peers(integration_ctx)
+        parsed = json.loads(result)
+        assert len(parsed["data"]) > 0, "Need at least one peer"
+
+        # Find a User peer (human) for this test
+        user_peer = next((p for p in parsed["data"] if p["type"] == "User"), None)
+        assert user_peer is not None, "Need at least one User peer"
+
+        peer_id = user_peer["id"]
+        peer_name = user_peer["name"]
+        print(f"Found User peer: {peer_name} (ID: {peer_id})")
+
+        # Add participant WITHOUT specifying role - this should default to "member"
+        print("Adding participant without role parameter...")
+        result = add_agent_chat_participant(
+            integration_ctx, chat_id=chat_id, participant_id=peer_id
+        )
+        print(f"Result: {result}")
+        assert "successfully" in result.lower(), "Should indicate success"
+
+        # Verify participant was added with member role
+        result = list_agent_chat_participants(integration_ctx, chat_id=chat_id)
+        parsed = json.loads(result)
+        participants = parsed["data"]
+
+        added_participant = next((p for p in participants if p["id"] == peer_id), None)
+        assert added_participant is not None, "Participant should be in the chat"
+        assert added_participant.get("role") == "member", (
+            f"Role should default to 'member', got: {added_participant.get('role')}"
+        )
+
+        print(
+            f"Verified: {peer_name} added with role '{added_participant.get('role')}'"
+        )
+        print("\nTest complete - default role works correctly!")
+
+
+@requires_api
 class TestMessageFailureLifecycle:
     """Test the message failure lifecycle separately."""
 
