@@ -72,3 +72,4 @@ def list_user_peers(
         page_size=page_size,
     )
     return serialize_response(result)
+

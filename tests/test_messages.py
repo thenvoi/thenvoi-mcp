@@ -5,7 +5,7 @@ import json
 import pytest
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.messages import create_agent_chat_message, get_agent_chat_context
+from thenvoi_mcp.tools.agent.messages import create_agent_chat_message, get_agent_chat_context
 
 
 class TestGetAgentChatContext:

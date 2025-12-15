@@ -57,3 +57,4 @@ def list_agent_peers(
     peer_count = len(result.data)
     logger.info(f"Retrieved {peer_count} peers")
     return serialize_response(result)
+

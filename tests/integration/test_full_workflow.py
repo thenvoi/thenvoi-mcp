@@ -9,15 +9,15 @@ from typing import Any, Callable
 
 
 from tests.integration.conftest import get_test_agent_id, requires_api
-from thenvoi_mcp.tools.identity import get_agent_me, list_agent_peers
-from thenvoi_mcp.tools.chats import create_agent_chat, get_agent_chat, list_agent_chats
-from thenvoi_mcp.tools.participants import (
+from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
+from thenvoi_mcp.tools.agent.chats import create_agent_chat, get_agent_chat, list_agent_chats
+from thenvoi_mcp.tools.agent.participants import (
     add_agent_chat_participant,
     list_agent_chat_participants,
 )
-from thenvoi_mcp.tools.messages import create_agent_chat_message, get_agent_chat_context
-from thenvoi_mcp.tools.events import create_agent_chat_event
-from thenvoi_mcp.tools.lifecycle import (
+from thenvoi_mcp.tools.agent.messages import create_agent_chat_message, get_agent_chat_context
+from thenvoi_mcp.tools.agent.events import create_agent_chat_event
+from thenvoi_mcp.tools.agent.lifecycle import (
     mark_agent_message_processing,
     mark_agent_message_processed,
     mark_agent_message_failed,

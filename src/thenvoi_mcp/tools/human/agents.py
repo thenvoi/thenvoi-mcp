@@ -45,3 +45,4 @@ def register_user_agent(
     agent_request = AgentRegisterRequest(name=name, description=description, model_type=model_type)
     result = client.human_api.register_my_agent(agent=agent_request)
     return serialize_response(result)
+

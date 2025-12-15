@@ -63,3 +63,4 @@ def remove_user_chat_participant(
     client = get_app_context(ctx).client
     client.human_api.remove_my_chat_participant(chat_id=chat_id, id=participant_id)
     return f"Removed participant: {participant_id}"
+

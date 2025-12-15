@@ -110,3 +110,4 @@ def remove_agent_chat_participant(
     client.agent_api.remove_agent_chat_participant(chat_id=chat_id, id=participant_id)
     logger.info(f"Participant removed successfully: {participant_id}")
     return f"Participant removed successfully: {participant_id}"
+

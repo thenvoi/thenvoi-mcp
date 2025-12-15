@@ -97,3 +97,4 @@ def send_user_chat_message(
     message_request = ChatMessageRequest(content=content, mentions=mentions_list)
     result = client.human_api.send_my_chat_message(chat_id=chat_id, message=message_request)
     return serialize_response(result)
+

@@ -3,9 +3,9 @@
 from thenvoi_mcp.config import settings
 from thenvoi_mcp.shared import AppContextType, get_app_context, logger, mcp
 
-# Register all tools (agent + user) - API will reject if wrong key type
-from thenvoi_mcp.tools import chats, events, identity, lifecycle, messages, participants  # noqa: F401
-from thenvoi_mcp.tools import user_agents, user_chats, user_messages, user_participants, user_profile  # noqa: F401
+# Register all tools (agent + human) - API will reject if wrong key type
+from thenvoi_mcp.tools.agent import chats, events, identity, lifecycle, messages, participants  # noqa: F401
+from thenvoi_mcp.tools.human import agents, chats, messages, participants, profile  # noqa: F401
 
 
 @mcp.tool()
