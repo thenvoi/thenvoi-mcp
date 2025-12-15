@@ -1,9 +1,3 @@
-"""Chat room management tools.
-
-This module provides tools for managing chat rooms where the agent
-participates using the agent-centric API.
-"""
-
 import logging
 from typing import Optional
 

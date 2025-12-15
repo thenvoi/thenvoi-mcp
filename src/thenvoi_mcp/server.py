@@ -1,32 +1,36 @@
+"""Thenvoi MCP Server."""
+
 from thenvoi_mcp.config import settings
 from thenvoi_mcp.shared import AppContextType, get_app_context, logger, mcp
 
-# Import tools to register them with the MCP server
-from thenvoi_mcp.tools import identity  # noqa: F401
-from thenvoi_mcp.tools import chats  # noqa: F401
-from thenvoi_mcp.tools import participants  # noqa: F401
-from thenvoi_mcp.tools import messages  # noqa: F401
-from thenvoi_mcp.tools import events  # noqa: F401
-from thenvoi_mcp.tools import lifecycle  # noqa: F401
+# Register all tools (agent + user) - API will reject if wrong key type
+from thenvoi_mcp.tools import chats, events, identity, lifecycle, messages, participants  # noqa: F401
+from thenvoi_mcp.tools import user_agents, user_chats, user_messages, user_participants, user_profile  # noqa: F401
 
 
 @mcp.tool()
 def health_check(ctx: AppContextType) -> str:
-    """Test MCP server and API connectivity.
+    """Test MCP server and API connectivity."""
+    client = get_app_context(ctx).client
 
-    Validates that the MCP server is running and can communicate with the
-    Thenvoi API using the configured agent API key.
-    """
+    if not settings.thenvoi_api_key:
+        return "MCP server operational (no API key configured)"
+
+    # Try agent first, then user
     try:
-        client = get_app_context(ctx).client
-        if not client or not settings.thenvoi_api_key:
-            return "MCP server operational (API not configured)"
+        result = client.agent_api.get_agent_me()
+        agent = result.data
+        return f"OK | Agent: {agent.name} | {settings.thenvoi_base_url}"
+    except Exception:
+        pass
 
-        # Verify agent connectivity via agent_api
-        agent = client.agent_api.get_agent_me()
-        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}\nAuthenticated agent: {agent.data.name} ({agent.data.id})"
+    try:
+        user = client.human_api.get_my_profile()
+        # get_my_profile returns UserDetails directly (no .data wrapper)
+        name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email
+        return f"OK | User: {name} | {settings.thenvoi_base_url}"
     except Exception as e:
-        return f"Health check failed: {str(e)}"
+        return f"Failed: {e}"
 
 
 def run() -> None:
@@ -35,7 +39,6 @@ def run() -> None:
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
     logger.info("Server ready - listening for MCP protocol messages on STDIO")
     mcp.run(transport="stdio")
-
 
 if __name__ == "__main__":
     run()

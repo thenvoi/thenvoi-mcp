@@ -1,9 +1,3 @@
-"""Chat event tools.
-
-This module provides tools for posting events (tool_call, tool_result,
-thought, error, task) using the agent-centric API.
-"""
-
 import json
 import logging
 from typing import Any, Dict, Literal, Optional

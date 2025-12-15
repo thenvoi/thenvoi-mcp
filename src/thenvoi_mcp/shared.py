@@ -1,5 +1,3 @@
-"""Shared MCP server and client instances."""
-
 import json
 import logging
 import sys
