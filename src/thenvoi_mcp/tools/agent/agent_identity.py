@@ -1,10 +1,3 @@
-"""Agent identity and peer discovery tools.
-
-This module provides tools for:
-- Agent identity (get_agent_me) - get current agent's profile
-- Peer discovery (list_agent_peers) - find agents to recruit
-"""
-
 import logging
 from typing import Optional
 

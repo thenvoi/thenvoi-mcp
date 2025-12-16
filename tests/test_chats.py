@@ -3,7 +3,11 @@
 import json
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.chats import create_agent_chat, get_agent_chat, list_agent_chats
+from thenvoi_mcp.tools.agent.chats import (
+    create_agent_chat,
+    get_agent_chat,
+    list_agent_chats,
+)
 
 
 class TestListAgentChats:

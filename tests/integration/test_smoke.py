@@ -11,8 +11,8 @@ import json
 
 
 from tests.integration.conftest import get_test_agent_id, requires_api
-from thenvoi_mcp.tools.identity import get_agent_me, list_agent_peers
-from thenvoi_mcp.tools.chats import list_agent_chats
+from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
+from thenvoi_mcp.tools.agent.chats import list_agent_chats
 
 
 @requires_api

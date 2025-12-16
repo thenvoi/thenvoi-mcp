@@ -1,40 +1,31 @@
 #!/usr/bin/env python3
 """Extract examples from OpenAPI spec and generate a Python module.
-
 This script parses an OpenAPI JSON specification and extracts example values
 from schema definitions. It generates a Python module with constants that can
 be imported in tests to use realistic, spec-compliant test data.
-
 Usage:
     # Generate to stdout (preview)
     uv run python scripts/extract_openapi_examples.py /path/to/openapi.json
-
     # Generate and save to file
     uv run python scripts/extract_openapi_examples.py /path/to/openapi.json > tests/examples.py
-
     # Use default OpenAPI path (SDK location)
     uv run python scripts/extract_openapi_examples.py
-
 Output:
     - Writes generated Python code to stdout
     - Writes warnings to stderr (won't interfere with file redirection)
-
 Generated module format:
     - Constants named after schemas in UPPER_CASE (e.g., AGENTME, CHATROOM)
     - Each constant is a dict with field names and example values
     - Enum schemas generate _VALUES (list) and _EXAMPLE (single value) constants
     - EXAMPLES dict for convenient access to all extracted examples
-
 Warnings (logged to stderr):
     - Schema not found in OpenAPI spec
     - Schema has no 'properties' defined
     - Properties missing examples (lists specific field names)
     - Enum schema has no example value
     - No examples could be extracted from schema
-
 Configuration:
     Edit SCHEMAS_TO_EXTRACT list to add/remove schemas to process.
-
 Example workflow:
     1. Update the OpenAPI spec (e.g., after API changes)
     2. Run: uv run python scripts/extract_openapi_examples.py /path/to/openapi.json > tests/examples.py
@@ -76,7 +67,6 @@ def extract_schema_example(
     schema: dict[str, Any], schema_name: str, warn: bool = True
 ) -> dict[str, Any]:
     """Extract example values from a schema's properties.
-
     Args:
         schema: The OpenAPI schema definition.
         schema_name: Name of the schema (for logging).

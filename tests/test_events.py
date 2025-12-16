@@ -5,7 +5,7 @@ import json
 import pytest
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.events import VALID_EVENT_TYPES, create_agent_chat_event
+from thenvoi_mcp.tools.agent.events import VALID_EVENT_TYPES, create_agent_chat_event
 
 
 class TestCreateAgentChatEvent:

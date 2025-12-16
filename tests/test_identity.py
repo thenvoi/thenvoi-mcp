@@ -4,7 +4,7 @@ import json
 
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.identity import get_agent_me, list_agent_peers
+from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
 
 
 class TestGetAgentMe:

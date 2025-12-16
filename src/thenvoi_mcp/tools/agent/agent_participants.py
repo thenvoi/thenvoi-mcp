@@ -1,9 +1,3 @@
-"""Chat participant management tools.
-
-This module provides tools for managing chat room participants
-using the agent-centric API.
-"""
-
 import logging
 from typing import Literal, Optional
 

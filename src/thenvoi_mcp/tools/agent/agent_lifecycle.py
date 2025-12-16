@@ -1,9 +1,3 @@
-"""Message lifecycle management tools.
-
-This module provides tools for managing message processing lifecycle
-(processing, processed, failed) using the agent-centric API.
-"""
-
 import logging
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response

@@ -123,9 +123,6 @@ def test_chat(api_client: RestClient | None):
 
     yield chat_id
 
-    # Cleanup: We can't delete chats via agent API, so just leave it
-    # The chat will remain but won't affect other tests
-
 
 @pytest.fixture
 def test_peer_id(api_client: RestClient | None) -> str | None:

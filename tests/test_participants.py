@@ -5,7 +5,7 @@ import json
 import pytest
 
 from tests.fixtures import factory
-from thenvoi_mcp.tools.participants import (
+from thenvoi_mcp.tools.agent.participants import (
     VALID_ROLES,
     add_agent_chat_participant,
     list_agent_chat_participants,

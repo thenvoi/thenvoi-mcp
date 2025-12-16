@@ -1,9 +1,3 @@
-"""Chat message tools.
-
-This module provides tools for retrieving conversation context and
-sending text messages using the agent-centric API.
-"""
-
 import json
 import logging
 from typing import Any, Dict, List, Optional
