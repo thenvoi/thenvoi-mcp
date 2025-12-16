@@ -1,8 +1,21 @@
 from thenvoi_mcp.config import settings
 from thenvoi_mcp.shared import AppContextType, get_app_context, logger, mcp
 
-from thenvoi_mcp.tools.agent import agent_chats, agent_events, agent_identity, agent_lifecycle, agent_messages, agent_participants  # noqa: F401
-from thenvoi_mcp.tools.human import human_agents, human_chats, human_messages, human_participants, human_profile  # noqa: F401
+from thenvoi_mcp.tools.agent import (  # noqa: F401
+    agent_chats,
+    agent_events,
+    agent_identity,
+    agent_lifecycle,
+    agent_messages,
+    agent_participants,
+)
+from thenvoi_mcp.tools.human import (  # noqa: F401
+    human_agents,
+    human_chats,
+    human_messages,
+    human_participants,
+    human_profile,
+)
 
 
 @mcp.tool()
@@ -36,6 +49,7 @@ def run() -> None:
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
     logger.info("Server ready - listening for MCP protocol messages on STDIO")
     mcp.run(transport="stdio")
+
 
 if __name__ == "__main__":
     run()

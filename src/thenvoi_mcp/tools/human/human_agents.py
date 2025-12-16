@@ -42,7 +42,8 @@ def register_user_agent(
         model_type: AI model type (optional).
     """
     client = get_app_context(ctx).client
-    agent_request = AgentRegisterRequest(name=name, description=description, model_type=model_type)
+    agent_request = AgentRegisterRequest(
+        name=name, description=description, model_type=model_type
+    )
     result = client.human_api.register_my_agent(agent=agent_request)
     return serialize_response(result)
-

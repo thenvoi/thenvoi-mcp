@@ -83,4 +83,3 @@ def create_agent_chat(
 
     logger.info(f"Chat room created successfully: {result.data.id}")
     return serialize_response(result)
-

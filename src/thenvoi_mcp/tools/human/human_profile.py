@@ -40,7 +40,9 @@ def update_user_profile(
         user_data["last_name"] = last_name
 
     if not user_data:
-        raise ValueError("At least one field (first_name or last_name) must be provided")
+        raise ValueError(
+            "At least one field (first_name or last_name) must be provided"
+        )
 
     result = client.human_api.update_my_profile(user=cast(Any, user_data))
     return serialize_response(result)
@@ -72,4 +74,3 @@ def list_user_peers(
         page_size=page_size,
     )
     return serialize_response(result)
-

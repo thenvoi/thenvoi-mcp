@@ -120,4 +120,3 @@ def mark_agent_message_failed(
 
     logger.info(f"Message marked as failed: {message_id}")
     return serialize_response(result)
-

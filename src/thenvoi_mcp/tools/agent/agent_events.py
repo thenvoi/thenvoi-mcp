@@ -130,4 +130,3 @@ def create_agent_chat_event(
 
     logger.info(f"Event created successfully: {result.data.id}")
     return serialize_response(result)
-

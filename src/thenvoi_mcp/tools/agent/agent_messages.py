@@ -190,4 +190,3 @@ def create_agent_chat_message(
 
     logger.info(f"Message sent successfully: {result.data.id}")
     return serialize_response(result)
-

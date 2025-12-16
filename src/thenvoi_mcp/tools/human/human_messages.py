@@ -62,7 +62,9 @@ def send_user_chat_message(
     if not recipients:
         raise ValueError("recipients is required - specify who to @mention")
 
-    recipient_names = [name.strip().lower() for name in recipients.split(",") if name.strip()]
+    recipient_names = [
+        name.strip().lower() for name in recipients.split(",") if name.strip()
+    ]
 
     # Fetch participants to resolve names to IDs
     participants_response = client.human_api.list_my_chat_participants(chat_id=chat_id)
@@ -85,16 +87,23 @@ def send_user_chat_message(
     for name in recipient_names:
         participant = name_to_participant.get(name)
         if participant:
-            display_name = getattr(participant, "name", None) or getattr(participant, "username", "Unknown")
-            mentions_list.append(ChatMessageRequestMentionsItem(id=participant.id, name=display_name))
+            display_name = getattr(participant, "name", None) or getattr(
+                participant, "username", "Unknown"
+            )
+            mentions_list.append(
+                ChatMessageRequestMentionsItem(id=participant.id, name=display_name)
+            )
         else:
             not_found.append(name)
 
     if not_found:
         available = list(name_to_participant.keys())
-        raise ValueError(f"Not found: {', '.join(not_found)}. Available: {', '.join(available)}")
+        raise ValueError(
+            f"Not found: {', '.join(not_found)}. Available: {', '.join(available)}"
+        )
 
     message_request = ChatMessageRequest(content=content, mentions=mentions_list)
-    result = client.human_api.send_my_chat_message(chat_id=chat_id, message=message_request)
+    result = client.human_api.send_my_chat_message(
+        chat_id=chat_id, message=message_request
+    )
     return serialize_response(result)
-

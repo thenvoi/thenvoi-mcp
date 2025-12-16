@@ -45,7 +45,10 @@ def create_user_chat(ctx: AppContextType, task_id: Optional[str] = None) -> str:
         task_id: Optional task ID to associate with the chat.
     """
     client = get_app_context(ctx).client
-    chat_request = CreateMyChatRoomRequestChat(task_id=task_id) if task_id else CreateMyChatRoomRequestChat()
+    chat_request = (
+        CreateMyChatRoomRequestChat(task_id=task_id)
+        if task_id
+        else CreateMyChatRoomRequestChat()
+    )
     result = client.human_api.create_my_chat_room(chat=chat_request)
     return serialize_response(result)
-

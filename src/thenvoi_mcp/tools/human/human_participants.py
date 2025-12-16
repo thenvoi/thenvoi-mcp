@@ -21,7 +21,9 @@ def list_user_chat_participants(
         participant_type: Filter by type: 'User' or 'Agent' (optional).
     """
     client = get_app_context(ctx).client
-    result = client.human_api.list_my_chat_participants(chat_id=chat_id, participant_type=participant_type)
+    result = client.human_api.list_my_chat_participants(
+        chat_id=chat_id, participant_type=participant_type
+    )
     return serialize_response(result)
 
 
@@ -63,4 +65,3 @@ def remove_user_chat_participant(
     client = get_app_context(ctx).client
     client.human_api.remove_my_chat_participant(chat_id=chat_id, id=participant_id)
     return f"Removed participant: {participant_id}"
-
