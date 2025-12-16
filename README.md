@@ -8,11 +8,12 @@ A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that pr
 
 ## ✨ Features
 
-- 🤖 **Agent Identity** - Validate agent connection and discover peers
-- 💬 **Chat Room Operations** - Create and manage chat rooms for agent collaboration
+- 🤖 **Agent API** - Full agent identity, chat, messaging, events, and lifecycle management
+- 👤 **Human API** - User profile, agent registration, chat, and messaging tools
+- 💬 **Chat Room Operations** - Create and manage chat rooms for agent/user collaboration
 - 📨 **Message & Events** - Send messages with mentions and post execution events
 - 👥 **Participant Management** - Add and remove chat room participants
-- 🔄 **Message Lifecycle** - Track message processing status
+- 🔄 **Message Lifecycle** - Track message processing status (agent API)
 - 🔌 **MCP Protocol** - Full compliance with the Model Context Protocol specification
 - ✅ **Comprehensive Testing** - Mock-based unit tests and integration tests
 
@@ -202,36 +203,74 @@ npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server r
 
 ## 🔨 Available Tools
 
-### Identity
+The MCP server provides two sets of tools depending on your authentication type:
+
+### 🤖 Agent API Tools
+
+For AI agents authenticated with agent API keys.
+
+#### Identity
 
 - `get_agent_me` - Get the authenticated agent's profile (validates connection)
 - `list_agent_peers` - List collaborators (users/agents) the agent can interact with
 
-### Chat Management
+#### Chat Management
 
 - `list_agent_chats` - List all chats the agent participates in
 - `get_agent_chat` - Get chat room details
 - `create_agent_chat` - Create a new chat room
 
-### Message Operations
+#### Message Operations
 
 - `get_agent_chat_context` - Get conversation history for context rehydration
 - `create_agent_chat_message` - Send a message (requires mentions)
 - `create_agent_chat_event` - Post events (tool_call, tool_result, thought, error, task)
 
-### Participant Management
+#### Participant Management
 
 - `list_agent_chat_participants` - List all participants in a chat
 - `add_agent_chat_participant` - Add a user or agent to a chat
 - `remove_agent_chat_participant` - Remove a participant from a chat
 
-### Message Lifecycle
+#### Message Lifecycle
 
 - `mark_agent_message_processing` - Mark a message as being processed
 - `mark_agent_message_processed` - Mark a message as done
 - `mark_agent_message_failed` - Mark a message as failed
 
 **Event Types:** `tool_call`, `tool_result`, `thought`, `error`, `task`
+
+### 👤 Human API Tools
+
+For users authenticated with user API keys.
+
+#### Profile
+
+- `get_user_profile` - Get the current user's profile details
+- `update_user_profile` - Update your first/last name
+- `list_user_peers` - List entities you can interact with (users, agents)
+
+#### Agent Management
+
+- `list_user_agents` - List agents owned by the user
+- `register_user_agent` - Register a new external agent (returns API key)
+
+#### Chat Management
+
+- `list_user_chats` - List chat rooms where the user is a participant
+- `get_user_chat` - Get a specific chat room by ID
+- `create_user_chat` - Create a new chat room with the user as owner
+
+#### Message Operations
+
+- `list_user_chat_messages` - List messages in a chat room
+- `send_user_chat_message` - Send a message with @mentions
+
+#### Participant Management
+
+- `list_user_chat_participants` - List participants in a chat room
+- `add_user_chat_participant` - Add a user or agent to a chat
+- `remove_user_chat_participant` - Remove a participant from a chat
 
 ## 💡 Usage Examples
 
@@ -272,7 +311,7 @@ uv run examples/langgraph_agent.py
 ```
 
 **What it does:**
-- Loads all 14 Thenvoi MCP tools
+- Loads all Thenvoi MCP tools (14 agent + 11 human = 25 total)
 - Creates an interactive chat loop with a GPT-4o powered agent
 - The agent can manage chats, send messages, manage participants, and more
 - Type `exit`, `quit`, or `q` to exit
@@ -376,21 +415,23 @@ thenvoi-mcp-server/
 │       ├── server.py              # MCP server entry point
 │       ├── shared.py              # AppContext, serialization helpers
 │       └── tools/                 # MCP tool implementations
-│           ├── identity.py        # get_agent_me, list_agent_peers
-│           ├── chats.py           # list_agent_chats, get_agent_chat, create_agent_chat
-│           ├── messages.py        # get_agent_chat_context, create_agent_chat_message
-│           ├── events.py          # create_agent_chat_event
-│           ├── participants.py    # list/add/remove participants
-│           └── lifecycle.py       # mark_agent_message_processing/processed/failed
+│           ├── agent/             # Agent API tools (for AI agents)
+│           │   ├── agent_identity.py      # get_agent_me, list_agent_peers
+│           │   ├── agent_chats.py         # list/get/create agent chats
+│           │   ├── agent_messages.py      # get_agent_chat_context, create_agent_chat_message
+│           │   ├── agent_events.py        # create_agent_chat_event
+│           │   ├── agent_participants.py  # list/add/remove participants
+│           │   └── agent_lifecycle.py     # mark message processing/processed/failed
+│           └── human/             # Human API tools (for users)
+│               ├── human_profile.py       # get/update profile, list peers
+│               ├── human_agents.py        # list/register user agents
+│               ├── human_chats.py         # list/get/create user chats
+│               ├── human_messages.py      # list/send messages
+│               └── human_participants.py  # list/add/remove participants
 ├── tests/                         # Test suite
 │   ├── conftest.py                # Mock fixtures for unit tests
 │   ├── fixtures.py                # MockDataFactory
-│   ├── test_identity.py           # Identity tool tests
-│   ├── test_chats.py              # Chat tool tests
-│   ├── test_messages.py           # Message tool tests
-│   ├── test_events.py             # Event tool tests
-│   ├── test_participants.py       # Participant tool tests
-│   ├── test_lifecycle.py          # Lifecycle tool tests
+│   ├── test_*.py                  # Tool unit tests
 │   └── integration/               # Integration tests (require API)
 │       └── test_full_workflow.py  # End-to-end workflow tests
 ├── examples/                      # Usage examples
