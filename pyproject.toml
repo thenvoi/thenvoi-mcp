@@ -7,7 +7,7 @@ authors = [{ name = "thenvoi" }]
 requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.2.0",
-    "thenvoi @ git+https://github.com/thenvoi/fern-python-sdk.git@testing",
+    "thenvoi-rest"
 ]
 
 [project.optional-dependencies]
