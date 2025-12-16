@@ -28,7 +28,6 @@ env/
 
 # Environment Variables
 .env
-.env.test
 
 # IDE
 .vscode/
@@ -48,4 +47,3 @@ htmlcov/
 
 # uv
 .python-version
-uv.toml
