@@ -8,11 +8,13 @@ Run with:
 """
 
 import json
-
+import logging
 
 from tests.integration.conftest import get_test_agent_id, requires_api
-from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
 from thenvoi_mcp.tools.agent.chats import list_agent_chats
+from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
+
+logger = logging.getLogger(__name__)
 
 
 @requires_api
@@ -39,7 +41,7 @@ class TestAgentIdentity:
                 f"Expected agent ID {expected_agent_id}, got {agent['id']}"
             )
 
-        print(f"\nAgent: {agent['name']} (ID: {agent['id']})")
+        logger.info("Agent: %s (ID: %s)", agent["name"], agent["id"])
 
     def test_list_agent_peers_returns_list(self, integration_ctx):
         """Test that list_agent_peers returns a list of available peers."""
@@ -56,7 +58,7 @@ class TestAgentIdentity:
             assert "name" in peer
             assert "type" in peer  # "Agent" or "User"
 
-        print(f"\nFound {len(parsed['data'])} peers")
+        logger.info("Found %d peers", len(parsed["data"]))
 
 
 @requires_api
@@ -77,4 +79,4 @@ class TestAgentChats:
             assert "id" in chat
             assert "title" in chat or chat.get("title") is None  # title can be null
 
-        print(f"\nFound {len(parsed['data'])} chats")
+        logger.info("Found %d chats", len(parsed["data"]))

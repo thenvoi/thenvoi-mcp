@@ -182,7 +182,7 @@ def generate_examples_module(openapi_path: Path) -> str:
 def main():
     # Handle --help flag
     if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
-        print(__doc__)
+        sys.stdout.write(__doc__)
         sys.exit(0)
 
     # Determine OpenAPI path
@@ -192,19 +192,16 @@ def main():
         openapi_path = DEFAULT_OPENAPI_PATH
 
     if not openapi_path.exists():
-        print(f"Error: OpenAPI spec not found at {openapi_path}", file=sys.stderr)
-        print(
-            "Usage: python scripts/extract_openapi_examples.py [path/to/openapi.json]",
-            file=sys.stderr,
+        logger.error("OpenAPI spec not found at %s", openapi_path)
+        logger.error(
+            "Usage: python scripts/extract_openapi_examples.py [path/to/openapi.json]"
         )
-        print(
-            "       python scripts/extract_openapi_examples.py --help", file=sys.stderr
-        )
+        logger.error("       python scripts/extract_openapi_examples.py --help")
         sys.exit(1)
 
     # Generate and output
     content = generate_examples_module(openapi_path)
-    print(content)
+    sys.stdout.write(content)
 
 
 if __name__ == "__main__":

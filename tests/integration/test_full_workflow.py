@@ -5,30 +5,32 @@ Run with: uv run pytest tests/integration/test_full_workflow.py -v -s --no-cov
 """
 
 import json
+import logging
 from typing import Any, Callable
 
-
 from tests.integration.conftest import get_test_agent_id, requires_api
-from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
 from thenvoi_mcp.tools.agent.chats import (
     create_agent_chat,
     get_agent_chat,
     list_agent_chats,
 )
-from thenvoi_mcp.tools.agent.participants import (
-    add_agent_chat_participant,
-    list_agent_chat_participants,
+from thenvoi_mcp.tools.agent.events import create_agent_chat_event
+from thenvoi_mcp.tools.agent.identity import get_agent_me, list_agent_peers
+from thenvoi_mcp.tools.agent.lifecycle import (
+    mark_agent_message_failed,
+    mark_agent_message_processed,
+    mark_agent_message_processing,
 )
 from thenvoi_mcp.tools.agent.messages import (
     create_agent_chat_message,
     get_agent_chat_context,
 )
-from thenvoi_mcp.tools.agent.events import create_agent_chat_event
-from thenvoi_mcp.tools.agent.lifecycle import (
-    mark_agent_message_processing,
-    mark_agent_message_processed,
-    mark_agent_message_failed,
+from thenvoi_mcp.tools.agent.participants import (
+    add_agent_chat_participant,
+    list_agent_chat_participants,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -188,9 +190,9 @@ class TestFullWorkflow:
         # ============================================================
         # STEP 1: Identity - Get agent profile
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 1: Get Agent Identity")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 1: Get Agent Identity")
+        logger.info("=" * 60)
 
         result = get_agent_me(integration_ctx)
         parsed = json.loads(result)
@@ -199,7 +201,7 @@ class TestFullWorkflow:
         agent = parsed["data"]
         agent_id = agent["id"]
         agent_name = agent["name"]
-        print(f"Agent: {agent_name} (ID: {agent_id})")
+        logger.info("Agent: %s (ID: %s)", agent_name, agent_id)
 
         # Verify against expected test agent if configured
         expected_agent_id = get_test_agent_id()
@@ -209,13 +211,13 @@ class TestFullWorkflow:
         # ============================================================
         # STEP 2: Identity - List available peers (with pagination)
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 2: List Available Peers (all pages)")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 2: List Available Peers (all pages)")
+        logger.info("=" * 60)
 
         peers = fetch_all_pages(integration_ctx, list_agent_peers)
         assert isinstance(peers, list), "Peers should be a list"
-        print(f"Found {len(peers)} available peers across all pages")
+        logger.info("Found %d available peers across all pages", len(peers))
 
         # We need at least one User peer to test human participant operations
         assert len(peers) > 0, "Need at least one peer for participant tests"
@@ -230,14 +232,16 @@ class TestFullWorkflow:
         peer_id = peer["id"]
         peer_name = peer["name"]
         peer_type = peer["type"]
-        print(f"Will use User peer: {peer_name} ({peer_type}, ID: {peer_id})")
+        logger.info(
+            "Will use User peer: %s (%s, ID: %s)", peer_name, peer_type, peer_id
+        )
 
         # ============================================================
         # STEP 3: Chats - Create a new chat
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 3: Create New Chat")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 3: Create New Chat")
+        logger.info("=" * 60)
 
         result = create_agent_chat(integration_ctx)
         parsed = json.loads(result)
@@ -245,84 +249,89 @@ class TestFullWorkflow:
 
         chat = parsed["data"]
         chat_id = chat["id"]
-        print(f"Created chat (ID: {chat_id}, title: {chat.get('title')})")
+        logger.info("Created chat (ID: %s, title: %s)", chat_id, chat.get("title"))
 
         # ============================================================
         # STEP 4: Chats - Get the created chat
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 4: Get Chat Details")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 4: Get Chat Details")
+        logger.info("=" * 60)
 
         result = get_agent_chat(integration_ctx, chat_id=chat_id)
         parsed = json.loads(result)
         assert parsed["data"] is not None, "Chat should exist"
         assert parsed["data"]["id"] == chat_id, "Chat ID should match"
-        print(f"Retrieved chat: {parsed['data'].get('title')}")
+        logger.info("Retrieved chat: %s", parsed["data"].get("title"))
 
         # ============================================================
         # STEP 5: Chats - Verify chat appears in list (with pagination)
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 5: List Chats (verify new chat appears, checking all pages)")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 5: List Chats (verify new chat appears, checking all pages)")
+        logger.info("=" * 60)
 
         chat_exists = item_exists_in_pages(integration_ctx, list_agent_chats, chat_id)
         assert chat_exists, "New chat should appear in chat list"
         all_chats = fetch_all_pages(integration_ctx, list_agent_chats)
-        print(
-            f"Chat list contains {len(all_chats)} chats across all pages, including our test chat"
+        logger.info(
+            "Chat list contains %d chats across all pages, including our test chat",
+            len(all_chats),
         )
 
         # ============================================================
         # STEP 6: Participants - List initial participants
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 6: List Initial Participants")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 6: List Initial Participants")
+        logger.info("=" * 60)
 
         result = list_agent_chat_participants(integration_ctx, chat_id=chat_id)
         parsed = json.loads(result)
         initial_participants = parsed["data"]
-        print(f"Initial participants: {len(initial_participants)}")
+        logger.info("Initial participants: %d", len(initial_participants))
         for p in initial_participants:
-            print(f"  - {p['name']} ({p['type']}, role: {p.get('role', 'N/A')})")
+            logger.info(
+                "  - %s (%s, role: %s)", p["name"], p["type"], p.get("role", "N/A")
+            )
 
         # ============================================================
         # STEP 7: Participants - Add peer to chat
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 7: Add Participant to Chat")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 7: Add Participant to Chat")
+        logger.info("=" * 60)
 
         result = add_agent_chat_participant(
             integration_ctx, chat_id=chat_id, participant_id=peer_id, role="member"
         )
-        print(f"Result: {result}")
+        logger.info("Result: %s", result)
         assert "successfully" in result.lower(), "Should indicate success"
 
         # ============================================================
         # STEP 8: Participants - Verify participant was added
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 8: Verify Participant Added")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 8: Verify Participant Added")
+        logger.info("=" * 60)
 
         result = list_agent_chat_participants(integration_ctx, chat_id=chat_id)
         parsed = json.loads(result)
         participants = parsed["data"]
         participant_ids = [p["id"] for p in participants]
         assert peer_id in participant_ids, "Peer should now be a participant"
-        print(f"Participants after adding: {len(participants)}")
+        logger.info("Participants after adding: %d", len(participants))
         for p in participants:
-            print(f"  - {p['name']} ({p['type']}, role: {p.get('role', 'N/A')})")
+            logger.info(
+                "  - %s (%s, role: %s)", p["name"], p["type"], p.get("role", "N/A")
+            )
 
         # ============================================================
         # STEP 9: Messages - Send a message with mention
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 9: Send Message with Mention")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 9: Send Message with Mention")
+        logger.info("=" * 60)
 
         # Find the peer's name for mention
         peer_participant = next((p for p in participants if p["id"] == peer_id), None)
@@ -342,27 +351,27 @@ class TestFullWorkflow:
 
         message = parsed["data"]
         message_id = message["id"]
-        print(f"Sent message: '{message_content[:50]}...' (ID: {message_id})")
+        logger.info("Sent message: '%s...' (ID: %s)", message_content[:50], message_id)
 
         # ============================================================
         # STEP 10: Messages - Get chat context (verify message, with pagination)
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 10: Get Chat Context (all pages)")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 10: Get Chat Context (all pages)")
+        logger.info("=" * 60)
 
         context = fetch_all_context(integration_ctx, chat_id)
         assert isinstance(context, list), "Context should be a list"
         message_ids = [m["id"] for m in context if "id" in m]
         assert message_id in message_ids, "Our message should appear in context"
-        print(f"Chat context contains {len(context)} items across all pages")
+        logger.info("Chat context contains %d items across all pages", len(context))
 
         # ============================================================
         # STEP 11: Events - Create a thought event
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 11: Create Thought Event")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 11: Create Thought Event")
+        logger.info("=" * 60)
 
         event_content = "Processing the user's request about integration testing..."
         result = create_agent_chat_event(
@@ -376,14 +385,14 @@ class TestFullWorkflow:
 
         event = parsed["data"]
         event_id = event["id"]
-        print(f"Created thought event (ID: {event_id})")
+        logger.info("Created thought event (ID: %s)", event_id)
 
         # ============================================================
         # STEP 12: Events - Create a tool_call event
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 12: Create Tool Call Event")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 12: Create Tool Call Event")
+        logger.info("=" * 60)
 
         tool_metadata = json.dumps(
             {
@@ -402,14 +411,14 @@ class TestFullWorkflow:
         )
         parsed = json.loads(result)
         assert parsed["data"] is not None, "Tool call event should be created"
-        print(f"Created tool_call event (ID: {parsed['data']['id']})")
+        logger.info("Created tool_call event (ID: %s)", parsed["data"]["id"])
 
         # ============================================================
         # STEP 13: Events - Create a tool_result event
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 13: Create Tool Result Event")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 13: Create Tool Result Event")
+        logger.info("=" * 60)
 
         result_metadata = json.dumps(
             {"result": {"found": 5, "items": ["item1", "item2"]}}
@@ -423,58 +432,60 @@ class TestFullWorkflow:
         )
         parsed = json.loads(result)
         assert parsed["data"] is not None, "Tool result event should be created"
-        print(f"Created tool_result event (ID: {parsed['data']['id']})")
+        logger.info("Created tool_result event (ID: %s)", parsed["data"]["id"])
 
         # ============================================================
         # STEP 14: Lifecycle - Mark message as processing
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 14: Mark Message Processing")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 14: Mark Message Processing")
+        logger.info("=" * 60)
 
         result = mark_agent_message_processing(
             integration_ctx, chat_id=chat_id, message_id=message_id
         )
         parsed = json.loads(result)
-        print(f"Marked message {message_id} as processing")
+        logger.info("Marked message %s as processing", message_id)
 
         # ============================================================
         # STEP 15: Lifecycle - Mark message as processed
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 15: Mark Message Processed")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 15: Mark Message Processed")
+        logger.info("=" * 60)
 
         result = mark_agent_message_processed(
             integration_ctx, chat_id=chat_id, message_id=message_id
         )
         parsed = json.loads(result)
-        print(f"Marked message {message_id} as processed")
+        logger.info("Marked message %s as processed", message_id)
 
         # ============================================================
         # STEP 16: Verify User still in chat after all operations
         # ============================================================
-        print("\n" + "=" * 60)
-        print("STEP 16: Verify User Still in Chat")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("STEP 16: Verify User Still in Chat")
+        logger.info("=" * 60)
 
         result = list_agent_chat_participants(integration_ctx, chat_id=chat_id)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
         assert peer_id in participant_ids, "User should still be a participant"
-        print(f"Verified: User '{peer_name}' is still in chat")
-        print(f"Total participants: {len(parsed['data'])}")
+        logger.info("Verified: User '%s' is still in chat", peer_name)
+        logger.info("Total participants: %d", len(parsed["data"]))
         for p in parsed["data"]:
-            print(f"  - {p['name']} ({p['type']}, role: {p.get('role', 'N/A')})")
+            logger.info(
+                "  - %s (%s, role: %s)", p["name"], p["type"], p.get("role", "N/A")
+            )
 
         # ============================================================
         # COMPLETE
         # ============================================================
-        print("\n" + "=" * 60)
-        print("WORKFLOW COMPLETE - All 16 steps passed!")
-        print("=" * 60)
-        print(f"Test chat ID: {chat_id}")
-        print(f"User '{peer_name}' remains in chat as expected")
+        logger.info("\n" + "=" * 60)
+        logger.info("WORKFLOW COMPLETE - All 16 steps passed!")
+        logger.info("=" * 60)
+        logger.info("Test chat ID: %s", chat_id)
+        logger.info("User '%s' remains in chat as expected", peer_name)
 
 
 @requires_api
@@ -487,15 +498,15 @@ class TestAddParticipantWithoutRole:
         This test verifies the bug fix: the docstring says role 'defaults to member'
         but the code was sending None, causing a 422 error from the API.
         """
-        print("\n" + "=" * 60)
-        print("Testing Add Participant Without Role")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("Testing Add Participant Without Role")
+        logger.info("=" * 60)
 
         # Create a chat for this test
         result = create_agent_chat(integration_ctx)
         parsed = json.loads(result)
         chat_id = parsed["data"]["id"]
-        print(f"Created test chat: {chat_id}")
+        logger.info("Created test chat: %s", chat_id)
 
         # Get peers and find a User peer to add to the chat
         result = list_agent_peers(integration_ctx)
@@ -508,14 +519,14 @@ class TestAddParticipantWithoutRole:
 
         peer_id = user_peer["id"]
         peer_name = user_peer["name"]
-        print(f"Found User peer: {peer_name} (ID: {peer_id})")
+        logger.info("Found User peer: %s (ID: %s)", peer_name, peer_id)
 
         # Add participant WITHOUT specifying role - this should default to "member"
-        print("Adding participant without role parameter...")
+        logger.info("Adding participant without role parameter...")
         result = add_agent_chat_participant(
             integration_ctx, chat_id=chat_id, participant_id=peer_id
         )
-        print(f"Result: {result}")
+        logger.info("Result: %s", result)
         assert "successfully" in result.lower(), "Should indicate success"
 
         # Verify participant was added with member role
@@ -529,10 +540,12 @@ class TestAddParticipantWithoutRole:
             f"Role should default to 'member', got: {added_participant.get('role')}"
         )
 
-        print(
-            f"Verified: {peer_name} added with role '{added_participant.get('role')}'"
+        logger.info(
+            "Verified: %s added with role '%s'",
+            peer_name,
+            added_participant.get("role"),
         )
-        print("\nTest complete - default role works correctly!")
+        logger.info("Test complete - default role works correctly!")
 
 
 @requires_api
@@ -541,15 +554,15 @@ class TestMessageFailureLifecycle:
 
     def test_mark_message_failed(self, integration_ctx):
         """Test marking a message as failed with error message."""
-        print("\n" + "=" * 60)
-        print("Testing Message Failure Lifecycle")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("Testing Message Failure Lifecycle")
+        logger.info("=" * 60)
 
         # Create a chat for this test
         result = create_agent_chat(integration_ctx)
         parsed = json.loads(result)
         chat_id = parsed["data"]["id"]
-        print(f"Created test chat: {chat_id}")
+        logger.info("Created test chat: %s", chat_id)
 
         # Get peers and find a User peer to add to the chat
         result = list_agent_peers(integration_ctx)
@@ -566,7 +579,7 @@ class TestMessageFailureLifecycle:
         add_agent_chat_participant(
             integration_ctx, chat_id=chat_id, participant_id=peer_id, role="member"
         )
-        print(f"Added User peer: {peer_name}")
+        logger.info("Added User peer: %s", peer_name)
 
         # Send a message
         mentions = json.dumps([{"id": peer_id, "name": peer_name}])
@@ -578,13 +591,13 @@ class TestMessageFailureLifecycle:
         )
         parsed = json.loads(result)
         message_id = parsed["data"]["id"]
-        print(f"Created message: {message_id}")
+        logger.info("Created message: %s", message_id)
 
         # Mark as processing
         mark_agent_message_processing(
             integration_ctx, chat_id=chat_id, message_id=message_id
         )
-        print("Marked as processing")
+        logger.info("Marked as processing")
 
         # Mark as failed
         error_message = "Integration test simulated failure"
@@ -595,13 +608,13 @@ class TestMessageFailureLifecycle:
             error=error_message,
         )
         parsed = json.loads(result)
-        print(f"Marked as failed with error: {error_message}")
+        logger.info("Marked as failed with error: %s", error_message)
 
         # Verify User is still in the chat
         result = list_agent_chat_participants(integration_ctx, chat_id=chat_id)
         parsed = json.loads(result)
         participant_ids = [p["id"] for p in parsed["data"]]
         assert peer_id in participant_ids, "User should still be a participant"
-        print(f"Verified: User '{peer_name}' is still in chat")
+        logger.info("Verified: User '%s' is still in chat", peer_name)
 
-        print("\nFailure lifecycle test complete!")
+        logger.info("Failure lifecycle test complete!")
