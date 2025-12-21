@@ -4,30 +4,60 @@ from typing import Literal
 from thenvoi_mcp.config import settings
 from thenvoi_mcp.shared import mcp, logger, get_app_context, AppContextType
 
-# Import tools to register them with the MCP server
-from thenvoi_mcp.tools.human import human_agents  # noqa: F401
-from thenvoi_mcp.tools.human import human_chats  # noqa: F401
-from thenvoi_mcp.tools.human import human_messages  # noqa: F401
-from thenvoi_mcp.tools.human import human_participants  # noqa: F401
-from thenvoi_mcp.tools.human import human_profile  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_chats  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_events  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_identity  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_lifecycle  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_messages  # noqa: F401
-from thenvoi_mcp.tools.agent import agent_participants  # noqa: F401
-
 VERSION = "1.0.0"
+
+
+def get_key_type(key: str) -> str:
+    """Get API key type.
+
+    Key formats:
+    - User keys: thnv_u_<timestamp>_<random>
+    - Agent keys: thnv_a_<timestamp>_<random>
+    - Legacy keys: thnv_<timestamp>_<random> (loads all tools)
+    """
+    if key.startswith("thnv_u_"):
+        return "user"
+    elif key.startswith("thnv_a_"):
+        return "agent"
+    elif key.startswith("thnv_"):
+        return "legacy"
+    return "unknown"
+
+
+key_type = get_key_type(settings.thenvoi_api_key)
+
+# Import tools based on API key type - they register via @mcp.tool() decorator
+if key_type in ("agent", "legacy"):
+    from thenvoi_mcp.tools.agent import (  # noqa: F401
+        agent_chats,
+        agent_events,
+        agent_identity,
+        agent_lifecycle,
+        agent_messages,
+        agent_participants,
+    )
+
+if key_type in ("user", "legacy"):
+    from thenvoi_mcp.tools.human import (  # noqa: F401
+        human_agents,
+        human_chats,
+        human_messages,
+        human_participants,
+        human_profile,
+    )
 
 
 @mcp.tool()
 def health_check(ctx: AppContextType) -> str:
     """Test MCP server and API connectivity."""
     client = get_app_context(ctx).client
-    key_type = settings.thenvoi_api_key[:4] if settings.thenvoi_api_key else "unknown"
     try:
-        # Try to call a simple API to verify connectivity
-        client.human_api.list_my_agents()
+        if key_type == "user":
+            client.human_api.list_my_agents()
+        elif key_type == "agent":
+            client.agent_api.get_agent_me()
+        else:  # legacy - try both
+            client.human_api.list_my_agents()
         return f"OK | {key_type} | {settings.thenvoi_base_url}"
     except Exception as e:
         return f"Failed | {key_type} | {e}"
@@ -121,6 +151,7 @@ def run() -> None:
 
     logger.info(f"Starting thenvoi-mcp-server v{VERSION}")
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
+    logger.info(f"API key type: {key_type}")
 
     if transport == "stdio":
         logger.info("Transport: STDIO (for IDE integration)")
