@@ -195,6 +195,81 @@ uv run thenvoi-mcp
 
 > **✨ Note:** When configured in your AI assistant (Cursor/Claude Desktop/Claude Code), **the server starts automatically**. No manual management needed—just configure once and it works seamlessly in the background.
 
+### SSE Transport Mode (Remote/Docker Deployments)
+
+For cloud deployments, Docker containers, or shared team environments, use the SSE transport:
+
+```bash
+# Start SSE server on default port 8000
+uv run thenvoi-mcp --transport sse
+
+# Custom host and port
+uv run thenvoi-mcp --transport sse --host 0.0.0.0 --port 3000
+```
+
+**Expected output:**
+
+```
+2025-12-18 17:15:55 - thenvoi-mcp - INFO - Starting thenvoi-mcp-server v1.0.0
+2025-12-18 17:15:55 - thenvoi-mcp - INFO - Base URL: https://app.thenvoi.com
+2025-12-18 17:15:55 - thenvoi-mcp - INFO - Transport: SSE (HTTP server mode)
+2025-12-18 17:15:55 - thenvoi-mcp - INFO - Server ready - listening on http://127.0.0.1:3000
+2025-12-18 17:15:55 - thenvoi-mcp - INFO - SSE endpoint: /sse | Messages endpoint: /messages/
+INFO:     Uvicorn running on http://127.0.0.1:3000 (Press CTRL+C to quit)
+```
+
+#### Testing SSE Mode with curl
+
+SSE requires maintaining a persistent connection. Use three terminals:
+
+**Terminal 1 - Start the server:**
+```bash
+uv run thenvoi-mcp --transport sse --port 3000
+```
+
+**Terminal 2 - Connect to SSE stream (keep running):**
+```bash
+curl -N http://127.0.0.1:3000/sse
+```
+
+You'll receive a session ID:
+```
+event: endpoint
+data: /messages/?session_id=abc123def456...
+```
+
+**Terminal 3 - Send requests (use the session ID from Terminal 2):**
+
+```bash
+# 1. Initialize the connection (required first)
+curl -X POST "http://127.0.0.1:3000/messages/?session_id=YOUR_SESSION_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+
+# 2. List available tools
+curl -X POST "http://127.0.0.1:3000/messages/?session_id=YOUR_SESSION_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+
+# 3. Call a tool (e.g., health_check)
+curl -X POST "http://127.0.0.1:3000/messages/?session_id=YOUR_SESSION_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"health_check","arguments":{}}}'
+```
+
+> **Note:** Responses appear in Terminal 2 (the SSE stream), not in the curl response.
+
+#### Environment Variables for SSE
+
+You can also configure via environment variables:
+
+```bash
+export TRANSPORT=sse
+export HOST=0.0.0.0
+export PORT=3000
+uv run thenvoi-mcp
+```
+
 ### Testing with MCP Inspector
 
 ```bash
