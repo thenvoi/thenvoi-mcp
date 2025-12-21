@@ -78,4 +78,9 @@ def serialize_response(result: Any, **kwargs) -> str:
     return json.dumps(result, indent=2, default=str)
 
 
-mcp = FastMCP(name="thenvoi-mcp-server", lifespan=app_lifespan)
+mcp = FastMCP(
+    name="thenvoi-mcp-server",
+    lifespan=app_lifespan,
+    host=settings.host,
+    port=settings.port,
+)

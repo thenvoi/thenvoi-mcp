@@ -8,6 +8,7 @@ requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.2.0",
     "thenvoi-client-rest>=0.0.1",
+    "uvicorn>=0.30.0",  # Required for SSE transport mode
 ]
 
 [project.optional-dependencies]
