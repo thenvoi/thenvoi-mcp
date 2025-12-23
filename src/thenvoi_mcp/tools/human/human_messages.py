@@ -1,6 +1,6 @@
-import datetime
 import logging
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Optional
 
 from thenvoi_rest import ChatMessageRequest, ChatMessageRequestMentionsItem
 
@@ -31,7 +31,7 @@ def list_user_chat_messages(
 
     since_dt = None
     if since:
-        since_dt = datetime.datetime.fromisoformat(since.replace("Z", "+00:00"))
+        since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
 
     result = client.human_api.list_my_chat_messages(
         chat_id=chat_id,
@@ -71,7 +71,7 @@ def send_user_chat_message(
     participants = participants_response.data or []
 
     # Build name -> participant mapping
-    name_to_participant: Dict[str, Any] = {}
+    name_to_participant: dict[str, Any] = {}
     for p in participants:
         if hasattr(p, "name") and p.name:
             name_to_participant[p.name.lower()] = p
@@ -81,8 +81,8 @@ def send_user_chat_message(
             name_to_participant[p.first_name.lower()] = p
 
     # Resolve names to mentions
-    mentions_list: List[ChatMessageRequestMentionsItem] = []
-    not_found: List[str] = []
+    mentions_list: list[ChatMessageRequestMentionsItem] = []
+    not_found: list[str] = []
 
     for name in recipient_names:
         participant = name_to_participant.get(name)

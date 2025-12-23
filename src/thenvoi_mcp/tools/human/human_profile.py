@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, cast
+from typing import Any, Optional, cast
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -33,7 +33,7 @@ def update_user_profile(
 
     # Only include fields that are actually provided (not None)
     # to avoid the API interpreting None as "set to null"
-    user_data: Dict[str, Any] = {}
+    user_data: dict[str, Any] = {}
     if first_name is not None:
         user_data["first_name"] = first_name
     if last_name is not None:
