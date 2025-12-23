@@ -23,33 +23,40 @@ def get_key_type(key: str) -> str:
     return "unknown"
 
 
-key_type = get_key_type(settings.thenvoi_api_key)
+def load_tools(key_type: str) -> None:
+    """Load tools based on API key type.
 
-# Import tools based on API key type - they register via @mcp.tool() decorator
-if key_type in ("agent", "legacy"):
-    from thenvoi_mcp.tools.agent import (  # noqa: F401
-        agent_chats,
-        agent_events,
-        agent_identity,
-        agent_lifecycle,
-        agent_messages,
-        agent_participants,
-    )
+    Tools register themselves via @mcp.tool() decorator on import.
+    """
+    if key_type in ("agent", "legacy"):
+        from thenvoi_mcp.tools.agent import (  # noqa: F401
+            agent_chats,
+            agent_events,
+            agent_identity,
+            agent_lifecycle,
+            agent_messages,
+            agent_participants,
+        )
 
-if key_type in ("user", "legacy"):
-    from thenvoi_mcp.tools.human import (  # noqa: F401
-        human_agents,
-        human_chats,
-        human_messages,
-        human_participants,
-        human_profile,
-    )
+        logger.debug("Loaded agent tools")
+
+    if key_type in ("user", "legacy"):
+        from thenvoi_mcp.tools.human import (  # noqa: F401
+            human_agents,
+            human_chats,
+            human_messages,
+            human_participants,
+            human_profile,
+        )
+
+        logger.debug("Loaded human tools")
 
 
 @mcp.tool()
 def health_check(ctx: AppContextType) -> str:
     """Test MCP server and API connectivity."""
     client = get_app_context(ctx).client
+    key_type = get_key_type(settings.thenvoi_api_key)
     try:
         if key_type == "user":
             client.human_api.list_my_agents()
@@ -137,6 +144,10 @@ def run() -> None:
     2. Environment variables
     3. Default values (lowest priority)
     """
+    # Determine key type and load appropriate tools
+    key_type = get_key_type(settings.thenvoi_api_key)
+    load_tools(key_type)
+
     args = parse_args()
 
     # Determine transport mode (CLI args override env vars)
