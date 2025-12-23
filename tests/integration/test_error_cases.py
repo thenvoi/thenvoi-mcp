@@ -22,9 +22,9 @@ from thenvoi_rest.errors import (
 )
 
 from tests.integration.conftest import get_base_url, requires_api
-from thenvoi_mcp.tools.agent.chats import get_agent_chat
-from thenvoi_mcp.tools.agent.identity import list_agent_peers
-from thenvoi_mcp.tools.agent.participants import (
+from thenvoi_mcp.tools.agent.agent_chats import get_agent_chat
+from thenvoi_mcp.tools.agent.agent_identity import list_agent_peers
+from thenvoi_mcp.tools.agent.agent_participants import (
     add_agent_chat_participant,
     list_agent_chat_participants,
     remove_agent_chat_participant,
