@@ -8,17 +8,6 @@ Core features:
 2. Supports dual transport modes: STDIO (IDE integration) and SSE (remote deployments)
 3. Conditional tool loading based on API key type (user vs agent)
 
-The repo structure:
-
-- src/thenvoi_mcp
-  - server.py: Main entry point, CLI argument parsing, conditional tool loading
-  - shared.py: FastMCP instance, lifespan management, AppContext
-  - config.py: Pydantic settings from environment variables
-  - tools/agent/: Tools for agent API keys (thnv_a_...)
-  - tools/human/: Tools for user API keys (thnv_u_...)
-- tests/: Unit and integration tests
-- examples/: LangChain and LangGraph agent examples
-
 General Coding Instructions:
 
 - Always use type hints for function parameters and return types.
@@ -65,8 +54,15 @@ Code Quality:
 Testing:
 
 - Run unit tests: `uv run pytest tests/ --ignore=tests/integration/ -v`
+- Run single test: `uv run pytest tests/ -k "test_name"`
 - Run with coverage: `uv run pytest tests/ --ignore=tests/integration/`
 - Run integration tests (requires API key): `uv run pytest tests/integration/ -v -s --no-cov`
+
+Git Workflow:
+
+- Default branch: `develop` (PRs go here)
+- Branch prefixes: `feat/`, `fix/`
+- Run `uv run pre-commit run --all-files` before committing
 
 Transport Modes:
 
