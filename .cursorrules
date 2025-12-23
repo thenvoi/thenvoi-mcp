@@ -22,6 +22,7 @@ The repo structure:
 General Coding Instructions:
 
 - Always use type hints for function parameters and return types.
+- NEVER use print() statements. Always use logging instead.
 - Use the shared logger: `from thenvoi_mcp.shared import logger`
 - All tools must use the `@mcp.tool()` decorator.
 - Tools must accept `ctx: AppContextType` as the first parameter.
