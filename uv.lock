@@ -1657,6 +1657,7 @@ version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "mcp", extra = ["cli"] },
+    { name = "pydantic-settings" },
     { name = "thenvoi-client-rest" },
     { name = "uvicorn" },
 ]
@@ -1717,6 +1718,7 @@ requires-dist = [
     { name = "langgraph", marker = "extra == 'examples'", specifier = ">=0.2.0" },
     { name = "langgraph", marker = "extra == 'langgraph'", specifier = ">=0.2.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.2.0" },
+    { name = "pydantic-settings", specifier = ">=2.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
