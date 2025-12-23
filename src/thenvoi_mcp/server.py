@@ -1,10 +1,9 @@
 import argparse
 from typing import Literal
 
+from thenvoi_mcp import __version__
 from thenvoi_mcp.config import settings
 from thenvoi_mcp.shared import mcp, logger, get_app_context, AppContextType
-
-VERSION = "1.0.0"
 
 
 def get_key_type(key: str) -> str:
@@ -96,7 +95,7 @@ Environment Variables:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"thenvoi-mcp {VERSION}",
+        version=f"thenvoi-mcp {__version__}",
     )
 
     parser.add_argument(
@@ -149,7 +148,7 @@ def run() -> None:
     if args.port is not None:
         mcp.settings.port = args.port
 
-    logger.info(f"Starting thenvoi-mcp-server v{VERSION}")
+    logger.info(f"Starting thenvoi-mcp-server v{__version__}")
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
     logger.info(f"API key type: {key_type}")
 
