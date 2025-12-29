@@ -1,39 +1,72 @@
 import argparse
 from typing import Literal
 
-from mcp.server.fastmcp import Context
-
+from thenvoi_mcp import __version__
 from thenvoi_mcp.config import settings
-from thenvoi_mcp.shared import mcp, logger, get_app_context
+from thenvoi_mcp.shared import mcp, logger, get_app_context, AppContextType
 
-# Import tools to register them with the MCP server
-from thenvoi_mcp.tools import agents  # noqa: F401
-from thenvoi_mcp.tools import chats  # noqa: F401
-from thenvoi_mcp.tools import messages  # noqa: F401
-from thenvoi_mcp.tools import participants  # noqa: F401
 
-VERSION = "1.0.0"
+def get_key_type(key: str) -> str:
+    """Get API key type.
+
+    Key formats:
+    - User keys: thnv_u_<timestamp>_<random>
+    - Agent keys: thnv_a_<timestamp>_<random>
+    - Legacy keys: thnv_<timestamp>_<random> (loads all tools)
+    """
+    if key.startswith("thnv_u_"):
+        return "user"
+    elif key.startswith("thnv_a_"):
+        return "agent"
+    elif key.startswith("thnv_"):
+        return "legacy"
+    return "unknown"
+
+
+def load_tools(key_type: str) -> None:
+    """Load tools based on API key type.
+
+    Tools register themselves via @mcp.tool() decorator on import.
+    """
+    if key_type in ("agent", "legacy"):
+        from thenvoi_mcp.tools.agent import (  # noqa: F401
+            agent_chats,
+            agent_events,
+            agent_identity,
+            agent_lifecycle,
+            agent_messages,
+            agent_participants,
+        )
+
+        logger.debug("Loaded agent tools")
+
+    if key_type in ("user", "legacy"):
+        from thenvoi_mcp.tools.human import (  # noqa: F401
+            human_agents,
+            human_chats,
+            human_messages,
+            human_participants,
+            human_profile,
+        )
+
+        logger.debug("Loaded human tools")
 
 
 @mcp.tool()
-def health_check(ctx: Context) -> str:
+def health_check(ctx: AppContextType) -> str:
     """Test MCP server and API connectivity."""
+    client = get_app_context(ctx).client
+    key_type = get_key_type(settings.thenvoi_api_key)
     try:
-        app_ctx = get_app_context(ctx)
-
-        # Verify configuration exists
-        if not app_ctx or not app_ctx.client:
-            return "Health check failed: API client not initialized"
-
-        if not settings.thenvoi_api_key or not settings.thenvoi_base_url:
-            return "Health check failed: API key or base URL not configured"
-
-        client = app_ctx.client
-        client.agents.list_agents()
-
-        return f"MCP server operational\nBase URL: {settings.thenvoi_base_url}"
+        if key_type == "user":
+            client.human_api.list_my_agents()
+        elif key_type == "agent":
+            client.agent_api.get_agent_me()
+        else:  # legacy - try both
+            client.human_api.list_my_agents()
+        return f"OK | {key_type} | {settings.thenvoi_base_url}"
     except Exception as e:
-        return f"Health check failed: {str(e)}"
+        return f"Failed | {key_type} | {e}"
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,7 +102,7 @@ Environment Variables:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"thenvoi-mcp {VERSION}",
+        version=f"thenvoi-mcp {__version__}",
     )
 
     parser.add_argument(
@@ -111,6 +144,10 @@ def run() -> None:
     2. Environment variables
     3. Default values (lowest priority)
     """
+    # Determine key type and load appropriate tools
+    key_type = get_key_type(settings.thenvoi_api_key)
+    load_tools(key_type)
+
     args = parse_args()
 
     # Determine transport mode (CLI args override env vars)
@@ -122,8 +159,9 @@ def run() -> None:
     if args.port is not None:
         mcp.settings.port = args.port
 
-    logger.info(f"Starting thenvoi-mcp-server v{VERSION}")
+    logger.info(f"Starting thenvoi-mcp-server v{__version__}")
     logger.info(f"Base URL: {settings.thenvoi_base_url}")
+    logger.info(f"API key type: {key_type}")
 
     if transport == "stdio":
         logger.info("Transport: STDIO (for IDE integration)")

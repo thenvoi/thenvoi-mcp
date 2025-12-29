@@ -1642,7 +1642,7 @@ wheels = [
 
 [[package]]
 name = "thenvoi-client-rest"
-version = "0.0.1"
+version = "0.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -1650,9 +1650,9 @@ dependencies = [
     { name = "pydantic-core" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/93/cb489415ee39a4dc6f4517ebea79b9fa3d280a2fa0b6882e72c0521052aa/thenvoi_client_rest-0.0.1.tar.gz", hash = "sha256:e227149b25900096452f5e4ec2d5453b419e00637bf71e01878f414fdc9d439b", size = 65417, upload-time = "2025-12-07T21:28:25.796Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/92/5f01c144cb93f2da79c05901c855f5de5e6b4e81b45ac376cc141228e870/thenvoi_client_rest-0.0.2.tar.gz", hash = "sha256:746208f5589125f4f5547289fab709b95346899841214817910479350ca686d3", size = 63061, upload-time = "2025-12-29T09:15:52.928Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/10/9b6d7a3394847e625b14b070fa4ebd88674289a04a12e89a513314630967/thenvoi_client_rest-0.0.1-py3-none-any.whl", hash = "sha256:ebb9ee4aed7734cf5573a0bb1274a5aacc058d04afcce8f0f384560f6f4ae42c", size = 151179, upload-time = "2025-12-07T21:28:24.705Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/03/fc740e1fefec2c7d3897237c1d7155c5128a5cf776ef41b31e32a65cf2a1/thenvoi_client_rest-0.0.2-py3-none-any.whl", hash = "sha256:f693a6c9625f41b7934091da0287d19a0e9d9258501cdbb4a6b3bc41c0f64acc", size = 120085, upload-time = "2025-12-29T09:15:51.861Z" },
 ]
 
 [[package]]
@@ -1661,6 +1661,7 @@ version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "mcp", extra = ["cli"] },
+    { name = "pydantic-settings" },
     { name = "thenvoi-client-rest" },
     { name = "uvicorn" },
 ]
@@ -1671,6 +1672,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
+    { name = "python-dotenv" },
     { name = "respx" },
 ]
 examples = [
@@ -1699,6 +1701,7 @@ langgraph = [
 [package.dev-dependencies]
 dev = [
     { name = "pre-commit" },
+    { name = "pydantic-settings" },
     { name = "pyrefly" },
     { name = "ruff" },
 ]
@@ -1719,15 +1722,17 @@ requires-dist = [
     { name = "langgraph", marker = "extra == 'examples'", specifier = ">=0.2.0" },
     { name = "langgraph", marker = "extra == 'langgraph'", specifier = ">=0.2.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.2.0" },
+    { name = "pydantic-settings", specifier = ">=2.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.12.0" },
+    { name = "python-dotenv", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'examples'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'langchain'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'langgraph'", specifier = ">=1.0.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.20.0" },
-    { name = "thenvoi-client-rest", specifier = ">=0.0.1" },
+    { name = "thenvoi-client-rest" },
     { name = "uvicorn", specifier = ">=0.30.0" },
 ]
 provides-extras = ["dev", "langgraph", "langchain", "examples"]
@@ -1735,6 +1740,7 @@ provides-extras = ["dev", "langgraph", "langchain", "examples"]
 [package.metadata.requires-dev]
 dev = [
     { name = "pre-commit", specifier = ">=4.4.0" },
+    { name = "pydantic-settings", specifier = ">=2.1.0" },
     { name = "pyrefly", specifier = ">=0.2.0" },
     { name = "ruff", specifier = ">=0.8.0" },
 ]
