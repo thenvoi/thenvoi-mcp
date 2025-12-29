@@ -1643,12 +1643,16 @@ wheels = [
 [[package]]
 name = "thenvoi-client-rest"
 version = "0.0.2"
-source = { git = "https://github.com/thenvoi/fern-python-sdk.git?rev=testing#07a14fe64c940036581d64eaf18fa3c09875a0ac" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "pydantic-core" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6e/92/5f01c144cb93f2da79c05901c855f5de5e6b4e81b45ac376cc141228e870/thenvoi_client_rest-0.0.2.tar.gz", hash = "sha256:746208f5589125f4f5547289fab709b95346899841214817910479350ca686d3", size = 63061, upload-time = "2025-12-29T09:15:52.928Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f6/03/fc740e1fefec2c7d3897237c1d7155c5128a5cf776ef41b31e32a65cf2a1/thenvoi_client_rest-0.0.2-py3-none-any.whl", hash = "sha256:f693a6c9625f41b7934091da0287d19a0e9d9258501cdbb4a6b3bc41c0f64acc", size = 120085, upload-time = "2025-12-29T09:15:51.861Z" },
 ]
 
 [[package]]
@@ -1728,7 +1732,7 @@ requires-dist = [
     { name = "python-dotenv", marker = "extra == 'langchain'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'langgraph'", specifier = ">=1.0.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.20.0" },
-    { name = "thenvoi-client-rest", git = "https://github.com/thenvoi/fern-python-sdk.git?rev=testing" },
+    { name = "thenvoi-client-rest" },
     { name = "uvicorn", specifier = ">=0.30.0" },
 ]
 provides-extras = ["dev", "langgraph", "langchain", "examples"]

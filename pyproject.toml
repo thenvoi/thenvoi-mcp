@@ -8,7 +8,7 @@ requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.2.0",
     "pydantic-settings>=2.1.0",
-    "thenvoi-client-rest @ git+https://github.com/thenvoi/fern-python-sdk.git@testing",
+    "thenvoi-client-rest",
     "uvicorn>=0.30.0",  # Required for SSE transport mode
 ]
 
