@@ -45,7 +45,6 @@ cp env.example .env
 > 2. Navigate to **Settings → API Keys**
 > 3. Click **Create New API Key**
 > 4. Copy the key immediately (won't be shown again)
->
 
 **Install pre-commit hooks:**
 
@@ -110,18 +109,14 @@ The Thenvoi tools will appear automatically in the chat interface.
 <summary><strong>Claude Desktop Setup</strong></summary>
 
 1. Locate your Claude Desktop configuration file:
+
    - **Mac:** `~/Library/Application\ Support/Claude/claude_desktop_config.json`
    - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
    - **Linux:** `~/.config/Claude/claude_desktop_config.json`
-
 2. Open the file in a text editor
-
 3. Add the configuration JSON (merge with existing content if present)
-
 4. Update the path and API credentials
-
 5. Save the file
-
 6. Restart Claude Desktop
 
 The Thenvoi tools will appear in the tools panel.
@@ -132,13 +127,11 @@ The Thenvoi tools will appear in the tools panel.
 <summary><strong>Claude Code (VS Code) Setup</strong></summary>
 
 1. Open VS Code settings:
+
    - **Mac:** `Cmd+,`
    - **Windows:** `Ctrl+,`
-
 2. Search for "Claude MCP"
-
 3. Click "Edit in settings.json"
-
 4. Add the configuration using the `claude.mcpServers` key:
 
 ```json
@@ -162,10 +155,9 @@ The Thenvoi tools will appear in the tools panel.
 ```
 
 5. Update the path and API credentials
-
 6. Save the settings file
-
 7. Reload VS Code window:
+
    - **Mac:** `Cmd+Shift+P` → "Reload Window"
    - **Windows:** `Ctrl+Shift+P` → "Reload Window"
 
@@ -223,16 +215,19 @@ INFO:     Uvicorn running on http://127.0.0.1:3000 (Press CTRL+C to quit)
 SSE requires maintaining a persistent connection. Use three terminals:
 
 **Terminal 1 - Start the server:**
+
 ```bash
 uv run thenvoi-mcp --transport sse --port 3000
 ```
 
 **Terminal 2 - Connect to SSE stream (keep running):**
+
 ```bash
 curl -N http://127.0.0.1:3000/sse
 ```
 
 You'll receive a session ID:
+
 ```
 event: endpoint
 data: /messages/?session_id=abc123def456...
@@ -354,6 +349,7 @@ For users authenticated with user API keys.
 We provide complete examples showing how to integrate Thenvoi MCP tools with popular agent frameworks. All examples use `langchain-mcp-adapters` to load the MCP tools.
 
 **Prerequisites for all examples:**
+
 - OpenAI API key (for the LLM)
 - Thenvoi API key
 
@@ -386,6 +382,7 @@ uv run examples/langgraph_agent.py
 ```
 
 **What it does:**
+
 - Loads all Thenvoi MCP tools (14 agent + 11 human = 25 total)
 - Creates an interactive chat loop with a GPT-4o powered agent
 - The agent can manage chats, send messages, manage participants, and more
@@ -407,6 +404,7 @@ uv run examples/langchain_agent.py
 ```
 
 **What it does:**
+
 - Uses LangChain's `create_openai_functions_agent` with MCP tools
 - Provides a simple, straightforward agent implementation
 - Great for getting started with LangChain and MCP tools
@@ -621,6 +619,48 @@ uv run pytest --cov=src/thenvoi_mcp --cov-report=html
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io)
 - [Thenvoi Platform](https://app.thenvoi.com)
 - [uv Package Manager](https://docs.astral.sh/uv/)
+
+### Using Context7 MCP for Documentation
+
+[Context7](https://github.com/upstash/context7) is an MCP server that provides up-to-date documentation for libraries and frameworks. It's highly recommended to use Context7 alongside Thenvoi MCP when developing—it helps your AI assistant fetch accurate, current documentation.
+
+#### Adding Context7 to Your MCP Configuration
+
+Add Context7 to your existing MCP configuration alongside Thenvoi:
+
+```json
+{
+  "mcpServers": {
+    "thenvoi": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/thenvoi-mcp-server",
+        "run",
+        "thenvoi-mcp"
+      ],
+      "env": {
+        "THENVOI_API_KEY": "your_api_key_here",
+        "THENVOI_BASE_URL": "https://app.thenvoi.com"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
+> **Note:** Context7 requires Node.js and npm/npx to be installed on your system.
+
+#### How to Use Context7
+
+Once configured, you can ask your AI assistant to fetch documentation:
+
+- *"Look up the Thenvoi REST API documentation with Context7"*
+
+Context7 will retrieve current documentation directly from official sources, ensuring your AI assistant has accurate information when helping you code.
 
 ## 📄 License
 
