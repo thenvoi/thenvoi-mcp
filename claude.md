@@ -19,6 +19,7 @@ General Coding Instructions:
 - Tools must return strings (success messages or JSON).
 - Use absolute imports from `thenvoi_mcp`.
 - Follow existing patterns in the codebase for new tools.
+- Use Context7 MCP to fetch up-to-date documentation.
 
 API Key Types:
 
