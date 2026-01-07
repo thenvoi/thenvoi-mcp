@@ -89,8 +89,18 @@ dev = [
     "pydantic-settings>=2.1.0",
     "ruff>=0.8.0",
     "pyrefly>=0.2.0",
+    "commitizen>=3.13.0",
 ]
 
 [tool.pyrefly]
 search_path = ["src", "tests"]
 project_excludes = ["tests/**"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "1.0.0"
+version_files = [
+    "pyproject.toml:version",
+    "src/thenvoi_mcp/__init__.py:__version__",
+]
+tag_format = "v$version"
