@@ -1,0 +1,93 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Component] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Naming Convention
+        Please update the issue title to follow this format:
+        `[Component] Brief description`
+
+        **Components:** `[API]`, `[Tools]`, `[Auth]`, `[Transport]`, `[Config]`, `[Docs]`, `[CI]`, `[Performance]`
+
+        **Example:** `[Tools] Chat tool returns empty response`
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Configure MCP server with...
+        2. Call tool...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version are you using?
+      placeholder: e.g., 1.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport Mode
+      options:
+        - STDIO
+        - SSE
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Please provide:
+        - OS and version
+        - Python version
+        - IDE (if applicable)
+      placeholder: |
+        - OS: macOS 14.0
+        - Python: 3.11.5
+        - IDE: Cursor
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Any relevant log output or error messages
+      render: shell

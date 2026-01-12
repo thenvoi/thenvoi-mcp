@@ -177,10 +177,53 @@ uv run pytest tests/integration/ -v -s --no-cov
 5. Request review from maintainers
 6. Address any feedback
 
+## Naming Conventions
+
+### Issue Titles
+
+Use component prefixes to categorize issues:
+
+```
+[Component] Brief description
+```
+
+**Components:**
+- `[API]` - API client and endpoints
+- `[Tools]` - MCP tools
+- `[Auth]` - Authentication and API keys
+- `[Transport]` - STDIO/SSE transport modes
+- `[Config]` - Configuration and settings
+- `[Docs]` - Documentation
+- `[CI]` - CI/CD and workflows
+- `[Performance]` - Performance improvements
+
+**Examples:**
+- `[Tools] Add bulk message sending tool`
+- `[API] Fix timeout handling in chat endpoint`
+- `[Auth] Support rotating API keys`
+
+### PR Titles
+
+Follow Conventional Commits format:
+
+```
+type(scope): description
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+**Examples:**
+- `feat(tools): add new chat management tool`
+- `fix(api): resolve connection timeout issue`
+- `docs: update README with usage examples`
+
+PR titles are validated by CI - PRs with invalid titles will fail the check.
+
 ## Branch Naming
 
 - `feat/description` - New features
 - `fix/description` - Bug fixes
+- `docs/description` - Documentation changes
 
 ## Commit Messages
 
