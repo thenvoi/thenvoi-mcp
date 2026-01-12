@@ -40,6 +40,7 @@ jobs:
             transport
             config
             deps
+            ci
           # Require scope to be provided
           requireScope: false
           # Disable validation for merge commits
