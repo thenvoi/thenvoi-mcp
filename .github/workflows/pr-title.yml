@@ -11,7 +11,7 @@ jobs:
   validate:
     name: Validate PR Title
     runs-on: ubuntu-latest
-    # Skip validation for dependabot PRs (they use their own title format)
+    # Skip validation for dependabot PRs
     if: github.actor != 'dependabot[bot]'
     steps:
       - name: Validate Conventional Commits format
