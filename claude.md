@@ -1,33 +1,20 @@
 # Thenvoi MCP Server
 
-This is an MCP (Model Context Protocol) server that connects your AI to the Thenvoi platform.
+MCP (Model Context Protocol) server that connects AI assistants to the Thenvoi platform.
 
-Core features:
+## Core Features
 
 1. Connects AI assistants to Thenvoi's agent collaboration platform
 2. Supports dual transport modes: STDIO (IDE integration) and SSE (remote deployments)
 3. Conditional tool loading based on API key type (user vs agent)
 
-General Coding Instructions:
-
-- Always use type hints for function parameters and return types.
-- NEVER use print() statements. Always use logging instead.
-- Use the shared logger: `from thenvoi_mcp.shared import logger`
-- All tools must use the `@mcp.tool()` decorator.
-- Tools must accept `ctx: AppContextType` as the first parameter.
-- Use `get_app_context(ctx).client` to access the Thenvoi API client.
-- Tools must return strings (success messages or JSON).
-- Use absolute imports from `thenvoi_mcp`.
-- Follow existing patterns in the codebase for new tools.
-- Use Context7 MCP to fetch up-to-date documentation.
-
-API Key Types:
+## API Key Types
 
 - `thnv_u_*` → User keys → Only human tools loaded
 - `thnv_a_*` → Agent keys → Only agent tools loaded
 - `thnv_*` → Legacy keys → All tools loaded
 
-Tool Template:
+## Tool Template
 
 ```python
 from thenvoi_mcp.shared import mcp, get_app_context, AppContextType
@@ -40,40 +27,43 @@ def my_tool(ctx: AppContextType, param: str) -> str:
     return "Success message"
 ```
 
-Dependencies:
+## Repo-Specific Conventions
 
-- Package manager: `uv`
-- Install: `uv sync`
-- Run: `uv run thenvoi-mcp`
-- Add dependency: `uv add <package>`
+- Use the shared logger: `from thenvoi_mcp.shared import logger`
+- All tools must use the `@mcp.tool()` decorator
+- Tools must accept `ctx: AppContextType` as the first parameter
+- Use `get_app_context(ctx).client` to access the Thenvoi API client
+- Tools must return strings (success messages or JSON)
 
-Code Quality:
+## Commands
 
-- Run linting: `uv run pre-commit run --all-files`
-- Pre-commit hooks: ruff (linting/formatting), pyrefly (type checking), detect-secrets (security)
+```bash
+# Install dependencies
+uv sync
 
-Testing:
+# Run the server
+uv run thenvoi-mcp
 
-- Run unit tests: `uv run pytest tests/ --ignore=tests/integration/ -v`
-- Run single test: `uv run pytest tests/ -k "test_name"`
-- Run with coverage: `uv run pytest tests/ --ignore=tests/integration/`
-- Run integration tests (requires API key): `uv run pytest tests/integration/ -v -s --no-cov`
+# Run unit tests
+uv run pytest tests/ --ignore=tests/integration/ -v
 
-Git Workflow:
+# Lint and format
+uv run pre-commit run --all-files
+```
 
-- Default branch: `develop` (PRs go here)
-- Branch prefixes: `feat/`, `fix/`
-- Run `uv run pre-commit run --all-files` before committing
+## Transport Modes
 
-Transport Modes:
+- **STDIO** (default): `thenvoi-mcp` - For Cursor, Claude Desktop
+- **SSE**: `thenvoi-mcp --transport sse --port 3000` - For Docker, cloud deployments
 
-- STDIO (default): `thenvoi-mcp` - For Cursor, Claude Desktop
-- SSE: `thenvoi-mcp --transport sse --port 3000` - For Docker, cloud deployments
+## Environment Variables
 
-Environment Variables:
+- `THENVOI_API_KEY`: Required API key
+- `THENVOI_BASE_URL`: API base URL (default: https://app.thenvoi.com)
+- `TRANSPORT`: stdio or sse (default: stdio)
+- `HOST`: SSE host (default: 127.0.0.1)
+- `PORT`: SSE port (default: 8000)
 
-- THENVOI_API_KEY: Required API key
-- THENVOI_BASE_URL: API base URL (default: https://app.thenvoi.com)
-- TRANSPORT: stdio or sse (default: stdio)
-- HOST: SSE host (default: 127.0.0.1)
-- PORT: SSE port (default: 8000)
+## Git Workflow
+
+- Default branch: `develop` (PRs target here)
