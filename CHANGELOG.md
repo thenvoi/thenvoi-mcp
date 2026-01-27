@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2](https://github.com/thenvoi/thenvoi-mcp/compare/thenvoi-mcp-v1.1.1...thenvoi-mcp-v1.1.2) (2026-01-27)
+
+
+### Bug Fixes
+
+* **ci:** add ci scope to allowed PR title scopes ([4ed73c3](https://github.com/thenvoi/thenvoi-mcp/commit/4ed73c30fefe8a349b2cf5ec1072bd39a17b3e26))
+* **ci:** skip PR title validation for dependabot ([4cf3c17](https://github.com/thenvoi/thenvoi-mcp/commit/4cf3c175c2a79390a05805a9cadcf159a581f54a))
+* **ci:** skip PR title validation for dependabot ([54c5aec](https://github.com/thenvoi/thenvoi-mcp/commit/54c5aecfad58f276b631b26af5be2aff5ad53fc0))
+
+
+### Documentation
+
+* add naming conventions and PR title validation ([9437687](https://github.com/thenvoi/thenvoi-mcp/commit/94376879114d4f7d419a64479b2d1716f96863b4))
+* add naming conventions and PR title validation ([f212529](https://github.com/thenvoi/thenvoi-mcp/commit/f212529600c0197d6c7b1aebd3a95e0c6b30f7b7))
+* Add shared Claude rules via git submodule ([296cbe4](https://github.com/thenvoi/thenvoi-mcp/commit/296cbe498e088dcd10489a665571bf38fdede5ca))
+* Add shared Claude rules via git submodule ([8f6f5a6](https://github.com/thenvoi/thenvoi-mcp/commit/8f6f5a6accbc55e73041aaab7d7509bf72fc6b42))
+* Clean up CLAUDE.md to remove duplicated shared rules ([a7eaa1b](https://github.com/thenvoi/thenvoi-mcp/commit/a7eaa1bb16e97ea324e6ce938eecb529da76573e))
+* Update Python version requirement to 3.11 ([#64](https://github.com/thenvoi/thenvoi-mcp/issues/64)) ([d28da44](https://github.com/thenvoi/thenvoi-mcp/commit/d28da448cdc2eee5cf9880ca3354c56b5df95f8c))
+
 ## [1.1.1](https://github.com/thenvoi/thenvoi-mcp/compare/thenvoi-mcp-v1.1.0...thenvoi-mcp-v1.1.1) (2026-01-07)
 
 
