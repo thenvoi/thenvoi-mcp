@@ -1,6 +1,6 @@
 # Thenvoi MCP Server
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![MCP Protocol](https://img.shields.io/badge/MCP-1.0-purple)
 
@@ -21,7 +21,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that pr
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - [uv](https://docs.astral.sh/uv/) package manager
 - Thenvoi API key from [app.thenvoi.com/settings/api-keys](https://app.thenvoi.com/settings/api-keys)
 
@@ -433,7 +433,7 @@ THENVOI_LOG_LEVEL=info  # Options: debug, info, warning, error
 ### Server Won't Start
 
 ```bash
-# Check Python version (must be 3.10+)
+# Check Python version (must be 3.11+)
 python --version
 
 # Verify uv is installed
