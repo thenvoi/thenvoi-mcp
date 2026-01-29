@@ -163,10 +163,39 @@ uv run pytest tests/integration/ -v -s --no-cov
 
 ### Writing Tests
 
-- Place unit tests in `tests/`
-- Place integration tests in `tests/integration/`
-- Use pytest fixtures from `tests/conftest.py`
-- Mock external API calls in unit tests
+This project uses the shared `thenvoi-testing-python` package for test fixtures and utilities.
+
+**Unit Tests:**
+- Place in `tests/`
+- Use fixtures from `thenvoi_testing` (auto-loaded via pytest plugin)
+- Use MCP-specific fixtures from `tests/conftest.py`
+
+```python
+from thenvoi_testing.factories import factory
+
+def test_my_tool(mock_ctx, mock_agent_api):
+    """Test a tool with mocked API client."""
+    # Create mock response data using factory
+    chat = factory.chat_room(id="chat-123", title="Test Chat")
+    mock_agent_api.list_agent_chats.return_value = factory.list_response([chat])
+
+    # Call the tool
+    result = list_agent_chats(mock_ctx)
+
+    # Assert on result
+    assert "chat-123" in result
+```
+
+**Available Fixtures:**
+- `mock_ctx` - MCP context with mocked API client (from `tests/conftest.py`)
+- `mock_agent_api` - Mocked agent API namespace (from `thenvoi_testing`)
+- `mock_api_client` - Full mocked API client (from `thenvoi_testing`)
+- `factory` - MockDataFactory for creating test data (from `thenvoi_testing`)
+
+**Integration Tests:**
+- Place in `tests/integration/`
+- Require `THENVOI_API_KEY` environment variable (set in `.env.test`)
+- Use `@requires_api` decorator to skip if API key is not set
 
 ## Pull Request Guidelines
 

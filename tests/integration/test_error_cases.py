@@ -29,6 +29,7 @@ from thenvoi_mcp.tools.agent.agent_participants import (
     list_agent_chat_participants,
     remove_agent_chat_participant,
 )
+from thenvoi_testing.pagination import fetch_all_pages
 
 logger = logging.getLogger(__name__)
 
@@ -36,45 +37,24 @@ logger = logging.getLogger(__name__)
 def fetch_all_peers(
     ctx, not_in_chat: str | None = None, debug: bool = False
 ) -> list[dict]:
-    """Fetch all peers across all pages.
+    """Fetch all peers across all pages with optional debug logging.
 
     Args:
         ctx: Integration context
         not_in_chat: Optional chat ID to filter peers not in that chat
         debug: Print debug info about pages and peer types
     """
-    all_peers = []
-    page = 1
-    while True:
-        if not_in_chat:
-            result = list_agent_peers(
-                ctx, page=page, page_size=100, not_in_chat=not_in_chat
-            )
-        else:
-            result = list_agent_peers(ctx, page=page, page_size=100)
-        parsed = json.loads(result)
-        peers = parsed.get("data", [])
-        all_peers.extend(peers)
-        metadata = parsed.get("metadata", {})
-        total_pages = metadata.get("total_pages", 1)
-        if debug:
-            peer_types = {}
-            for p in peers:
-                t = p.get("type", "Unknown")
-                peer_types[t] = peer_types.get(t, 0) + 1
-            logger.info(
-                "  Page %d/%d: %d peers - %s", page, total_pages, len(peers), peer_types
-            )
-        if page >= total_pages:
-            break
-        page += 1
+    kwargs = {"not_in_chat": not_in_chat} if not_in_chat else {}
+    peers = fetch_all_pages(ctx, list_agent_peers, page_size=100, **kwargs)
+
     if debug:
-        total_types = {}
-        for p in all_peers:
+        peer_types: dict[str, int] = {}
+        for p in peers:
             t = p.get("type", "Unknown")
-            total_types[t] = total_types.get(t, 0) + 1
-        logger.info("  Total: %d peers - %s", len(all_peers), total_types)
-    return all_peers
+            peer_types[t] = peer_types.get(t, 0) + 1
+        logger.info("  Total: %d peers - %s", len(peers), peer_types)
+
+    return peers
 
 
 @requires_api

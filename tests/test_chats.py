@@ -2,7 +2,7 @@
 
 import json
 
-from tests.fixtures import factory
+from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_chats import (
     create_agent_chat,
     get_agent_chat,

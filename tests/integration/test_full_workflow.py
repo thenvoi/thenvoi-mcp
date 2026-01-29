@@ -6,7 +6,7 @@ Run with: uv run pytest tests/integration/test_full_workflow.py -v -s --no-cov
 
 import json
 import logging
-from typing import Any, Callable
+from typing import Any
 
 from tests.integration.conftest import get_test_agent_id, requires_api
 from thenvoi_mcp.tools.agent.agent_chats import (
@@ -29,118 +29,9 @@ from thenvoi_mcp.tools.agent.agent_participants import (
     add_agent_chat_participant,
     list_agent_chat_participants,
 )
+from thenvoi_testing.pagination import fetch_all_pages, item_exists_in_pages
 
 logger = logging.getLogger(__name__)
-
-
-# ============================================================
-# Pagination Helpers
-# ============================================================
-
-
-def fetch_all_pages(
-    ctx,
-    list_func: Callable,
-    page_size: int = 50,
-    **kwargs,
-) -> list[dict[str, Any]]:
-    """Fetch all pages of results from a paginated endpoint.
-
-    Args:
-        ctx: Integration context
-        list_func: The MCP tool function to call (e.g., list_agent_peers)
-        page_size: Number of items per page
-        **kwargs: Additional arguments to pass to the list function
-
-    Returns:
-        List of all items across all pages
-    """
-    all_items = []
-    page = 1
-
-    while True:
-        result = list_func(ctx, page=page, page_size=page_size, **kwargs)
-        parsed = json.loads(result)
-
-        items = parsed.get("data", [])
-        all_items.extend(items)
-
-        # Check if there are more pages
-        metadata = parsed.get("metadata", {})
-        total_pages = metadata.get("total_pages", 1)
-
-        if page >= total_pages:
-            break
-        page += 1
-
-    return all_items
-
-
-def find_item_in_pages(
-    ctx,
-    list_func: Callable,
-    predicate: Callable[[dict], bool],
-    page_size: int = 50,
-    **kwargs,
-) -> dict[str, Any] | None:
-    """Search through paginated results to find an item matching a predicate.
-
-    Args:
-        ctx: Integration context
-        list_func: The MCP tool function to call
-        predicate: Function that returns True for the desired item
-        page_size: Number of items per page
-        **kwargs: Additional arguments to pass to the list function
-
-    Returns:
-        The matching item or None if not found
-    """
-    page = 1
-
-    while True:
-        result = list_func(ctx, page=page, page_size=page_size, **kwargs)
-        parsed = json.loads(result)
-
-        items = parsed.get("data", [])
-        for item in items:
-            if predicate(item):
-                return item
-
-        metadata = parsed.get("metadata", {})
-        total_pages = metadata.get("total_pages", 1)
-
-        if page >= total_pages:
-            break
-        page += 1
-
-    return None
-
-
-def item_exists_in_pages(
-    ctx,
-    list_func: Callable,
-    item_id: str,
-    page_size: int = 50,
-    **kwargs,
-) -> bool:
-    """Check if an item with given ID exists in paginated results.
-
-    Args:
-        ctx: Integration context
-        list_func: The MCP tool function to call
-        item_id: The ID to search for
-        page_size: Number of items per page
-        **kwargs: Additional arguments to pass to the list function
-
-    Returns:
-        True if item exists, False otherwise
-    """
-    return (
-        find_item_in_pages(
-            ctx, list_func, lambda item: item.get("id") == item_id, page_size, **kwargs
-        )
-        is not None
-    )
 
 
 def fetch_all_context(

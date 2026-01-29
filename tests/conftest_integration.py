@@ -8,33 +8,23 @@ Run integration tests:
 
 Skip integration tests (run only unit tests):
     uv run pytest tests/ --ignore=tests/integration/
-
-To override .env.test values, set environment variables:
-    THENVOI_API_KEY="your-key" uv run pytest tests/integration/ -v
 """
 
 from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from thenvoi_rest import RestClient
 
 from thenvoi_mcp.shared import AppContext
+from thenvoi_testing.markers import skip_without_env
+from thenvoi_testing.settings import ThenvoiTestSettings
 
 
-class TestSettings(BaseSettings):
+class TestSettings(ThenvoiTestSettings):
     """Settings for integration tests, loaded from .env.test."""
 
-    thenvoi_api_key: str = ""
-    thenvoi_base_url: str = "http://localhost:4000"
-    test_agent_id: str = ""
-
-    model_config = SettingsConfigDict(
-        env_file=Path(__file__).parent.parent / ".env.test",
-        case_sensitive=False,
-        extra="ignore",
-    )
+    _env_file_path: Path = Path(__file__).parent.parent / ".env.test"
 
 
 # Load settings from .env.test
@@ -54,9 +44,7 @@ def get_test_agent_id() -> str | None:
 
 
 # Skip marker for integration tests
-requires_api = pytest.mark.skipif(
-    not get_api_key(), reason="THENVOI_API_KEY environment variable not set"
-)
+requires_api = skip_without_env("THENVOI_API_KEY")
 
 
 @dataclass

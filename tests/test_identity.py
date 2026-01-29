@@ -3,7 +3,7 @@
 import json
 
 
-from tests.fixtures import factory
+from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_identity import get_agent_me, list_agent_peers
 
 
