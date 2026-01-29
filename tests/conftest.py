@@ -1,10 +1,10 @@
-"""Shared fixtures for unit tests.
+"""Pytest configuration for thenvoi-mcp tests.
 
-These tests use mocked API responses and do not require a running API server.
+Fixtures from thenvoi-testing-python are auto-loaded via pytest entry point.
 """
 
 from dataclasses import dataclass
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -28,21 +28,6 @@ class MockContext:
 
 
 @pytest.fixture
-def mock_agent_api() -> MagicMock:
-    """Create a mocked agent_api with all methods stubbed."""
-    agent_api = MagicMock()
-    return agent_api
-
-
-@pytest.fixture
-def mock_client(mock_agent_api: MagicMock) -> Mock:
-    """Create a mocked RestClient with agent_api attached."""
-    client = Mock()
-    client.agent_api = mock_agent_api
-    return client
-
-
-@pytest.fixture
-def mock_ctx(mock_client: Mock) -> MockContext:
+def mock_ctx(mock_api_client: Mock) -> MockContext:
     """Create a mock Context with a mocked API client for unit tests."""
-    return MockContext(client=mock_client)
+    return MockContext(client=mock_api_client)
