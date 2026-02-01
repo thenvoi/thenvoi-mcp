@@ -29,7 +29,7 @@ def mark_agent_message_processing(
     Returns:
         Success message confirming the message is marked as processing.
     """
-    logger.debug(f"Marking message {message_id} as processing in chat {chat_id}")
+    logger.debug("Marking message %s as processing in chat %s", message_id, chat_id)
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processing(
@@ -37,7 +37,7 @@ def mark_agent_message_processing(
         id=message_id,
     )
 
-    logger.info(f"Message marked as processing: {message_id}")
+    logger.info("Message marked as processing: %s", message_id)
     return serialize_response(result)
 
 
@@ -68,7 +68,7 @@ def mark_agent_message_processed(
     Returns:
         Success message confirming the message is marked as processed.
     """
-    logger.debug(f"Marking message {message_id} as processed in chat {chat_id}")
+    logger.debug("Marking message %s as processed in chat %s", message_id, chat_id)
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_processed(
@@ -76,7 +76,7 @@ def mark_agent_message_processed(
         id=message_id,
     )
 
-    logger.info(f"Message marked as processed: {message_id}")
+    logger.info("Message marked as processed: %s", message_id)
     return serialize_response(result)
 
 
@@ -109,7 +109,9 @@ def mark_agent_message_failed(
     Returns:
         Success message confirming the message is marked as failed.
     """
-    logger.debug(f"Marking message {message_id} as failed in chat {chat_id}: {error}")
+    logger.debug(
+        "Marking message %s as failed in chat %s: %s", message_id, chat_id, error
+    )
     client = get_app_context(ctx).client
 
     result = client.agent_api.mark_agent_message_failed(
@@ -118,5 +120,5 @@ def mark_agent_message_failed(
         error=error,
     )
 
-    logger.info(f"Message marked as failed: {message_id}")
+    logger.info("Message marked as failed: %s", message_id)
     return serialize_response(result)

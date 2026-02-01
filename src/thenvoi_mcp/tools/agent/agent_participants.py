@@ -27,11 +27,11 @@ def list_agent_chat_participants(
     Returns:
         JSON string containing the list of participants.
     """
-    logger.debug(f"Fetching participants for chat: {chat_id}")
+    logger.debug("Fetching participants for chat: %s", chat_id)
     client = get_app_context(ctx).client
     result = client.agent_api.list_agent_chat_participants(chat_id=chat_id)
     participant_count = len(result.data)
-    logger.info(f"Retrieved {participant_count} participants for chat: {chat_id}")
+    logger.info("Retrieved %s participants for chat: %s", participant_count, chat_id)
     return serialize_response(result)
 
 
@@ -63,7 +63,10 @@ def add_agent_chat_participant(
         Success message confirming the participant was added.
     """
     logger.debug(
-        f"Adding participant {participant_id} to chat {chat_id} with role {role or 'member'}"
+        "Adding participant %s to chat %s with role %s",
+        participant_id,
+        chat_id,
+        role or "member",
     )
     client = get_app_context(ctx).client
 
@@ -83,7 +86,7 @@ def add_agent_chat_participant(
     client.agent_api.add_agent_chat_participant(
         chat_id=chat_id, participant=participant
     )
-    logger.info(f"Participant added successfully: {participant_id}")
+    logger.info("Participant added successfully: %s", participant_id)
     return f"Participant added successfully: {participant_id}"
 
 
@@ -105,8 +108,8 @@ def remove_agent_chat_participant(
     Returns:
         Success message confirming the participant was removed.
     """
-    logger.debug(f"Removing participant {participant_id} from chat {chat_id}")
+    logger.debug("Removing participant %s from chat %s", participant_id, chat_id)
     client = get_app_context(ctx).client
     client.agent_api.remove_agent_chat_participant(chat_id=chat_id, id=participant_id)
-    logger.info(f"Participant removed successfully: {participant_id}")
+    logger.info("Participant removed successfully: %s", participant_id)
     return f"Participant removed successfully: {participant_id}"

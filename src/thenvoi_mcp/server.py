@@ -159,9 +159,9 @@ def run() -> None:
     if args.port is not None:
         mcp.settings.port = args.port
 
-    logger.info(f"Starting thenvoi-mcp-server v{__version__}")
-    logger.info(f"Base URL: {settings.thenvoi_base_url}")
-    logger.info(f"API key type: {key_type}")
+    logger.info("Starting thenvoi-mcp-server v%s", __version__)
+    logger.info("Base URL: %s", settings.thenvoi_base_url)
+    logger.info("API key type: %s", key_type)
 
     if transport == "stdio":
         logger.info("Transport: STDIO (for IDE integration)")
@@ -171,7 +171,7 @@ def run() -> None:
         host = args.host or settings.host
         port = args.port or settings.port
         logger.info("Transport: SSE (HTTP server mode)")
-        logger.info(f"Server ready - listening on http://{host}:{port}")
+        logger.info("Server ready - listening on http://%s:%s", host, port)
         logger.info("SSE endpoint: /sse | Messages endpoint: /messages/")
         mcp.run(transport="sse")
 

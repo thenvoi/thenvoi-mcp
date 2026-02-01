@@ -33,7 +33,7 @@ def list_agent_chats(
         page_size=page_size,
     )
     chat_count = len(result.data)
-    logger.info(f"Retrieved {chat_count} chats")
+    logger.info("Retrieved %s chats", chat_count)
     return serialize_response(result)
 
 
@@ -50,10 +50,10 @@ def get_agent_chat(ctx: AppContextType, chat_id: str) -> str:
     Returns:
         JSON string containing the chat room details.
     """
-    logger.debug(f"Fetching chat with ID: {chat_id}")
+    logger.debug("Fetching chat with ID: %s", chat_id)
     client = get_app_context(ctx).client
     result = client.agent_api.get_agent_chat(id=chat_id)
-    logger.info(f"Retrieved chat: {chat_id}")
+    logger.info("Retrieved chat: %s", chat_id)
     return serialize_response(result)
 
 
@@ -81,5 +81,5 @@ def create_agent_chat(
 
     result = client.agent_api.create_agent_chat(chat=chat_request)
 
-    logger.info(f"Chat room created successfully: {result.data.id}")
+    logger.info("Chat room created successfully: %s", result.data.id)
     return serialize_response(result)
