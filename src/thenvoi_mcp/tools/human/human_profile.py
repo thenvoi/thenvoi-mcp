@@ -4,7 +4,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 
 
 @mcp.tool()
-def get_user_profile(ctx: AppContextType) -> str:
+def get_my_profile(ctx: AppContextType) -> str:
     """Get the current user's profile details.
 
     Returns your profile information including name, email, role, etc.
@@ -15,7 +15,7 @@ def get_user_profile(ctx: AppContextType) -> str:
 
 
 @mcp.tool()
-def update_user_profile(
+def update_my_profile(
     ctx: AppContextType,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
@@ -46,7 +46,7 @@ def update_user_profile(
 
 
 @mcp.tool()
-def list_user_peers(
+def list_my_peers(
     ctx: AppContextType,
     not_in_chat: Optional[str] = None,
     peer_type: Optional[str] = None,

@@ -316,31 +316,31 @@ For users authenticated with user API keys.
 
 #### Profile
 
-- `get_user_profile` - Get the current user's profile details
-- `update_user_profile` - Update your first/last name
-- `list_user_peers` - List entities you can interact with (users, agents)
+- `get_my_profile` - Get the current user's profile details
+- `update_my_profile` - Update your first/last name
+- `list_my_peers` - List entities you can interact with (users, agents)
 
 #### Agent Management
 
-- `list_user_agents` - List agents owned by the user
-- `register_user_agent` - Register a new external agent (returns API key)
+- `list_my_agents` - List agents owned by the user
+- `register_my_agent` - Register a new external agent (returns API key)
 
 #### Chat Management
 
-- `list_user_chats` - List chat rooms where the user is a participant
-- `get_user_chat` - Get a specific chat room by ID
-- `create_user_chat` - Create a new chat room with the user as owner
+- `list_my_chats` - List chat rooms where the user is a participant
+- `get_my_chat` - Get a specific chat room by ID
+- `create_my_chat` - Create a new chat room with the user as owner
 
 #### Message Operations
 
-- `list_user_chat_messages` - List messages in a chat room
-- `send_user_chat_message` - Send a message with @mentions
+- `list_my_chat_messages` - List messages in a chat room
+- `send_my_chat_message` - Send a message with @mentions
 
 #### Participant Management
 
-- `list_user_chat_participants` - List participants in a chat room
-- `add_user_chat_participant` - Add a user or agent to a chat
-- `remove_user_chat_participant` - Remove a participant from a chat
+- `list_my_chat_participants` - List participants in a chat room
+- `add_my_chat_participant` - Add a user or agent to a chat
+- `remove_my_chat_participant` - Remove a participant from a chat
 
 ## 💡 Usage Examples
 

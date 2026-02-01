@@ -6,7 +6,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 
 
 @mcp.tool()
-def list_user_chats(
+def list_my_chats(
     ctx: AppContextType,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
@@ -23,7 +23,7 @@ def list_user_chats(
 
 
 @mcp.tool()
-def get_user_chat(ctx: AppContextType, chat_id: str) -> str:
+def get_my_chat(ctx: AppContextType, chat_id: str) -> str:
     """Get a specific chat room by ID.
 
     Args:
@@ -35,7 +35,7 @@ def get_user_chat(ctx: AppContextType, chat_id: str) -> str:
 
 
 @mcp.tool()
-def create_user_chat(ctx: AppContextType, task_id: Optional[str] = None) -> str:
+def create_my_chat(ctx: AppContextType, task_id: Optional[str] = None) -> str:
     """Create a new chat room with the user as owner.
 
     Args:

@@ -7,7 +7,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 
 
 @mcp.tool()
-def list_user_chat_messages(
+def list_my_chat_messages(
     ctx: AppContextType,
     chat_id: str,
     page: Optional[int] = None,
@@ -41,7 +41,7 @@ def list_user_chat_messages(
 
 
 @mcp.tool()
-def send_user_chat_message(
+def send_my_chat_message(
     ctx: AppContextType,
     chat_id: str,
     content: str,
