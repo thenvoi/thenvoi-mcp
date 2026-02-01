@@ -6,7 +6,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 
 
 @mcp.tool()
-def list_user_agents(
+def list_my_agents(
     ctx: AppContextType,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
@@ -23,7 +23,7 @@ def list_user_agents(
 
 
 @mcp.tool()
-def register_user_agent(
+def register_my_agent(
     ctx: AppContextType,
     name: str,
     description: Optional[str] = None,

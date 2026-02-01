@@ -6,7 +6,7 @@ from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_r
 
 
 @mcp.tool()
-def list_user_chat_participants(
+def list_my_chat_participants(
     ctx: AppContextType,
     chat_id: str,
     participant_type: Optional[str] = None,
@@ -25,7 +25,7 @@ def list_user_chat_participants(
 
 
 @mcp.tool()
-def add_user_chat_participant(
+def add_my_chat_participant(
     ctx: AppContextType,
     chat_id: str,
     participant_id: str,
@@ -48,7 +48,7 @@ def add_user_chat_participant(
 
 
 @mcp.tool()
-def remove_user_chat_participant(
+def remove_my_chat_participant(
     ctx: AppContextType,
     chat_id: str,
     participant_id: str,
