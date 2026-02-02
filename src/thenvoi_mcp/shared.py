@@ -14,10 +14,10 @@ from thenvoi_mcp.config import settings
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     stream=sys.stderr,
 )
-logger = logging.getLogger("thenvoi-mcp")
+logger = logging.getLogger(__name__)
 
 
 @dataclass

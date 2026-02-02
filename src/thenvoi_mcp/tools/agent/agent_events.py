@@ -95,7 +95,7 @@ def create_agent_chat_event(
             message_type="thought"
         )
     """
-    logger.debug(f"Creating event in chat: {chat_id}, type: {message_type}")
+    logger.debug("Creating event in chat: %s, type: %s", chat_id, message_type)
     client = get_app_context(ctx).client
 
     # Validate message type
@@ -128,5 +128,5 @@ def create_agent_chat_event(
         event=event_request,
     )
 
-    logger.info(f"Event created successfully: {result.data.id}")
+    logger.info("Event created successfully: %s", result.data.id)
     return serialize_response(result)

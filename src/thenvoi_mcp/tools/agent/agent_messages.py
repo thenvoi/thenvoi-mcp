@@ -37,7 +37,7 @@ def get_agent_chat_context(
     Returns:
         JSON string containing the agent's conversation context with messages.
     """
-    logger.debug(f"Fetching agent context for chat: {chat_id}")
+    logger.debug("Fetching agent context for chat: %s", chat_id)
     client = get_app_context(ctx).client
     result = client.agent_api.get_agent_chat_context(
         chat_id=chat_id,
@@ -45,7 +45,7 @@ def get_agent_chat_context(
         page_size=page_size,
     )
     message_count = len(result.data)
-    logger.info(f"Retrieved {message_count} context messages for chat: {chat_id}")
+    logger.info("Retrieved %s context messages for chat: %s", message_count, chat_id)
     return serialize_response(result)
 
 
@@ -101,7 +101,7 @@ def create_agent_chat_message(
             mentions='[{"id": "uuid-456", "name": "weather agent"}]'
         )
     """
-    logger.debug(f"Creating message in chat: {chat_id}")
+    logger.debug("Creating message in chat: %s", chat_id)
     client = get_app_context(ctx).client
 
     mentions_list: List[ChatMessageRequestMentionsItem] = []
@@ -188,5 +188,5 @@ def create_agent_chat_message(
         message=message_request,
     )
 
-    logger.info(f"Message sent successfully: {result.data.id}")
+    logger.info("Message sent successfully: %s", result.data.id)
     return serialize_response(result)

@@ -20,7 +20,7 @@ def get_agent_me(ctx: AppContextType) -> str:
     logger.debug("Fetching agent profile")
     client = get_app_context(ctx).client
     result = client.agent_api.get_agent_me()
-    logger.info(f"Retrieved agent profile: {result.data.name}")
+    logger.info("Retrieved agent profile: %s", result.data.name)
     return serialize_response(result)
 
 
@@ -55,5 +55,5 @@ def list_agent_peers(
         page_size=page_size,
     )
     peer_count = len(result.data)
-    logger.info(f"Retrieved {peer_count} peers")
+    logger.info("Retrieved %s peers", peer_count)
     return serialize_response(result)
