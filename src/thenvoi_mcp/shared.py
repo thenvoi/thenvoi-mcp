@@ -8,6 +8,7 @@ from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+from mcp.server.transport_security import TransportSecuritySettings
 from thenvoi_rest import RestClient
 
 from thenvoi_mcp.config import settings
@@ -73,9 +74,16 @@ def serialize_response(result: Any, **kwargs: Any) -> str:
     return json.dumps(result, indent=2, default=str)
 
 
+transport_security = TransportSecuritySettings(
+    enable_dns_rebinding_protection=settings.enable_dns_rebinding_protection,
+    allowed_hosts=settings.allowed_hosts,
+    allowed_origins=settings.allowed_origins,
+)
+
 mcp = FastMCP(
     name="thenvoi-mcp-server",
     lifespan=app_lifespan,
     host=settings.host,
     port=settings.port,
+    transport_security=transport_security,
 )
