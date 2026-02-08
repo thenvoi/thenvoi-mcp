@@ -80,6 +80,16 @@ transport_security = TransportSecuritySettings(
     allowed_origins=settings.allowed_origins,
 )
 
+if (
+    settings.transport == "sse"
+    and settings.enable_dns_rebinding_protection
+    and not settings.allowed_hosts
+):
+    logger.warning(
+        "DNS rebinding protection enabled with empty ALLOWED_HOSTS. "
+        "All SSE requests will be blocked. Configure ALLOWED_HOSTS to allow connections."
+    )
+
 mcp = FastMCP(
     name="thenvoi-mcp-server",
     lifespan=app_lifespan,
