@@ -47,3 +47,4 @@ htmlcov/
 
 # uv
 .python-version
+.claude/
