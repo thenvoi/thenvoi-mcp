@@ -64,6 +64,22 @@ uv run pre-commit run --all-files
 - `HOST`: SSE host (default: 127.0.0.1)
 - `PORT`: SSE port (default: 8000)
 
+### Transport Security (DNS Rebinding Protection)
+
+- `ENABLE_DNS_REBINDING_PROTECTION`: Enable DNS rebinding protection (default: true)
+- `ALLOWED_HOSTS`: JSON array of allowed Host header values (default: [])
+- `ALLOWED_ORIGINS`: JSON array of allowed Origin header values (default: [])
+
+**Important for Docker/remote deployments:** When `ENABLE_DNS_REBINDING_PROTECTION=true` (default),
+requests are rejected unless the Host header matches an entry in `ALLOWED_HOSTS`.
+
+```bash
+# Whitelist specific hosts for Docker/remote deployments
+ALLOWED_HOSTS='["localhost:*","127.0.0.1:*","host.docker.internal:*"]'
+```
+
+Wildcard port matching is supported: `"localhost:*"` matches `localhost:8000`, `localhost:3000`, etc.
+
 ## Git Workflow
 
 - Default branch: `develop` (PRs target here)
