@@ -80,7 +80,9 @@ class TestAddAgentContact:
 
         result = add_agent_contact(mock_ctx, handle="alice")
 
-        mock_agent_api.add_agent_contact.assert_called_once_with(handle="alice")
+        mock_agent_api.add_agent_contact.assert_called_once_with(
+            handle="alice", message=None
+        )
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "pending"
 
@@ -108,7 +110,9 @@ class TestRemoveAgentContact:
 
         result = remove_agent_contact(mock_ctx, contact_id="c-123")
 
-        mock_agent_api.remove_agent_contact.assert_called_once_with(contact_id="c-123")
+        mock_agent_api.remove_agent_contact.assert_called_once_with(
+            contact_id="c-123", handle=None
+        )
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "removed"
 
@@ -120,12 +124,27 @@ class TestRemoveAgentContact:
 
         remove_agent_contact(mock_ctx, handle="alice")
 
-        mock_agent_api.remove_agent_contact.assert_called_once_with(handle="alice")
+        mock_agent_api.remove_agent_contact.assert_called_once_with(
+            contact_id=None, handle="alice"
+        )
 
     def test_requires_contact_id_or_handle(self, mock_ctx):
         """Test validation when neither contact_id nor handle is provided."""
         with pytest.raises(ValueError, match="Either contact_id or handle"):
             remove_agent_contact(mock_ctx)
+
+    def test_both_contact_id_and_handle_sends_both(self, mock_ctx, mock_agent_api):
+        """Test that providing both contact_id and handle passes both to the API."""
+        mock_agent_api.remove_agent_contact.return_value = MagicMock(
+            model_dump=lambda **kw: {"data": {"status": "removed"}}
+        )
+
+        remove_agent_contact(mock_ctx, contact_id="c-123", handle="alice")
+
+        mock_agent_api.remove_agent_contact.assert_called_once_with(
+            contact_id="c-123",
+            handle="alice",
+        )
 
 
 class TestListAgentContactRequests:
@@ -196,7 +215,7 @@ class TestRespondToAgentContactRequest:
         )
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="approve", handle="alice"
+            action="approve", handle="alice", request_id=None
         )
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "approved"
@@ -212,7 +231,7 @@ class TestRespondToAgentContactRequest:
         )
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="reject", request_id="req-456"
+            action="reject", handle=None, request_id="req-456"
         )
 
     def test_cancel_by_handle(self, mock_ctx, mock_agent_api):
@@ -224,7 +243,7 @@ class TestRespondToAgentContactRequest:
         respond_to_agent_contact_request(mock_ctx, action="cancel", handle="bob")
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="cancel", handle="bob"
+            action="cancel", handle="bob", request_id=None
         )
 
     def test_requires_handle_or_request_id(self, mock_ctx):

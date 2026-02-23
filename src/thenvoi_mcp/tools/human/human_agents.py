@@ -26,7 +26,7 @@ def list_my_agents(
 def register_my_agent(
     ctx: AppContextType,
     name: str,
-    description: str = "",
+    description: str,
 ) -> str:
     """Register a new external agent.
 

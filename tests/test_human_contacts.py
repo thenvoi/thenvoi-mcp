@@ -251,7 +251,9 @@ class TestRemoveMyContact:
 
         result = remove_my_contact(mock_ctx, contact_id="c-123")
 
-        mock_human_api.remove_my_contact.assert_called_once_with(contact_id="c-123")
+        mock_human_api.remove_my_contact.assert_called_once_with(
+            contact_id="c-123", handle=None
+        )
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "removed"
 
@@ -263,9 +265,24 @@ class TestRemoveMyContact:
 
         remove_my_contact(mock_ctx, handle="alice")
 
-        mock_human_api.remove_my_contact.assert_called_once_with(handle="alice")
+        mock_human_api.remove_my_contact.assert_called_once_with(
+            contact_id=None, handle="alice"
+        )
 
     def test_requires_contact_id_or_handle(self, mock_ctx):
         """Test validation when neither contact_id nor handle is provided."""
         with pytest.raises(ValueError, match="Either contact_id or handle"):
             remove_my_contact(mock_ctx)
+
+    def test_both_contact_id_and_handle_sends_both(self, mock_ctx, mock_human_api):
+        """Test that providing both contact_id and handle passes both to the API."""
+        mock_human_api.remove_my_contact.return_value = MagicMock(
+            model_dump=lambda **kw: {"data": {"status": "removed"}}
+        )
+
+        remove_my_contact(mock_ctx, contact_id="c-123", handle="alice")
+
+        mock_human_api.remove_my_contact.assert_called_once_with(
+            contact_id="c-123",
+            handle="alice",
+        )
