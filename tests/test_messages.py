@@ -2,8 +2,6 @@
 
 import json
 
-import pytest
-
 from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_messages import (
     create_agent_chat_message,
@@ -214,37 +212,42 @@ class TestCreateAgentChatMessage:
         # Should NOT call list_agent_chat_participants when mentions is provided
         mock_agent_api.list_agent_chat_participants.assert_not_called()
 
-    def test_raises_when_no_recipients_or_mentions(self, mock_ctx, mock_agent_api):
+    def test_returns_error_when_no_recipients_or_mentions(
+        self, mock_ctx, mock_agent_api
+    ):
         """Test error when neither recipients nor mentions is provided."""
-        with pytest.raises(ValueError, match="Missing recipients or mentions"):
-            create_agent_chat_message(mock_ctx, chat_id="chat-123", content="Hello!")
+        result = create_agent_chat_message(
+            mock_ctx, chat_id="chat-123", content="Hello!"
+        )
+        assert "Error" in result
+        assert "Missing recipients or mentions" in result
 
-    def test_raises_on_invalid_mentions_json(self, mock_ctx, mock_agent_api):
+    def test_returns_error_on_invalid_mentions_json(self, mock_ctx, mock_agent_api):
         """Test error handling for invalid JSON in mentions."""
-        with pytest.raises(ValueError, match="Invalid JSON for mentions"):
-            create_agent_chat_message(
-                mock_ctx,
-                chat_id="chat-123",
-                content="Hello!",
-                mentions="not valid json",
-            )
+        result = create_agent_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            mentions="not valid json",
+        )
+        assert "Error" in result
+        assert "Invalid JSON for mentions" in result
 
-    def test_raises_when_recipient_not_found(self, mock_ctx, mock_agent_api):
+    def test_returns_error_when_recipient_not_found(self, mock_ctx, mock_agent_api):
         """Test error when recipient name doesn't match any participant."""
         participant = factory.chat_participant(name="Existing Agent")
         mock_agent_api.list_agent_chat_participants.return_value = (
             factory.list_response([participant])
         )
 
-        with pytest.raises(
-            ValueError, match="Could not find participants: unknown agent"
-        ):
-            create_agent_chat_message(
-                mock_ctx,
-                chat_id="chat-123",
-                content="Hello!",
-                recipients="unknown agent",
-            )
+        result = create_agent_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            recipients="unknown agent",
+        )
+        assert "Error" in result
+        assert "Could not find participants: unknown agent" in result
 
     def test_multiple_recipients(self, mock_ctx, mock_agent_api):
         """Test message with multiple comma-separated recipients."""

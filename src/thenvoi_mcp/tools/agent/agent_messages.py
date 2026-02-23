@@ -209,9 +209,9 @@ def create_agent_chat_message(
                 for m in parsed_mentions
             ]
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for mentions: {str(e)}")
+            return f"Error: Invalid JSON for mentions: {str(e)}"
         except KeyError as e:
-            raise ValueError(f"Missing required field in mentions: {str(e)}")
+            return f"Error: Missing required field in mentions: {str(e)}"
 
     # Option 2: Resolve names to IDs (LLM-friendly path)
     elif recipients:
@@ -220,7 +220,7 @@ def create_agent_chat_message(
         ]
 
         if not recipient_names:
-            raise ValueError("recipients cannot be empty")
+            return "Error: recipients cannot be empty"
 
         # Fetch participants to map names to IDs
         participants_response = (
@@ -258,15 +258,15 @@ def create_agent_chat_message(
 
         if not_found:
             available_names = list(name_to_participant.keys())
-            raise ValueError(
-                f"Could not find participants: {', '.join(not_found)}. "
+            return (
+                f"Error: Could not find participants: {', '.join(not_found)}. "
                 f"Available participants: {', '.join(available_names)}"
             )
 
     # Neither provided - error with helpful guidance
     else:
-        raise ValueError(
-            f"Missing recipients or mentions. To send a message, specify who to tag. "
+        return (
+            f"Error: Missing recipients or mentions. To send a message, specify who to tag. "
             f'Use recipients=\'name1,name2\' (names) or mentions=\'[{{"id":"uuid","name":"display_name"}}]\' (IDs). '
             f"Call list_agent_chat_participants(chat_id='{chat_id}') to see available participants."
         )
