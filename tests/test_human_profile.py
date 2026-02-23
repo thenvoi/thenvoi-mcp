@@ -3,8 +3,6 @@
 import json
 from unittest.mock import MagicMock
 
-import pytest
-
 from thenvoi_mcp.tools.human.human_profile import (
     get_my_profile,
     list_my_peers,
@@ -79,10 +77,11 @@ class TestUpdateMyProfile:
         call_args = mock_human_api.update_my_profile.call_args
         assert call_args.kwargs["user"] == {"first_name": "Bob", "last_name": "Jones"}
 
-    def test_raises_when_no_fields_provided(self, mock_ctx):
+    def test_returns_error_when_no_fields_provided(self, mock_ctx):
         """Test error when neither first_name nor last_name is provided."""
-        with pytest.raises(ValueError, match="At least one field"):
-            update_my_profile(mock_ctx)
+        result = update_my_profile(mock_ctx)
+        assert "Error" in result
+        assert "At least one field" in result
 
 
 class TestListMyPeers:
