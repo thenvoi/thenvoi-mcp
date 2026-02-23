@@ -13,6 +13,98 @@ logger = logging.getLogger(__name__)
 
 
 @mcp.tool()
+def list_agent_messages(
+    ctx: AppContextType,
+    chat_id: str,
+    status: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+) -> str:
+    """List messages that the agent needs to process, filtered by status.
+
+    Default behavior (no status): Returns all messages that are NOT processed.
+    This is the recommended way to get all work the agent should handle, including
+    new, delivered, processing (stuck/crashed), and failed messages.
+
+    Status filter options:
+    - (no param): Everything NOT processed - get all work to do
+    - "pending": No status, delivered, or failed without active attempt - queue depth
+    - "processing": Currently being processed - in-flight work
+    - "processed": Successfully completed - done items
+    - "failed": Failed only - failure backlog
+    - "all": All messages regardless of status - full history
+
+    Messages are returned in chronological order (oldest first).
+
+    Workflow after retrieving messages:
+    1. Get messages via this tool or get_agent_next_message
+    2. Call mark_agent_message_processing before starting work
+    3. Process the message
+    4. Call mark_agent_message_processed or mark_agent_message_failed
+
+    Args:
+        chat_id: The unique identifier of the chat room (required).
+        status: Filter by processing status (optional, default: all actionable).
+        page: Page number for pagination (optional).
+        page_size: Items per page (optional, default: 20, max: 100).
+
+    Returns:
+        JSON string containing the list of messages.
+    """
+    logger.debug("Listing agent messages for chat: %s (status=%s)", chat_id, status)
+    client = get_app_context(ctx).client
+    result = client.agent_api.list_agent_messages(
+        chat_id=chat_id,
+        status=status,
+        page=page,
+        page_size=page_size,
+    )
+    message_count = len(result.data)
+    logger.info("Retrieved %s messages for chat: %s", message_count, chat_id)
+    return serialize_response(result)
+
+
+@mcp.tool()
+def get_agent_next_message(
+    ctx: AppContextType,
+    chat_id: str,
+) -> str:
+    """Get the next message that needs processing.
+
+    Returns the single oldest message that is NOT processed, including
+    new, delivered, processing (stuck/crashed), and failed messages.
+
+    Returns empty result if there are no messages to process.
+
+    This is the primary endpoint for agent reasoning loops:
+    1. Call this tool to get the next work item
+    2. Call mark_agent_message_processing to claim the message
+    3. Process the message (reasoning, tool calls, etc.)
+    4. Call mark_agent_message_processed or mark_agent_message_failed
+    5. Loop back to step 1
+
+    Crash recovery: If the agent crashes while processing, the message stays
+    in "processing" state. When restarted, calling this tool returns that same
+    stuck message (oldest first), allowing the agent to reclaim and retry it.
+
+    Difference from list_agent_messages:
+    - list_agent_messages returns ALL actionable messages (batch processing)
+    - get_agent_next_message returns ONE message (sequential processing loops)
+
+    Args:
+        chat_id: The unique identifier of the chat room (required).
+
+    Returns:
+        JSON string containing the next message to process, or empty if none.
+    """
+    logger.debug("Getting next message for chat: %s", chat_id)
+    client = get_app_context(ctx).client
+    result = client.agent_api.get_agent_next_message(chat_id=chat_id)
+    logger.info("Next message retrieved for chat: %s", chat_id)
+    return serialize_response(result)
+
+
+@mcp.tool()
 def get_agent_chat_context(
     ctx: AppContextType,
     chat_id: str,

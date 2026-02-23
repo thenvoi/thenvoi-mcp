@@ -1,4 +1,4 @@
-"""Unit tests for message tools (get_agent_chat_context, create_agent_chat_message)."""
+"""Unit tests for message tools (list_agent_messages, get_agent_next_message, get_agent_chat_context, create_agent_chat_message)."""
 
 import json
 
@@ -8,7 +8,97 @@ from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_messages import (
     create_agent_chat_message,
     get_agent_chat_context,
+    get_agent_next_message,
+    list_agent_messages,
 )
+
+
+class TestListAgentMessages:
+    """Tests for list_agent_messages tool."""
+
+    def test_returns_messages(self, mock_ctx, mock_agent_api):
+        """Test successful retrieval of messages."""
+        chat_id = "chat-123"
+        messages = [
+            factory.chat_message(content="Hello", message_type="text"),
+            factory.chat_message(content="Help me", message_type="text"),
+        ]
+        mock_agent_api.list_agent_messages.return_value = factory.list_response(
+            messages
+        )
+
+        result = list_agent_messages(mock_ctx, chat_id=chat_id)
+
+        mock_agent_api.list_agent_messages.assert_called_once_with(
+            chat_id=chat_id,
+            status=None,
+            page=None,
+            page_size=None,
+        )
+        parsed = json.loads(result)
+        assert len(parsed["data"]) == 2
+
+    def test_status_filter(self, mock_ctx, mock_agent_api):
+        """Test filtering messages by status."""
+        mock_agent_api.list_agent_messages.return_value = factory.list_response([])
+
+        list_agent_messages(mock_ctx, chat_id="chat-123", status="pending")
+
+        mock_agent_api.list_agent_messages.assert_called_once_with(
+            chat_id="chat-123",
+            status="pending",
+            page=None,
+            page_size=None,
+        )
+
+    def test_pagination_parameters(self, mock_ctx, mock_agent_api):
+        """Test pagination parameters are passed through."""
+        mock_agent_api.list_agent_messages.return_value = factory.list_response([])
+
+        list_agent_messages(mock_ctx, chat_id="chat-123", page=2, page_size=25)
+
+        mock_agent_api.list_agent_messages.assert_called_once_with(
+            chat_id="chat-123",
+            status=None,
+            page=2,
+            page_size=25,
+        )
+
+    def test_empty_messages(self, mock_ctx, mock_agent_api):
+        """Test handling of empty message list."""
+        mock_agent_api.list_agent_messages.return_value = factory.list_response([])
+
+        result = list_agent_messages(mock_ctx, chat_id="empty-chat")
+
+        parsed = json.loads(result)
+        assert parsed["data"] == []
+
+
+class TestGetAgentNextMessage:
+    """Tests for get_agent_next_message tool."""
+
+    def test_returns_next_message(self, mock_ctx, mock_agent_api):
+        """Test successful retrieval of next message."""
+        chat_id = "chat-123"
+        message = factory.chat_message(id="msg-456", content="Process me")
+        mock_agent_api.get_agent_next_message.return_value = factory.response(message)
+
+        result = get_agent_next_message(mock_ctx, chat_id=chat_id)
+
+        mock_agent_api.get_agent_next_message.assert_called_once_with(
+            chat_id=chat_id,
+        )
+        parsed = json.loads(result)
+        assert parsed["data"]["id"] == "msg-456"
+
+    def test_returns_empty_when_no_messages(self, mock_ctx, mock_agent_api):
+        """Test handling when no messages need processing."""
+        mock_agent_api.get_agent_next_message.return_value = factory.response(None)
+
+        result = get_agent_next_message(mock_ctx, chat_id="empty-chat")
+
+        parsed = json.loads(result)
+        assert parsed["data"] is None
 
 
 class TestGetAgentChatContext:
