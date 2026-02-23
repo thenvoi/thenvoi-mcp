@@ -149,6 +149,17 @@ class TestSendMyChatMessage:
         mentions = call_args.kwargs["message"].mentions
         assert len(mentions) == 2
 
+    def test_returns_error_on_empty_recipients_string(self, mock_ctx, mock_human_api):
+        """Test error when recipients is whitespace/commas only."""
+        result = send_my_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            recipients=", ,",
+        )
+        assert "Error" in result
+        assert "recipients cannot be empty" in result
+
     def test_resolves_by_username(self, mock_ctx, mock_human_api):
         """Test that participants can be matched by username."""
         participant = SimpleNamespace(id="user-1", name=None, username="jdoe")

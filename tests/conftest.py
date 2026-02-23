@@ -12,6 +12,43 @@ import pytest
 from thenvoi_mcp.shared import AppContext
 
 
+def _assert_no_method_name_collisions() -> None:
+    """Verify method names are unique within agent and human namespace groups.
+
+    The shared mock strategy in mock_api_client maps all agent namespaces to
+    one MagicMock and all human namespaces to another. If two namespaces in the
+    same group ever share a method name, tests would silently pass with wrong
+    assertions. This check runs at import time to fail fast.
+    """
+    from thenvoi_rest import RestClient
+
+    client = RestClient(api_key="dummy", base_url="http://localhost")
+
+    for prefix in ("agent_api_", "human_api_"):
+        method_to_namespace: dict[str, str] = {}
+        for attr_name in dir(client):
+            if not attr_name.startswith(prefix):
+                continue
+            obj = getattr(client, attr_name)
+            methods = [
+                m
+                for m in dir(obj)
+                if not m.startswith("_") and callable(getattr(obj, m))
+            ]
+            for method in methods:
+                if method in method_to_namespace:
+                    raise AssertionError(
+                        f"Method name collision: '{method}' exists in both "
+                        f"'{method_to_namespace[method]}' and '{attr_name}'. "
+                        f"The shared mock strategy in conftest.py is no longer safe. "
+                        f"Split into per-namespace mock objects."
+                    )
+                method_to_namespace[method] = attr_name
+
+
+_assert_no_method_name_collisions()
+
+
 @dataclass
 class MockRequestContext:
     """Mock request context for testing."""

@@ -60,6 +60,9 @@ def send_my_chat_message(
         name.strip().lower() for name in recipients.split(",") if name.strip()
     ]
 
+    if not recipient_names:
+        return "Error: recipients cannot be empty"
+
     # Fetch participants to resolve names to IDs
     participants_response = client.human_api_participants.list_my_chat_participants(
         chat_id=chat_id
