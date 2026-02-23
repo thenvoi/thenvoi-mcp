@@ -69,7 +69,7 @@ class TestListMyChatMessages:
         )
 
     def test_since_parameter(self, mock_ctx, mock_human_api):
-        """Test since parameter is parsed and passed through."""
+        """Test since parameter is parsed and passed through as datetime."""
         mock_human_api.list_my_chat_messages.return_value = MagicMock(
             model_dump=lambda **kw: {"data": []}
         )
@@ -79,7 +79,11 @@ class TestListMyChatMessages:
         )
 
         call_args = mock_human_api.list_my_chat_messages.call_args
-        assert call_args.kwargs["since"] is not None
+        since_value = call_args.kwargs["since"]
+        assert since_value is not None
+        assert since_value.year == 2026
+        assert since_value.month == 1
+        assert since_value.day == 1
 
 
 class TestSendMyChatMessage:

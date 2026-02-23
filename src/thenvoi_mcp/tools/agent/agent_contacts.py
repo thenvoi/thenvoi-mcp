@@ -69,6 +69,7 @@ def remove_agent_contact(
     """Remove an existing contact.
 
     Removes a contact by either contact_id or handle. At least one must be provided.
+    If both are provided, both are sent to the API (contact_id takes precedence).
 
     Args:
         contact_id: The contact record ID (optional, provide this or handle).
