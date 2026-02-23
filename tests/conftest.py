@@ -35,6 +35,10 @@ def mock_api_client(mock_agent_api: MagicMock, mock_human_api: MagicMock) -> Asy
     Maps all new namespace properties to the shared mock_agent_api / mock_human_api
     MagicMock objects. Since method names are unique across namespaces, all existing
     test assertions work unchanged.
+
+    NOTE: This strategy assumes method names remain unique across namespaces.
+    If two namespaces ever share a method name, tests could silently pass with
+    wrong assertions. In that case, split into per-namespace mock objects.
     """
     client = AsyncMock()
 

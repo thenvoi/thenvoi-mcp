@@ -113,12 +113,6 @@ class TestSendMyChatMessage:
         parsed = json.loads(result)
         assert parsed["data"]["id"] == "msg-new"
 
-    def test_returns_error_when_no_recipients(self, mock_ctx):
-        """Test error when recipients is not provided."""
-        result = send_my_chat_message(mock_ctx, chat_id="chat-123", content="Hello!")
-        assert "Error" in result
-        assert "recipients is required" in result
-
     def test_returns_error_when_recipient_not_found(self, mock_ctx, mock_human_api):
         """Test error when recipient name doesn't match any participant."""
         participant = SimpleNamespace(id="agent-1", name="Existing Agent")

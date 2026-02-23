@@ -45,7 +45,7 @@ def send_my_chat_message(
     ctx: AppContextType,
     chat_id: str,
     content: str,
-    recipients: Optional[str] = None,
+    recipients: str,
 ) -> str:
     """Send a message in a chat room.
 
@@ -55,9 +55,6 @@ def send_my_chat_message(
         recipients: Comma-separated participant names to @mention (required).
     """
     client = get_app_context(ctx).client
-
-    if not recipients:
-        return "Error: recipients is required - specify who to @mention"
 
     recipient_names = [
         name.strip().lower() for name in recipients.split(",") if name.strip()
