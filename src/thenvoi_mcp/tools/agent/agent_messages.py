@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from thenvoi_rest import (
     ChatMessageRequest,
@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 def list_agent_messages(
     ctx: AppContextType,
     chat_id: str,
-    status: Optional[str] = None,
+    status: Optional[
+        Literal["pending", "processing", "processed", "failed", "all"]
+    ] = None,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
 ) -> str:

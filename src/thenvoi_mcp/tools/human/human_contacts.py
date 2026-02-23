@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Literal, Optional
 
 from thenvoi_rest import CreateContactRequestRequestContactRequest
 
@@ -94,7 +94,9 @@ def list_received_contact_requests(
 @mcp.tool()
 def list_sent_contact_requests(
     ctx: AppContextType,
-    status: Optional[str] = None,
+    status: Optional[
+        Literal["pending", "approved", "rejected", "cancelled", "all"]
+    ] = None,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
 ) -> str:

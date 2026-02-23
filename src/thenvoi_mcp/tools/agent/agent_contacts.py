@@ -95,7 +95,9 @@ def list_agent_contact_requests(
     ctx: AppContextType,
     page: Optional[int] = None,
     page_size: Optional[int] = None,
-    sent_status: Optional[str] = None,
+    sent_status: Optional[
+        Literal["pending", "approved", "rejected", "cancelled", "all"]
+    ] = None,
 ) -> str:
     """List the agent's contact requests (both sent and received).
 
