@@ -1,6 +1,8 @@
 """Unit tests for message tools (list_agent_messages, get_agent_next_message, get_agent_chat_context, create_agent_chat_message)."""
 
 import json
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_messages import (
@@ -290,3 +292,69 @@ class TestCreateAgentChatMessage:
         )
 
         mock_agent_api.create_agent_chat_message.assert_called_once()
+
+    def test_returns_error_on_mentions_missing_key(self, mock_ctx, mock_agent_api):
+        """Test error when mentions JSON is valid but missing required fields."""
+        result = create_agent_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            mentions='[{"id": "agent-456"}]',
+        )
+        assert "Error" in result
+        assert "Missing required field in mentions" in result
+
+    def test_returns_error_on_empty_recipients_string(self, mock_ctx, mock_agent_api):
+        """Test error when recipients is whitespace/commas only."""
+        result = create_agent_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            recipients=", ,",
+        )
+        assert "Error" in result
+        assert "recipients cannot be empty" in result
+
+    def test_resolves_participant_by_username(self, mock_ctx, mock_agent_api):
+        """Test that participants can be matched by username attribute."""
+        participant = SimpleNamespace(id="user-1", name=None, username="jdoe")
+        mock_agent_api.list_agent_chat_participants.return_value = MagicMock(
+            data=[participant]
+        )
+        message = factory.chat_message(id="msg-789")
+        mock_agent_api.create_agent_chat_message.return_value = factory.response(
+            message
+        )
+
+        create_agent_chat_message(
+            mock_ctx, chat_id="chat-123", content="Hello!", recipients="jdoe"
+        )
+
+        mock_agent_api.create_agent_chat_message.assert_called_once()
+        call_args = mock_agent_api.create_agent_chat_message.call_args
+        mention = call_args.kwargs["message"].mentions[0]
+        assert mention.id == "user-1"
+        assert mention.name == "jdoe"
+
+    def test_resolves_participant_by_display_name(self, mock_ctx, mock_agent_api):
+        """Test that participants can be matched by display_name attribute."""
+        participant = SimpleNamespace(
+            id="user-2", name=None, display_name="Alice Smith"
+        )
+        mock_agent_api.list_agent_chat_participants.return_value = MagicMock(
+            data=[participant]
+        )
+        message = factory.chat_message(id="msg-789")
+        mock_agent_api.create_agent_chat_message.return_value = factory.response(
+            message
+        )
+
+        create_agent_chat_message(
+            mock_ctx, chat_id="chat-123", content="Hello!", recipients="alice smith"
+        )
+
+        mock_agent_api.create_agent_chat_message.assert_called_once()
+        call_args = mock_agent_api.create_agent_chat_message.call_args
+        mention = call_args.kwargs["message"].mentions[0]
+        assert mention.id == "user-2"
+        assert mention.name == "Alice Smith"
