@@ -53,22 +53,25 @@ class TestListMyAgents:
 class TestRegisterMyAgent:
     """Tests for register_my_agent tool."""
 
-    def test_registers_agent_with_name(self, mock_ctx, mock_human_api):
-        """Test registering an agent with just a name."""
+    def test_registers_agent_with_name_and_description(self, mock_ctx, mock_human_api):
+        """Test registering an agent with name and description."""
         mock_human_api.register_my_agent.return_value = factory.response(
             factory.registered_agent(name="New Agent")
         )
 
-        result = register_my_agent(mock_ctx, name="New Agent")
+        result = register_my_agent(
+            mock_ctx, name="New Agent", description="A helpful agent"
+        )
 
         mock_human_api.register_my_agent.assert_called_once()
         call_args = mock_human_api.register_my_agent.call_args
         assert call_args.kwargs["agent"].name == "New Agent"
+        assert call_args.kwargs["agent"].description == "A helpful agent"
         parsed = json.loads(result)
         assert "data" in parsed
 
     def test_registers_agent_with_all_fields(self, mock_ctx, mock_human_api):
-        """Test registering an agent with all optional fields."""
+        """Test registering an agent with all fields."""
         mock_human_api.register_my_agent.return_value = factory.response(
             factory.registered_agent(name="Full Agent")
         )
@@ -77,10 +80,8 @@ class TestRegisterMyAgent:
             mock_ctx,
             name="Full Agent",
             description="A test agent",
-            model_type="gpt-4",
         )
 
         call_args = mock_human_api.register_my_agent.call_args
         assert call_args.kwargs["agent"].name == "Full Agent"
         assert call_args.kwargs["agent"].description == "A test agent"
-        assert call_args.kwargs["agent"].model_type == "gpt-4"

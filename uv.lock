@@ -1815,7 +1815,7 @@ wheels = [
 
 [[package]]
 name = "thenvoi-client-rest"
-version = "0.0.2"
+version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -1823,9 +1823,9 @@ dependencies = [
     { name = "pydantic-core" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/92/5f01c144cb93f2da79c05901c855f5de5e6b4e81b45ac376cc141228e870/thenvoi_client_rest-0.0.2.tar.gz", hash = "sha256:746208f5589125f4f5547289fab709b95346899841214817910479350ca686d3", size = 63061, upload-time = "2025-12-29T09:15:52.928Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/42/0a540ad5b000192f84e1b135008da22e026cf6ebd392c9e6d41efd6be1a7/thenvoi_client_rest-0.0.4.tar.gz", hash = "sha256:d5d8c3ec46c67375ed077d539c74ccb53c8e3eb446372166a00f8d5a3fd2b6b5", size = 94798, upload-time = "2026-02-15T16:06:50.793Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/03/fc740e1fefec2c7d3897237c1d7155c5128a5cf776ef41b31e32a65cf2a1/thenvoi_client_rest-0.0.2-py3-none-any.whl", hash = "sha256:f693a6c9625f41b7934091da0287d19a0e9d9258501cdbb4a6b3bc41c0f64acc", size = 120085, upload-time = "2025-12-29T09:15:51.861Z" },
+    { url = "https://files.pythonhosted.org/packages/34/a2/e00b4ce8b93d4d1b9a79368935a3c5e61dacd4de63e5e7da5347271b5978/thenvoi_client_rest-0.0.4-py3-none-any.whl", hash = "sha256:64fc2e427f0a347df566741df149a21b677146ef0f59cc268fb9116655ea6cd3", size = 233537, upload-time = "2026-02-15T16:06:48.733Z" },
 ]
 
 [[package]]
@@ -1907,7 +1907,7 @@ requires-dist = [
     { name = "python-dotenv", marker = "extra == 'langchain'", specifier = ">=1.0.0" },
     { name = "python-dotenv", marker = "extra == 'langgraph'", specifier = ">=1.0.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.20.0" },
-    { name = "thenvoi-client-rest" },
+    { name = "thenvoi-client-rest", specifier = ">=0.0.4" },
     { name = "thenvoi-testing-python", marker = "extra == 'dev'", git = "https://github.com/thenvoi/thenvoi-testing-python.git?rev=thenvoi-testing-python-v0.1.1" },
     { name = "uvicorn", specifier = ">=0.30.0" },
 ]

@@ -32,7 +32,7 @@ def mark_agent_message_processing(
     logger.debug("Marking message %s as processing in chat %s", message_id, chat_id)
     client = get_app_context(ctx).client
 
-    result = client.agent_api.mark_agent_message_processing(
+    result = client.agent_api_messages.mark_agent_message_processing(
         chat_id=chat_id,
         id=message_id,
     )
@@ -71,7 +71,7 @@ def mark_agent_message_processed(
     logger.debug("Marking message %s as processed in chat %s", message_id, chat_id)
     client = get_app_context(ctx).client
 
-    result = client.agent_api.mark_agent_message_processed(
+    result = client.agent_api_messages.mark_agent_message_processed(
         chat_id=chat_id,
         id=message_id,
     )
@@ -114,7 +114,7 @@ def mark_agent_message_failed(
     )
     client = get_app_context(ctx).client
 
-    result = client.agent_api.mark_agent_message_failed(
+    result = client.agent_api_messages.mark_agent_message_failed(
         chat_id=chat_id,
         id=message_id,
         error=error,

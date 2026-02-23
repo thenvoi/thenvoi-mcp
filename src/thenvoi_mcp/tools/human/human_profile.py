@@ -10,7 +10,7 @@ def get_my_profile(ctx: AppContextType) -> str:
     Returns your profile information including name, email, role, etc.
     """
     client = get_app_context(ctx).client
-    result = client.human_api.get_my_profile()
+    result = client.human_api_profile.get_my_profile()
     return serialize_response(result)
 
 
@@ -41,7 +41,7 @@ def update_my_profile(
             "At least one field (first_name or last_name) must be provided"
         )
 
-    result = client.human_api.update_my_profile(user=cast(Any, user_data))
+    result = client.human_api_profile.update_my_profile(user=cast(Any, user_data))
     return serialize_response(result)
 
 
@@ -64,7 +64,7 @@ def list_my_peers(
         page_size: Items per page (optional).
     """
     client = get_app_context(ctx).client
-    result = client.human_api.list_my_peers(
+    result = client.human_api_peers.list_my_peers(
         not_in_chat=not_in_chat,
         type=peer_type,
         page=page,
