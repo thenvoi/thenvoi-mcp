@@ -70,18 +70,19 @@ class TestRegisterMyAgent:
         parsed = json.loads(result)
         assert "data" in parsed
 
-    def test_registers_agent_with_all_fields(self, mock_ctx, mock_human_api):
-        """Test registering an agent with all fields."""
+    def test_registers_agent_passes_request_object(self, mock_ctx, mock_human_api):
+        """Test that register_my_agent passes an AgentRegisterRequest to the API."""
         mock_human_api.register_my_agent.return_value = factory.response(
-            factory.registered_agent(name="Full Agent")
+            factory.registered_agent(name="My Agent")
         )
 
         register_my_agent(
             mock_ctx,
-            name="Full Agent",
-            description="A test agent",
+            name="My Agent",
+            description="Does things",
         )
 
         call_args = mock_human_api.register_my_agent.call_args
-        assert call_args.kwargs["agent"].name == "Full Agent"
-        assert call_args.kwargs["agent"].description == "A test agent"
+        agent_req = call_args.kwargs["agent"]
+        assert agent_req.name == "My Agent"
+        assert agent_req.description == "Does things"
