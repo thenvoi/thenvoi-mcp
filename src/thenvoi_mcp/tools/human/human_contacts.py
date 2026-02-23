@@ -223,7 +223,7 @@ def remove_my_contact(
         JSON string confirming removal.
     """
     if not contact_id and not handle:
-        raise ValueError("Either contact_id or handle must be provided")
+        return "Error: Either contact_id or handle must be provided"
 
     identifier = contact_id or handle
     logger.debug("Removing contact: %s", identifier)

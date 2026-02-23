@@ -3,8 +3,6 @@
 import json
 from unittest.mock import MagicMock
 
-import pytest
-
 from thenvoi_mcp.tools.agent.agent_contacts import (
     add_agent_contact,
     list_agent_contact_requests,
@@ -130,8 +128,9 @@ class TestRemoveAgentContact:
 
     def test_requires_contact_id_or_handle(self, mock_ctx):
         """Test validation when neither contact_id nor handle is provided."""
-        with pytest.raises(ValueError, match="Either contact_id or handle"):
-            remove_agent_contact(mock_ctx)
+        result = remove_agent_contact(mock_ctx)
+        assert "Error" in result
+        assert "contact_id or handle" in result
 
     def test_both_contact_id_and_handle_sends_both(self, mock_ctx, mock_agent_api):
         """Test that providing both contact_id and handle passes both to the API."""
@@ -248,5 +247,6 @@ class TestRespondToAgentContactRequest:
 
     def test_requires_handle_or_request_id(self, mock_ctx):
         """Test validation when neither handle nor request_id is provided."""
-        with pytest.raises(ValueError, match="Either handle or request_id"):
-            respond_to_agent_contact_request(mock_ctx, action="approve")
+        result = respond_to_agent_contact_request(mock_ctx, action="approve")
+        assert "Error" in result
+        assert "handle or request_id" in result

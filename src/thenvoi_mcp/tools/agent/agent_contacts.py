@@ -78,7 +78,7 @@ def remove_agent_contact(
         JSON string confirming removal.
     """
     if not contact_id and not handle:
-        raise ValueError("Either contact_id or handle must be provided")
+        return "Error: Either contact_id or handle must be provided"
 
     identifier = contact_id or handle
     logger.debug("Removing agent contact: %s", identifier)
@@ -148,7 +148,7 @@ def respond_to_agent_contact_request(
         JSON string confirming the action.
     """
     if not handle and not request_id:
-        raise ValueError("Either handle or request_id must be provided")
+        return "Error: Either handle or request_id must be provided"
 
     identifier = handle or request_id
     logger.debug("Responding to contact request %s with action: %s", identifier, action)
