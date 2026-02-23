@@ -59,7 +59,7 @@ def list_agent_messages(
         page=page,
         page_size=page_size,
     )
-    message_count = len(result.data)
+    message_count = len(result.data) if result.data else 0
     logger.info("Retrieved %s messages for chat: %s", message_count, chat_id)
     return serialize_response(result)
 
@@ -136,7 +136,7 @@ def get_agent_chat_context(
         page=page,
         page_size=page_size,
     )
-    message_count = len(result.data)
+    message_count = len(result.data) if result.data else 0
     logger.info("Retrieved %s context messages for chat: %s", message_count, chat_id)
     return serialize_response(result)
 
