@@ -57,7 +57,7 @@ def send_my_chat_message(
     client = get_app_context(ctx).client
 
     if not recipients:
-        raise ValueError("recipients is required - specify who to @mention")
+        return "Error: recipients is required - specify who to @mention"
 
     recipient_names = [
         name.strip().lower() for name in recipients.split(",") if name.strip()
@@ -97,8 +97,9 @@ def send_my_chat_message(
 
     if not_found:
         available = list(name_to_participant.keys())
-        raise ValueError(
-            f"Not found: {', '.join(not_found)}. Available: {', '.join(available)}"
+        return (
+            f"Error: Not found: {', '.join(not_found)}. "
+            f"Available: {', '.join(available)}"
         )
 
     message_request = ChatMessageRequest(content=content, mentions=mentions_list)

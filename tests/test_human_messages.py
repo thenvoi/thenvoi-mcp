@@ -4,8 +4,6 @@ import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
-
 from thenvoi_mcp.tools.human.human_messages import (
     list_my_chat_messages,
     send_my_chat_message,
@@ -111,25 +109,27 @@ class TestSendMyChatMessage:
         parsed = json.loads(result)
         assert parsed["data"]["id"] == "msg-new"
 
-    def test_raises_when_no_recipients(self, mock_ctx):
+    def test_returns_error_when_no_recipients(self, mock_ctx):
         """Test error when recipients is not provided."""
-        with pytest.raises(ValueError, match="recipients is required"):
-            send_my_chat_message(mock_ctx, chat_id="chat-123", content="Hello!")
+        result = send_my_chat_message(mock_ctx, chat_id="chat-123", content="Hello!")
+        assert "Error" in result
+        assert "recipients is required" in result
 
-    def test_raises_when_recipient_not_found(self, mock_ctx, mock_human_api):
+    def test_returns_error_when_recipient_not_found(self, mock_ctx, mock_human_api):
         """Test error when recipient name doesn't match any participant."""
         participant = SimpleNamespace(id="agent-1", name="Existing Agent")
         mock_human_api.list_my_chat_participants.return_value = MagicMock(
             data=[participant]
         )
 
-        with pytest.raises(ValueError, match="Not found: unknown agent"):
-            send_my_chat_message(
-                mock_ctx,
-                chat_id="chat-123",
-                content="Hello!",
-                recipients="unknown agent",
-            )
+        result = send_my_chat_message(
+            mock_ctx,
+            chat_id="chat-123",
+            content="Hello!",
+            recipients="unknown agent",
+        )
+        assert "Error" in result
+        assert "Not found: unknown agent" in result
 
     def test_multiple_recipients(self, mock_ctx, mock_human_api):
         """Test message with multiple comma-separated recipients."""
