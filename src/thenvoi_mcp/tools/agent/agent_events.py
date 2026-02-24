@@ -123,7 +123,7 @@ def create_agent_chat_event(
         metadata=metadata_dict,
     )
 
-    result = client.agent_api.create_agent_chat_event(
+    result = client.agent_api_events.create_agent_chat_event(
         chat_id=chat_id,
         event=event_request,
     )

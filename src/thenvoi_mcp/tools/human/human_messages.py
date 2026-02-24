@@ -30,7 +30,7 @@ def list_my_chat_messages(
     if since:
         since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
 
-    result = client.human_api.list_my_chat_messages(
+    result = client.human_api_messages.list_my_chat_messages(
         chat_id=chat_id,
         page=page,
         page_size=page_size,
@@ -45,26 +45,29 @@ def send_my_chat_message(
     ctx: AppContextType,
     chat_id: str,
     content: str,
-    recipients: Optional[str] = None,
+    recipients: str,
 ) -> str:
     """Send a message in a chat room.
 
     Args:
         chat_id: The chat room ID (required).
         content: Message text (required).
-        recipients: Comma-separated participant names to @mention (required).
+        recipients: Non-empty comma-separated participant names to @mention (required).
+                    Must contain at least one name; empty string is not accepted.
     """
     client = get_app_context(ctx).client
-
-    if not recipients:
-        raise ValueError("recipients is required - specify who to @mention")
 
     recipient_names = [
         name.strip().lower() for name in recipients.split(",") if name.strip()
     ]
 
+    if not recipient_names:
+        return "Error: recipients cannot be empty"
+
     # Fetch participants to resolve names to IDs
-    participants_response = client.human_api.list_my_chat_participants(chat_id=chat_id)
+    participants_response = client.human_api_participants.list_my_chat_participants(
+        chat_id=chat_id
+    )
     participants = participants_response.data or []
 
     # Build name -> participant mapping
@@ -95,12 +98,13 @@ def send_my_chat_message(
 
     if not_found:
         available = list(name_to_participant.keys())
-        raise ValueError(
-            f"Not found: {', '.join(not_found)}. Available: {', '.join(available)}"
+        return (
+            f"Error: Not found: {', '.join(not_found)}. "
+            f"Available: {', '.join(available)}"
         )
 
     message_request = ChatMessageRequest(content=content, mentions=mentions_list)
-    result = client.human_api.send_my_chat_message(
+    result = client.human_api_messages.send_my_chat_message(
         chat_id=chat_id, message=message_request
     )
     return serialize_response(result)

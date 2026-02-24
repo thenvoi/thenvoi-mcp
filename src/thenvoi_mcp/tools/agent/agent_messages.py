@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from thenvoi_rest import (
     ChatMessageRequest,
@@ -10,6 +10,100 @@ from thenvoi_rest import (
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
 logger = logging.getLogger(__name__)
+
+
+@mcp.tool()
+def list_agent_messages(
+    ctx: AppContextType,
+    chat_id: str,
+    status: Optional[
+        Literal["pending", "processing", "processed", "failed", "all"]
+    ] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+) -> str:
+    """List messages that the agent needs to process, filtered by status.
+
+    Default behavior (no status): Returns all messages that are NOT processed.
+    This is the recommended way to get all work the agent should handle, including
+    new, delivered, processing (stuck/crashed), and failed messages.
+
+    Status filter options:
+    - (no param): Everything NOT processed - get all work to do
+    - "pending": No status, delivered, or failed without active attempt - queue depth
+    - "processing": Currently being processed - in-flight work
+    - "processed": Successfully completed - done items
+    - "failed": Failed only - failure backlog
+    - "all": All messages regardless of status - full history
+
+    Messages are returned in chronological order (oldest first).
+
+    Workflow after retrieving messages:
+    1. Get messages via this tool or get_agent_next_message
+    2. Call mark_agent_message_processing before starting work
+    3. Process the message
+    4. Call mark_agent_message_processed or mark_agent_message_failed
+
+    Args:
+        chat_id: The unique identifier of the chat room (required).
+        status: Filter by processing status (optional, default: all actionable).
+        page: Page number for pagination (optional).
+        page_size: Items per page (optional, default: 20, max: 100).
+
+    Returns:
+        JSON string containing the list of messages.
+    """
+    logger.debug("Listing agent messages for chat: %s (status=%s)", chat_id, status)
+    client = get_app_context(ctx).client
+    result = client.agent_api_messages.list_agent_messages(
+        chat_id=chat_id,
+        status=status,
+        page=page,
+        page_size=page_size,
+    )
+    message_count = len(result.data) if result.data else 0
+    logger.info("Retrieved %s messages for chat: %s", message_count, chat_id)
+    return serialize_response(result)
+
+
+@mcp.tool()
+def get_agent_next_message(
+    ctx: AppContextType,
+    chat_id: str,
+) -> str:
+    """Get the next message that needs processing.
+
+    Returns the single oldest message that is NOT processed, including
+    new, delivered, processing (stuck/crashed), and failed messages.
+
+    Returns empty result if there are no messages to process.
+
+    This is the primary endpoint for agent reasoning loops:
+    1. Call this tool to get the next work item
+    2. Call mark_agent_message_processing to claim the message
+    3. Process the message (reasoning, tool calls, etc.)
+    4. Call mark_agent_message_processed or mark_agent_message_failed
+    5. Loop back to step 1
+
+    Crash recovery: If the agent crashes while processing, the message stays
+    in "processing" state. When restarted, calling this tool returns that same
+    stuck message (oldest first), allowing the agent to reclaim and retry it.
+
+    Difference from list_agent_messages:
+    - list_agent_messages returns ALL actionable messages (batch processing)
+    - get_agent_next_message returns ONE message (sequential processing loops)
+
+    Args:
+        chat_id: The unique identifier of the chat room (required).
+
+    Returns:
+        JSON string containing the next message to process, or empty if none.
+    """
+    logger.debug("Getting next message for chat: %s", chat_id)
+    client = get_app_context(ctx).client
+    result = client.agent_api_messages.get_agent_next_message(chat_id=chat_id)
+    logger.info("Next message retrieved for chat: %s", chat_id)
+    return serialize_response(result)
 
 
 @mcp.tool()
@@ -39,12 +133,12 @@ def get_agent_chat_context(
     """
     logger.debug("Fetching agent context for chat: %s", chat_id)
     client = get_app_context(ctx).client
-    result = client.agent_api.get_agent_chat_context(
+    result = client.agent_api_context.get_agent_chat_context(
         chat_id=chat_id,
         page=page,
         page_size=page_size,
     )
-    message_count = len(result.data)
+    message_count = len(result.data) if result.data else 0
     logger.info("Retrieved %s context messages for chat: %s", message_count, chat_id)
     return serialize_response(result)
 
@@ -115,9 +209,9 @@ def create_agent_chat_message(
                 for m in parsed_mentions
             ]
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for mentions: {str(e)}")
+            return f"Error: Invalid JSON for mentions: {str(e)}"
         except KeyError as e:
-            raise ValueError(f"Missing required field in mentions: {str(e)}")
+            return f"Error: Missing required field in mentions: {str(e)}"
 
     # Option 2: Resolve names to IDs (LLM-friendly path)
     elif recipients:
@@ -126,11 +220,11 @@ def create_agent_chat_message(
         ]
 
         if not recipient_names:
-            raise ValueError("recipients cannot be empty")
+            return "Error: recipients cannot be empty"
 
         # Fetch participants to map names to IDs
-        participants_response = client.agent_api.list_agent_chat_participants(
-            chat_id=chat_id
+        participants_response = (
+            client.agent_api_participants.list_agent_chat_participants(chat_id=chat_id)
         )
         participants = participants_response.data
 
@@ -164,15 +258,15 @@ def create_agent_chat_message(
 
         if not_found:
             available_names = list(name_to_participant.keys())
-            raise ValueError(
-                f"Could not find participants: {', '.join(not_found)}. "
+            return (
+                f"Error: Could not find participants: {', '.join(not_found)}. "
                 f"Available participants: {', '.join(available_names)}"
             )
 
     # Neither provided - error with helpful guidance
     else:
-        raise ValueError(
-            f"Missing recipients or mentions. To send a message, specify who to tag. "
+        return (
+            f"Error: Missing recipients or mentions. To send a message, specify who to tag. "
             f'Use recipients=\'name1,name2\' (names) or mentions=\'[{{"id":"uuid","name":"display_name"}}]\' (IDs). '
             f"Call list_agent_chat_participants(chat_id='{chat_id}') to see available participants."
         )
@@ -183,7 +277,7 @@ def create_agent_chat_message(
         mentions=mentions_list,
     )
 
-    result = client.agent_api.create_agent_chat_message(
+    result = client.agent_api_messages.create_agent_chat_message(
         chat_id=chat_id,
         message=message_request,
     )

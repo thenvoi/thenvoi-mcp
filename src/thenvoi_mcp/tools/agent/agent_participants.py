@@ -29,8 +29,8 @@ def list_agent_chat_participants(
     """
     logger.debug("Fetching participants for chat: %s", chat_id)
     client = get_app_context(ctx).client
-    result = client.agent_api.list_agent_chat_participants(chat_id=chat_id)
-    participant_count = len(result.data)
+    result = client.agent_api_participants.list_agent_chat_participants(chat_id=chat_id)
+    participant_count = len(result.data) if result.data else 0
     logger.info("Retrieved %s participants for chat: %s", participant_count, chat_id)
     return serialize_response(result)
 
@@ -83,7 +83,7 @@ def add_agent_chat_participant(
         participant_id=participant_id,
         role=role_value,
     )
-    client.agent_api.add_agent_chat_participant(
+    client.agent_api_participants.add_agent_chat_participant(
         chat_id=chat_id, participant=participant
     )
     logger.info("Participant added successfully: %s", participant_id)
@@ -110,6 +110,8 @@ def remove_agent_chat_participant(
     """
     logger.debug("Removing participant %s from chat %s", participant_id, chat_id)
     client = get_app_context(ctx).client
-    client.agent_api.remove_agent_chat_participant(chat_id=chat_id, id=participant_id)
+    client.agent_api_participants.remove_agent_chat_participant(
+        chat_id=chat_id, id=participant_id
+    )
     logger.info("Participant removed successfully: %s", participant_id)
     return f"Participant removed successfully: {participant_id}"
