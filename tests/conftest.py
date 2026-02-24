@@ -18,11 +18,16 @@ def _assert_no_method_name_collisions() -> None:
     The shared mock strategy in mock_api_client maps all agent namespaces to
     one MagicMock and all human namespaces to another. If two namespaces in the
     same group ever share a method name, tests would silently pass with wrong
-    assertions. This check runs at import time to fail fast.
+    assertions.
     """
     from thenvoi_rest import RestClient
 
-    client = RestClient(api_key="dummy", base_url="http://localhost")
+    try:
+        client = RestClient(api_key="dummy", base_url="http://localhost")
+    except Exception as exc:
+        raise AssertionError(
+            f"Could not instantiate RestClient for collision check: {exc}"
+        ) from exc
 
     for prefix in ("agent_api_", "human_api_"):
         method_to_namespace: dict[str, str] = {}
@@ -46,7 +51,10 @@ def _assert_no_method_name_collisions() -> None:
                 method_to_namespace[method] = attr_name
 
 
-_assert_no_method_name_collisions()
+@pytest.fixture(scope="session", autouse=True)
+def _check_mock_safety() -> None:
+    """Session-scoped guard against mock method-name collisions."""
+    _assert_no_method_name_collisions()
 
 
 @dataclass

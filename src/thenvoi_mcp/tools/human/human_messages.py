@@ -52,7 +52,8 @@ def send_my_chat_message(
     Args:
         chat_id: The chat room ID (required).
         content: Message text (required).
-        recipients: Comma-separated participant names to @mention (required).
+        recipients: Non-empty comma-separated participant names to @mention (required).
+                    Must contain at least one name; empty string is not accepted.
     """
     client = get_app_context(ctx).client
 

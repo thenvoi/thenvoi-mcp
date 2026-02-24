@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Literal, Optional
+from typing import Literal
 
 from thenvoi_rest import CreateContactRequestRequestContactRequest
 
@@ -11,8 +13,8 @@ logger = logging.getLogger(__name__)
 @mcp.tool()
 def list_my_contacts(
     ctx: AppContextType,
-    page: Optional[int] = None,
-    page_size: Optional[int] = None,
+    page: int | None = None,
+    page_size: int | None = None,
 ) -> str:
     """List the user's contacts.
 
@@ -40,7 +42,7 @@ def list_my_contacts(
 def create_contact_request(
     ctx: AppContextType,
     recipient_handle: str,
-    message: Optional[str] = None,
+    message: str | None = None,
 ) -> str:
     """Send a contact request to another user.
 
@@ -67,8 +69,8 @@ def create_contact_request(
 @mcp.tool()
 def list_received_contact_requests(
     ctx: AppContextType,
-    page: Optional[int] = None,
-    page_size: Optional[int] = None,
+    page: int | None = None,
+    page_size: int | None = None,
 ) -> str:
     """List contact requests received by the user.
 
@@ -94,11 +96,10 @@ def list_received_contact_requests(
 @mcp.tool()
 def list_sent_contact_requests(
     ctx: AppContextType,
-    status: Optional[
-        Literal["pending", "approved", "rejected", "cancelled", "all"]
-    ] = None,
-    page: Optional[int] = None,
-    page_size: Optional[int] = None,
+    status: Literal["pending", "approved", "rejected", "cancelled", "all"]
+    | None = None,
+    page: int | None = None,
+    page_size: int | None = None,
 ) -> str:
     """List contact requests sent by the user.
 
@@ -208,8 +209,8 @@ def resolve_handle(
 @mcp.tool()
 def remove_my_contact(
     ctx: AppContextType,
-    contact_id: Optional[str] = None,
-    handle: Optional[str] = None,
+    contact_id: str | None = None,
+    handle: str | None = None,
 ) -> str:
     """Remove an existing contact.
 
