@@ -86,7 +86,7 @@ class TestCreateContactRequest:
         mock_human_api.create_contact_request.assert_called_once()
         call_args = mock_human_api.create_contact_request.call_args
         assert call_args.kwargs["contact_request"].recipient_handle == "alice"
-        assert call_args.kwargs["contact_request"].message is None
+        assert "message" not in call_args.kwargs["contact_request"].model_fields_set
         parsed = json.loads(result)
         assert parsed["data"]["recipient_handle"] == "alice"
 

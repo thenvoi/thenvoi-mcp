@@ -55,10 +55,10 @@ def create_contact_request(
     """
     logger.debug("Creating contact request to: %s", recipient_handle)
     client = get_app_context(ctx).client
-    contact_request = CreateContactRequestRequestContactRequest(
-        recipient_handle=recipient_handle,
-        message=message,
-    )
+    kwargs: dict = {"recipient_handle": recipient_handle}
+    if message is not None:
+        kwargs["message"] = message
+    contact_request = CreateContactRequestRequestContactRequest(**kwargs)
     result = client.human_api_contacts.create_contact_request(
         contact_request=contact_request,
     )
