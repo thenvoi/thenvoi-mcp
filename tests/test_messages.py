@@ -4,6 +4,8 @@ import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 from thenvoi_testing.factories import factory
 from thenvoi_mcp.tools.agent.agent_messages import (
     create_agent_chat_message,
@@ -99,6 +101,27 @@ class TestGetAgentNextMessage:
 
         parsed = json.loads(result)
         assert parsed["data"] is None
+
+    def test_handles_204_no_content(self, mock_ctx, mock_agent_api):
+        """Test that HTTP 204 (no messages) is handled as success, not error."""
+        error = Exception("204 No Content")
+        error.status_code = 204
+        mock_agent_api.get_agent_next_message.side_effect = error
+
+        result = get_agent_next_message(mock_ctx, chat_id="empty-chat")
+
+        parsed = json.loads(result)
+        assert parsed["data"] is None
+        assert parsed["message"] == "No messages to process"
+
+    def test_reraises_non_204_errors(self, mock_ctx, mock_agent_api):
+        """Test that non-204 errors are reraised."""
+        error = Exception("Server error")
+        error.status_code = 500
+        mock_agent_api.get_agent_next_message.side_effect = error
+
+        with pytest.raises(Exception, match="Server error"):
+            get_agent_next_message(mock_ctx, chat_id="chat-123")
 
 
 class TestGetAgentChatContext:
