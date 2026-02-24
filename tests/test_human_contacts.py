@@ -249,9 +249,7 @@ class TestRemoveMyContact:
 
         result = remove_my_contact(mock_ctx, contact_id="c-123")
 
-        mock_human_api.remove_my_contact.assert_called_once_with(
-            contact_id="c-123", handle=None
-        )
+        mock_human_api.remove_my_contact.assert_called_once_with(contact_id="c-123")
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "removed"
 
@@ -263,9 +261,7 @@ class TestRemoveMyContact:
 
         remove_my_contact(mock_ctx, handle="alice")
 
-        mock_human_api.remove_my_contact.assert_called_once_with(
-            contact_id=None, handle="alice"
-        )
+        mock_human_api.remove_my_contact.assert_called_once_with(handle="alice")
 
     def test_requires_contact_id_or_handle(self, mock_ctx):
         """Test validation when neither contact_id nor handle is provided."""

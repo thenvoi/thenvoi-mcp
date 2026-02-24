@@ -78,9 +78,7 @@ class TestAddAgentContact:
 
         result = add_agent_contact(mock_ctx, handle="alice")
 
-        mock_agent_api.add_agent_contact.assert_called_once_with(
-            handle="alice", message=None
-        )
+        mock_agent_api.add_agent_contact.assert_called_once_with(handle="alice")
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "pending"
 
@@ -108,9 +106,7 @@ class TestRemoveAgentContact:
 
         result = remove_agent_contact(mock_ctx, contact_id="c-123")
 
-        mock_agent_api.remove_agent_contact.assert_called_once_with(
-            contact_id="c-123", handle=None
-        )
+        mock_agent_api.remove_agent_contact.assert_called_once_with(contact_id="c-123")
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "removed"
 
@@ -122,9 +118,7 @@ class TestRemoveAgentContact:
 
         remove_agent_contact(mock_ctx, handle="alice")
 
-        mock_agent_api.remove_agent_contact.assert_called_once_with(
-            contact_id=None, handle="alice"
-        )
+        mock_agent_api.remove_agent_contact.assert_called_once_with(handle="alice")
 
     def test_requires_contact_id_or_handle(self, mock_ctx):
         """Test validation when neither contact_id nor handle is provided."""
@@ -214,7 +208,7 @@ class TestRespondToAgentContactRequest:
         )
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="approve", handle="alice", request_id=None
+            action="approve", handle="alice"
         )
         parsed = json.loads(result)
         assert parsed["data"]["status"] == "approved"
@@ -230,7 +224,7 @@ class TestRespondToAgentContactRequest:
         )
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="reject", handle=None, request_id="req-456"
+            action="reject", request_id="req-456"
         )
 
     def test_cancel_by_handle(self, mock_ctx, mock_agent_api):
@@ -242,7 +236,7 @@ class TestRespondToAgentContactRequest:
         respond_to_agent_contact_request(mock_ctx, action="cancel", handle="bob")
 
         mock_agent_api.respond_to_agent_contact_request.assert_called_once_with(
-            action="cancel", handle="bob", request_id=None
+            action="cancel", handle="bob"
         )
 
     def test_requires_handle_or_request_id(self, mock_ctx):
