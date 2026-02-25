@@ -6,6 +6,7 @@ from thenvoi_rest import (
     ChatMessageRequest,
     ChatMessageRequestMentionsItem,
 )
+from thenvoi_rest.core.api_error import ApiError
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -101,7 +102,13 @@ def get_agent_next_message(
     """
     logger.debug("Getting next message for chat: %s", chat_id)
     client = get_app_context(ctx).client
-    result = client.agent_api_messages.get_agent_next_message(chat_id=chat_id)
+    try:
+        result = client.agent_api_messages.get_agent_next_message(chat_id=chat_id)
+    except ApiError as e:
+        if e.status_code == 204:
+            logger.info("No messages to process for chat: %s", chat_id)
+            return json.dumps({"data": None, "message": "No messages to process"})
+        raise
     logger.info("Next message retrieved for chat: %s", chat_id)
     return serialize_response(result)
 
