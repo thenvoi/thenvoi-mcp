@@ -55,7 +55,10 @@ def add_agent_contact(
     """
     logger.debug("Adding agent contact: %s", handle)
     client = get_app_context(ctx).client
-    result = client.agent_api_contacts.add_agent_contact(handle=handle, message=message)
+    kwargs: dict = {"handle": handle}
+    if message is not None:
+        kwargs["message"] = message
+    result = client.agent_api_contacts.add_agent_contact(**kwargs)
     logger.info("Contact request sent to: %s", handle)
     return serialize_response(result)
 
@@ -84,9 +87,12 @@ def remove_agent_contact(
     identifier = contact_id or handle
     logger.debug("Removing agent contact: %s", identifier)
     client = get_app_context(ctx).client
-    result = client.agent_api_contacts.remove_agent_contact(
-        contact_id=contact_id, handle=handle
-    )
+    kwargs: dict = {}
+    if contact_id is not None:
+        kwargs["contact_id"] = contact_id
+    if handle is not None:
+        kwargs["handle"] = handle
+    result = client.agent_api_contacts.remove_agent_contact(**kwargs)
     logger.info("Contact removed: %s", identifier)
     return serialize_response(result)
 
@@ -154,8 +160,11 @@ def respond_to_agent_contact_request(
     identifier = handle or request_id
     logger.debug("Responding to contact request %s with action: %s", identifier, action)
     client = get_app_context(ctx).client
-    result = client.agent_api_contacts.respond_to_agent_contact_request(
-        action=action, handle=handle, request_id=request_id
-    )
+    kwargs: dict = {"action": action}
+    if handle is not None:
+        kwargs["handle"] = handle
+    if request_id is not None:
+        kwargs["request_id"] = request_id
+    result = client.agent_api_contacts.respond_to_agent_contact_request(**kwargs)
     logger.info("Contact request %s: %s", action, identifier)
     return serialize_response(result)

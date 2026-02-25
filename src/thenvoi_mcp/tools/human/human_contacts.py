@@ -55,10 +55,10 @@ def create_contact_request(
     """
     logger.debug("Creating contact request to: %s", recipient_handle)
     client = get_app_context(ctx).client
-    contact_request = CreateContactRequestRequestContactRequest(
-        recipient_handle=recipient_handle,
-        message=message,
-    )
+    kwargs: dict = {"recipient_handle": recipient_handle}
+    if message is not None:
+        kwargs["message"] = message
+    contact_request = CreateContactRequestRequestContactRequest(**kwargs)
     result = client.human_api_contacts.create_contact_request(
         contact_request=contact_request,
     )
@@ -230,8 +230,11 @@ def remove_my_contact(
     identifier = contact_id or handle
     logger.debug("Removing contact: %s", identifier)
     client = get_app_context(ctx).client
-    result = client.human_api_contacts.remove_my_contact(
-        contact_id=contact_id, handle=handle
-    )
+    kwargs: dict = {}
+    if contact_id is not None:
+        kwargs["contact_id"] = contact_id
+    if handle is not None:
+        kwargs["handle"] = handle
+    result = client.human_api_contacts.remove_my_contact(**kwargs)
     logger.info("Contact removed: %s", identifier)
     return serialize_response(result)
