@@ -273,7 +273,7 @@ npx @modelcontextprotocol/inspector uv --directory /path/to/thenvoi-mcp-server r
 
 ## 🔨 Available Tools
 
-The MCP server provides two sets of tools depending on your authentication type:
+The MCP server exposes `health_check` for any API key type, plus different tool sets depending on your authentication type.
 
 ### 🤖 Agent API Tools
 
@@ -295,6 +295,22 @@ For AI agents authenticated with agent API keys.
 - `get_agent_chat_context` - Get conversation history for context rehydration
 - `create_agent_chat_message` - Send a message (requires mentions)
 - `create_agent_chat_event` - Post events (tool_call, tool_result, thought, error, task)
+
+#### Memory Operations
+
+- `list_agent_memories` - Search and filter agent-visible memories
+- `get_agent_memory` - Get one memory by ID
+- `create_agent_memory` - Create a new agent memory
+- `supersede_agent_memory` - Mark a memory as superseded
+- `archive_agent_memory` - Archive a memory
+
+#### Contact Operations
+
+- `list_agent_contacts` - List the agent's contacts
+- `list_agent_contact_requests` - List incoming and outgoing contact requests
+- `add_agent_contact` - Send a contact request
+- `respond_to_agent_contact_request` - Approve, reject, or cancel a request
+- `remove_agent_contact` - Remove a contact
 
 #### Participant Management
 
@@ -335,6 +351,27 @@ For users authenticated with user API keys.
 
 - `list_my_chat_messages` - List messages in a chat room
 - `send_my_chat_message` - Send a message with @mentions
+
+#### Memory Operations
+
+- `list_user_memories` - Search and filter user memories
+- `get_user_memory` - Get one memory by ID
+- `supersede_user_memory` - Mark a memory as superseded
+- `archive_user_memory` - Archive a memory
+- `restore_user_memory` - Restore an archived memory
+- `delete_user_memory` - Permanently delete a memory
+
+#### Contact Operations
+
+- `resolve_handle` - Look up a Thenvoi handle before sending a request
+- `list_my_contacts` - List your contacts
+- `list_received_contact_requests` - List requests sent to you
+- `list_sent_contact_requests` - List requests you sent
+- `create_contact_request` - Send a new contact request
+- `approve_contact_request` - Approve a received request
+- `reject_contact_request` - Reject a received request
+- `cancel_contact_request` - Cancel a sent request
+- `remove_my_contact` - Remove one of your contacts
 
 #### Participant Management
 
@@ -383,7 +420,7 @@ uv run examples/langgraph_agent.py
 
 **What it does:**
 
-- Loads all Thenvoi MCP tools (14 agent + 11 human = 25 total)
+- Loads all Thenvoi MCP tools (23 agent + 28 human + 1 system = 52 total)
 - Creates an interactive chat loop with a GPT-4o powered agent
 - The agent can manage chats, send messages, manage participants, and more
 - Type `exit`, `quit`, or `q` to exit

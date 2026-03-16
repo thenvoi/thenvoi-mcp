@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from typing import Literal
 
@@ -31,9 +33,11 @@ def load_tools(key_type: str) -> None:
     if key_type in ("agent", "legacy"):
         from thenvoi_mcp.tools.agent import (  # noqa: F401
             agent_chats,
+            agent_contacts,
             agent_events,
             agent_identity,
             agent_lifecycle,
+            agent_memories,
             agent_messages,
             agent_participants,
         )
@@ -44,6 +48,8 @@ def load_tools(key_type: str) -> None:
         from thenvoi_mcp.tools.human import (  # noqa: F401
             human_agents,
             human_chats,
+            human_contacts,
+            human_memories,
             human_messages,
             human_participants,
             human_profile,
@@ -59,11 +65,11 @@ def health_check(ctx: AppContextType) -> str:
     key_type = get_key_type(settings.thenvoi_api_key)
     try:
         if key_type == "user":
-            client.human_api.list_my_agents()
+            client.human_api_agents.list_my_agents()
         elif key_type == "agent":
-            client.agent_api.get_agent_me()
+            client.agent_api_identity.get_agent_me()
         else:  # legacy - try both
-            client.human_api.list_my_agents()
+            client.human_api_agents.list_my_agents()
         return f"OK | {key_type} | {settings.thenvoi_base_url}"
     except Exception as e:
         return f"Failed | {key_type} | {e}"

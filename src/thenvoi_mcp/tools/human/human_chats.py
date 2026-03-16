@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from typing import Optional
 
-from thenvoi_rest.human_api import CreateMyChatRoomRequestChat
+from thenvoi_rest import CreateMyChatRoomRequestChat
 
 from thenvoi_mcp.shared import AppContextType, get_app_context, mcp, serialize_response
 
@@ -18,7 +20,7 @@ def list_my_chats(
         page_size: Items per page (optional).
     """
     client = get_app_context(ctx).client
-    result = client.human_api.list_my_chats(page=page, page_size=page_size)
+    result = client.human_api_chats.list_my_chats(page=page, page_size=page_size)
     return serialize_response(result)
 
 
@@ -30,7 +32,7 @@ def get_my_chat(ctx: AppContextType, chat_id: str) -> str:
         chat_id: The chat room ID (required).
     """
     client = get_app_context(ctx).client
-    result = client.human_api.get_my_chat_room(id=chat_id)
+    result = client.human_api_chats.get_my_chat_room(id=chat_id)
     return serialize_response(result)
 
 
@@ -47,5 +49,5 @@ def create_my_chat(ctx: AppContextType, task_id: Optional[str] = None) -> str:
         if task_id
         else CreateMyChatRoomRequestChat()
     )
-    result = client.human_api.create_my_chat_room(chat=chat_request)
+    result = client.human_api_chats.create_my_chat_room(chat=chat_request)
     return serialize_response(result)

@@ -104,7 +104,7 @@ def test_chat(api_client: RestClient | None):
     from thenvoi_rest import ChatRoomRequest
 
     # Create a test chat
-    response = api_client.agent_api.create_agent_chat(
+    response = api_client.agent_api_chats.create_agent_chat(
         chat=ChatRoomRequest(title="Integration Test Chat")
     )
     chat_id = response.data.id
@@ -121,7 +121,7 @@ def test_peer_id(api_client: RestClient | None) -> str | None:
     if api_client is None:
         pytest.skip("THENVOI_API_KEY not set")
 
-    response = api_client.agent_api.list_agent_peers()
+    response = api_client.agent_api_peers.list_agent_peers()
     if response.data:
         return response.data[0].id
     return None

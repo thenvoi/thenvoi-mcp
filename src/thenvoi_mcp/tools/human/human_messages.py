@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any, Optional
 
@@ -30,7 +32,7 @@ def list_my_chat_messages(
     if since:
         since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
 
-    result = client.human_api.list_my_chat_messages(
+    result = client.human_api_messages.list_my_chat_messages(
         chat_id=chat_id,
         page=page,
         page_size=page_size,
@@ -64,7 +66,9 @@ def send_my_chat_message(
     ]
 
     # Fetch participants to resolve names to IDs
-    participants_response = client.human_api.list_my_chat_participants(chat_id=chat_id)
+    participants_response = client.human_api_participants.list_my_chat_participants(
+        chat_id=chat_id
+    )
     participants = participants_response.data or []
 
     # Build name -> participant mapping
@@ -100,7 +104,7 @@ def send_my_chat_message(
         )
 
     message_request = ChatMessageRequest(content=content, mentions=mentions_list)
-    result = client.human_api.send_my_chat_message(
+    result = client.human_api_messages.send_my_chat_message(
         chat_id=chat_id, message=message_request
     )
     return serialize_response(result)

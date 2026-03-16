@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Optional
 
@@ -19,7 +21,7 @@ def get_agent_me(ctx: AppContextType) -> str:
     """
     logger.debug("Fetching agent profile")
     client = get_app_context(ctx).client
-    result = client.agent_api.get_agent_me()
+    result = client.agent_api_identity.get_agent_me()
     logger.info("Retrieved agent profile: %s", result.data.name)
     return serialize_response(result)
 
@@ -49,7 +51,7 @@ def list_agent_peers(
     """
     logger.debug("Fetching agent peers")
     client = get_app_context(ctx).client
-    result = client.agent_api.list_agent_peers(
+    result = client.agent_api_peers.list_agent_peers(
         not_in_chat=not_in_chat,
         page=page,
         page_size=page_size,

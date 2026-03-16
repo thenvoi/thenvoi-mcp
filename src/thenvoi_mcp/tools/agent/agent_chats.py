@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Optional
 
@@ -28,7 +30,7 @@ def list_agent_chats(
     """
     logger.debug("Fetching agent's chat rooms")
     client = get_app_context(ctx).client
-    result = client.agent_api.list_agent_chats(
+    result = client.agent_api_chats.list_agent_chats(
         page=page,
         page_size=page_size,
     )
@@ -52,7 +54,7 @@ def get_agent_chat(ctx: AppContextType, chat_id: str) -> str:
     """
     logger.debug("Fetching chat with ID: %s", chat_id)
     client = get_app_context(ctx).client
-    result = client.agent_api.get_agent_chat(id=chat_id)
+    result = client.agent_api_chats.get_agent_chat(id=chat_id)
     logger.info("Retrieved chat: %s", chat_id)
     return serialize_response(result)
 
@@ -79,7 +81,7 @@ def create_agent_chat(
     # Build request
     chat_request = ChatRoomRequest(task_id=task_id) if task_id else ChatRoomRequest()
 
-    result = client.agent_api.create_agent_chat(chat=chat_request)
+    result = client.agent_api_chats.create_agent_chat(chat=chat_request)
 
     logger.info("Chat room created successfully: %s", result.data.id)
     return serialize_response(result)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -39,7 +41,7 @@ def get_agent_chat_context(
     """
     logger.debug("Fetching agent context for chat: %s", chat_id)
     client = get_app_context(ctx).client
-    result = client.agent_api.get_agent_chat_context(
+    result = client.agent_api_context.get_agent_chat_context(
         chat_id=chat_id,
         page=page,
         page_size=page_size,
@@ -129,8 +131,8 @@ def create_agent_chat_message(
             raise ValueError("recipients cannot be empty")
 
         # Fetch participants to map names to IDs
-        participants_response = client.agent_api.list_agent_chat_participants(
-            chat_id=chat_id
+        participants_response = (
+            client.agent_api_participants.list_agent_chat_participants(chat_id=chat_id)
         )
         participants = participants_response.data
 
@@ -183,7 +185,7 @@ def create_agent_chat_message(
         mentions=mentions_list,
     )
 
-    result = client.agent_api.create_agent_chat_message(
+    result = client.agent_api_messages.create_agent_chat_message(
         chat_id=chat_id,
         message=message_request,
     )

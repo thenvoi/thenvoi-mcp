@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from thenvoi_rest import AgentRegisterRequest
@@ -18,7 +20,7 @@ def list_my_agents(
         page_size: Items per page (optional).
     """
     client = get_app_context(ctx).client
-    result = client.human_api.list_my_agents(page=page, page_size=page_size)
+    result = client.human_api_agents.list_my_agents(page=page, page_size=page_size)
     return serialize_response(result)
 
 
@@ -42,5 +44,5 @@ def register_my_agent(
     agent_request = AgentRegisterRequest(
         name=name, description=description, model_type=model_type
     )
-    result = client.human_api.register_my_agent(agent=agent_request)
+    result = client.human_api_agents.register_my_agent(agent=agent_request)
     return serialize_response(result)

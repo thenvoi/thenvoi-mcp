@@ -16,28 +16,28 @@ from thenvoi_mcp.tools.agent.agent_participants import (
 class TestListAgentChatParticipants:
     """Tests for list_agent_chat_participants tool."""
 
-    def test_returns_list_of_participants(self, mock_ctx, mock_agent_api):
+    def test_returns_list_of_participants(self, mock_ctx, mock_agent_api_participants):
         """Test successful retrieval of participant list."""
         chat_id = "chat-123"
         participants = [
             factory.chat_participant(name="Agent A", type="Agent", role="owner"),
             factory.chat_participant(name="User B", type="User", role="member"),
         ]
-        mock_agent_api.list_agent_chat_participants.return_value = (
+        mock_agent_api_participants.list_agent_chat_participants.return_value = (
             factory.list_response(participants)
         )
 
         result = list_agent_chat_participants(mock_ctx, chat_id=chat_id)
 
-        mock_agent_api.list_agent_chat_participants.assert_called_once_with(
+        mock_agent_api_participants.list_agent_chat_participants.assert_called_once_with(
             chat_id=chat_id
         )
         parsed = json.loads(result)
         assert len(parsed["data"]) == 2
 
-    def test_empty_participant_list(self, mock_ctx, mock_agent_api):
+    def test_empty_participant_list(self, mock_ctx, mock_agent_api_participants):
         """Test handling of empty participant list."""
-        mock_agent_api.list_agent_chat_participants.return_value = (
+        mock_agent_api_participants.list_agent_chat_participants.return_value = (
             factory.list_response([])
         )
 
@@ -46,7 +46,9 @@ class TestListAgentChatParticipants:
         parsed = json.loads(result)
         assert parsed["data"] == []
 
-    def test_participant_includes_required_fields(self, mock_ctx, mock_agent_api):
+    def test_participant_includes_required_fields(
+        self, mock_ctx, mock_agent_api_participants
+    ):
         """Test that participant data includes required fields."""
         participant = factory.chat_participant(
             name="Test Agent",
@@ -54,7 +56,7 @@ class TestListAgentChatParticipants:
             role="admin",
             status="active",
         )
-        mock_agent_api.list_agent_chat_participants.return_value = (
+        mock_agent_api_participants.list_agent_chat_participants.return_value = (
             factory.list_response([participant])
         )
 
@@ -72,7 +74,7 @@ class TestListAgentChatParticipants:
 class TestAddAgentChatParticipant:
     """Tests for add_agent_chat_participant tool."""
 
-    def test_adds_participant_without_role(self, mock_ctx, mock_agent_api):
+    def test_adds_participant_without_role(self, mock_ctx, mock_agent_api_participants):
         """Test adding a participant with default role."""
         chat_id = "chat-123"
         participant_id = "agent-456"
@@ -81,14 +83,16 @@ class TestAddAgentChatParticipant:
             mock_ctx, chat_id=chat_id, participant_id=participant_id
         )
 
-        mock_agent_api.add_agent_chat_participant.assert_called_once()
-        call_args = mock_agent_api.add_agent_chat_participant.call_args
+        mock_agent_api_participants.add_agent_chat_participant.assert_called_once()
+        call_args = mock_agent_api_participants.add_agent_chat_participant.call_args
         assert call_args.kwargs["chat_id"] == chat_id
         assert call_args.kwargs["participant"].participant_id == participant_id
         assert call_args.kwargs["participant"].role == "member"  # Default role
         assert f"Participant added successfully: {participant_id}" == result
 
-    def test_adds_participant_with_member_role(self, mock_ctx, mock_agent_api):
+    def test_adds_participant_with_member_role(
+        self, mock_ctx, mock_agent_api_participants
+    ):
         """Test adding a participant with member role."""
         chat_id = "chat-123"
         participant_id = "agent-456"
@@ -97,10 +101,12 @@ class TestAddAgentChatParticipant:
             mock_ctx, chat_id=chat_id, participant_id=participant_id, role="member"
         )
 
-        call_args = mock_agent_api.add_agent_chat_participant.call_args
+        call_args = mock_agent_api_participants.add_agent_chat_participant.call_args
         assert call_args.kwargs["participant"].role == "member"
 
-    def test_adds_participant_with_admin_role(self, mock_ctx, mock_agent_api):
+    def test_adds_participant_with_admin_role(
+        self, mock_ctx, mock_agent_api_participants
+    ):
         """Test adding a participant with admin role."""
         chat_id = "chat-123"
         participant_id = "agent-456"
@@ -109,10 +115,12 @@ class TestAddAgentChatParticipant:
             mock_ctx, chat_id=chat_id, participant_id=participant_id, role="admin"
         )
 
-        call_args = mock_agent_api.add_agent_chat_participant.call_args
+        call_args = mock_agent_api_participants.add_agent_chat_participant.call_args
         assert call_args.kwargs["participant"].role == "admin"
 
-    def test_adds_participant_with_owner_role(self, mock_ctx, mock_agent_api):
+    def test_adds_participant_with_owner_role(
+        self, mock_ctx, mock_agent_api_participants
+    ):
         """Test adding a participant with owner role."""
         chat_id = "chat-123"
         participant_id = "agent-456"
@@ -121,19 +129,19 @@ class TestAddAgentChatParticipant:
             mock_ctx, chat_id=chat_id, participant_id=participant_id, role="owner"
         )
 
-        call_args = mock_agent_api.add_agent_chat_participant.call_args
+        call_args = mock_agent_api_participants.add_agent_chat_participant.call_args
         assert call_args.kwargs["participant"].role == "owner"
 
-    def test_role_is_case_insensitive(self, mock_ctx, mock_agent_api):
+    def test_role_is_case_insensitive(self, mock_ctx, mock_agent_api_participants):
         """Test that role parameter is case insensitive."""
         add_agent_chat_participant(
             mock_ctx, chat_id="chat-123", participant_id="agent-456", role="ADMIN"
         )
 
-        call_args = mock_agent_api.add_agent_chat_participant.call_args
+        call_args = mock_agent_api_participants.add_agent_chat_participant.call_args
         assert call_args.kwargs["participant"].role == "admin"
 
-    def test_raises_on_invalid_role(self, mock_ctx, mock_agent_api):
+    def test_raises_on_invalid_role(self, mock_ctx, mock_agent_api_participants):
         """Test error handling for invalid role."""
         with pytest.raises(ValueError, match="Invalid role: invalid_role"):
             add_agent_chat_participant(
@@ -152,7 +160,7 @@ class TestAddAgentChatParticipant:
 class TestRemoveAgentChatParticipant:
     """Tests for remove_agent_chat_participant tool."""
 
-    def test_removes_participant(self, mock_ctx, mock_agent_api):
+    def test_removes_participant(self, mock_ctx, mock_agent_api_participants):
         """Test successful participant removal."""
         chat_id = "chat-123"
         participant_id = "agent-456"
@@ -161,7 +169,7 @@ class TestRemoveAgentChatParticipant:
             mock_ctx, chat_id=chat_id, participant_id=participant_id
         )
 
-        mock_agent_api.remove_agent_chat_participant.assert_called_once_with(
+        mock_agent_api_participants.remove_agent_chat_participant.assert_called_once_with(
             chat_id=chat_id,
             id=participant_id,
         )

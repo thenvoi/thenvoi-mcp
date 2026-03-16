@@ -73,7 +73,7 @@ class TestAuthenticationErrors:
         )
 
         with pytest.raises(UnauthorizedError) as exc_info:
-            bad_client.agent_api.get_agent_me()
+            bad_client.agent_api_identity.get_agent_me()
 
         logger.info("Got expected UnauthorizedError: %s", exc_info.value)
         logger.info("✓ Wrong API key correctly raises UnauthorizedError")
