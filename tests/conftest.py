@@ -74,6 +74,18 @@ class MockContext:
 
 
 @pytest.fixture
+def mock_agent_api() -> MagicMock:
+    """Shared mock for agent namespace clients."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_human_api() -> MagicMock:
+    """Shared mock for human namespace clients."""
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_api_client(mock_agent_api: MagicMock, mock_human_api: MagicMock) -> AsyncMock:
     """Create a mocked RestClient with v0.0.4 split namespace properties.
 
@@ -96,6 +108,7 @@ def mock_api_client(mock_agent_api: MagicMock, mock_human_api: MagicMock) -> Asy
     client.agent_api_peers = mock_agent_api
     client.agent_api_context = mock_agent_api
     client.agent_api_contacts = mock_agent_api
+    client.agent_api_memories = mock_agent_api
 
     # Human namespaces
     client.human_api_agents = mock_human_api
@@ -105,6 +118,7 @@ def mock_api_client(mock_agent_api: MagicMock, mock_human_api: MagicMock) -> Asy
     client.human_api_profile = mock_human_api
     client.human_api_peers = mock_human_api
     client.human_api_contacts = mock_human_api
+    client.human_api_memories = mock_human_api
 
     return client
 
@@ -113,3 +127,13 @@ def mock_api_client(mock_agent_api: MagicMock, mock_human_api: MagicMock) -> Asy
 def mock_ctx(mock_api_client: Mock) -> MockContext:
     """Create a mock Context with a mocked API client for unit tests."""
     return MockContext(client=mock_api_client)
+
+
+@pytest.fixture
+def mock_agent_api_memories(mock_agent_api: MagicMock) -> MagicMock:
+    return mock_agent_api
+
+
+@pytest.fixture
+def mock_human_api_memories(mock_human_api: MagicMock) -> MagicMock:
+    return mock_human_api

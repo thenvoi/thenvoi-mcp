@@ -35,6 +35,7 @@ def load_tools(key_type: str) -> None:
             agent_events,
             agent_identity,
             agent_lifecycle,
+            agent_memories,
             agent_messages,
             agent_participants,
         )
@@ -46,6 +47,7 @@ def load_tools(key_type: str) -> None:
             human_agents,
             human_chats,
             human_contacts,
+            human_memories,
             human_messages,
             human_participants,
             human_profile,
