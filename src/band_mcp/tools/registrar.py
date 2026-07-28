@@ -40,6 +40,7 @@ import json
 from typing import Annotated, Any, Callable, Literal, cast
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import AliasChoices, BaseModel, Field, ValidationError, create_model
 from pydantic.fields import FieldInfo
 from pydantic.json_schema import SkipJsonSchema
@@ -490,6 +491,20 @@ def _classify_tool(
 # ---------------------------------------------------------------------------
 
 
+# Read-only tools, by the SDK method they dispatch to. A read-only hint lets
+# an MCP client (e.g. Claude Desktop) relax its approval UI for tools that
+# cannot change anything; write tools get no annotation and keep the client's
+# default caution.
+READ_ONLY_METHOD_PREFIXES = ("list_", "get_", "lookup_", "resolve_")
+
+
+def tool_annotations(method_name: str) -> ToolAnnotations | None:
+    """Annotations for one tool, derived from its SDK method's verb."""
+    if method_name.startswith(READ_ONLY_METHOD_PREFIXES):
+        return ToolAnnotations(readOnlyHint=True)
+    return None
+
+
 def register_tools(mcp: FastMCP, config: Config) -> None:
     """Register every SDK-defined tool for the scopes in ``config.scope``.
 
@@ -557,7 +572,11 @@ def register_tools(mcp: FastMCP, config: Config) -> None:
                 is_agent_room_bound=is_agent_room_bound,
                 is_human_room_bound=is_human_room_bound,
             )
-            mcp.add_tool(handler, name=definition.name)
+            mcp.add_tool(
+                handler,
+                name=definition.name,
+                annotations=tool_annotations(definition.method_name),
+            )
             total += 1
 
     logger.info("SDK-driven registrar: registered %d tools", total)
